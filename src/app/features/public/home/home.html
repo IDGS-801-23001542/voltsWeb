@@ -1,0 +1,211 @@
+<div class="home-page">
+  <!-- =====================================================
+       HERO
+       ===================================================== -->
+  <section class="hero">
+    <div class="hero-bg">
+      <img
+        [src]="
+          theme.isNight()
+            ? 'assets/images/background_night.jpg'
+            : 'assets/images/background_day.jpg'
+        "
+        [alt]="
+          theme.isNight()
+            ? 'VOLTS durante la noche'
+            : 'VOLTS durante el día'
+        "
+      />
+    </div>
+
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+      <div class="logo-wrap">
+        <div
+          class="logo-glow"
+          [class.night]="theme.isNight()"
+        ></div>
+
+        <img
+          src="assets/images/logo_volts.png"
+          alt="VOLTS, perro robot educativo"
+          class="hero-logo"
+        />
+      </div>
+
+      <p class="hero-subtitle">
+        El compañero que cuida el planeta
+      </p>
+
+      <p class="hero-description">
+        Hecho con materiales reciclados · Enseña a los niños a
+        amar a los animales y cuidar el medio ambiente
+      </p>
+
+      <div class="hero-actions">
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="goTo('/aprendizaje')"
+        >
+          🎓 ¿Por qué es educativo?
+        </button>
+
+        <button
+          class="primary-button"
+          type="button"
+          (click)="goTo('/cotizacion')"
+        >
+          Ver Cotización →
+        </button>
+      </div>
+    </div>
+
+    <div class="wave" aria-hidden="true">
+      <svg
+        viewBox="0 0 1440 80"
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z"
+          [attr.fill]="theme.isNight() ? '#000000' : '#f0fdf4'"
+        />
+      </svg>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       INTERACCIONES
+       ===================================================== -->
+  <section class="home-section interactions-section">
+    <div class="home-container">
+      <div class="section-heading">
+        <span class="section-kicker">
+          Una mascota que responde
+        </span>
+
+        <h2>¿Qué hace VOLTS?</h2>
+
+        <p class="section-description">
+          Cuatro modos de interacción que convierten el juego
+          en rutinas de cuidado, responsabilidad y empatía.
+        </p>
+      </div>
+
+      <div class="interaction-grid">
+        @for (item of interactions; track item.label) {
+          <article class="interaction-card">
+            <div class="interaction-image">
+              <img
+                [src]="item.img"
+                [alt]="item.label"
+              />
+            </div>
+
+            <h3>{{ item.label }}</h3>
+
+            <p>{{ item.desc }}</p>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       CARACTERÍSTICAS ECOLÓGICAS
+       ===================================================== -->
+  <section class="home-section eco-section">
+    <div class="home-container">
+      <div class="section-heading">
+        <span class="section-kicker eco-kicker">
+          Tecnología responsable
+        </span>
+
+        <h2>♻️ ¿Por qué es ecológico?</h2>
+
+        <p class="section-description">
+          VOLTS aprovecha materiales reciclados para transformarlos
+          en una experiencia tecnológica, educativa y respetuosa
+          con el planeta.
+        </p>
+      </div>
+
+      <div class="eco-grid">
+        @for (feature of ecoFeatures; track feature.title) {
+          <article class="eco-card">
+            <span class="eco-icon">
+              {{ feature.icon }}
+            </span>
+
+            <h3>{{ feature.title }}</h3>
+
+            <p>{{ feature.text }}</p>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       BENEFICIO PRINCIPAL
+       ===================================================== -->
+  <section class="impact-section">
+    <div class="impact-container">
+      <div class="impact-icon" aria-hidden="true">
+        🌎
+      </div>
+
+      <div class="impact-content">
+        <span class="impact-label">
+          Tecnología con propósito
+        </span>
+
+        <h2>
+          Aprender, cuidar y reciclar en una sola experiencia
+        </h2>
+
+        <p>
+          VOLTS combina robótica, educación ambiental e interacción
+          emocional para enseñar mediante el juego.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       CTA COMPACTO
+       ===================================================== -->
+  <section class="bottom-cta">
+    <div class="bottom-cta-card">
+      <div class="bottom-cta-decoration" aria-hidden="true">
+        <span>🐾</span>
+      </div>
+
+      <div class="bottom-cta-copy">
+        <span class="bottom-cta-label">
+          Conoce nuestras opciones
+        </span>
+
+        <h2>
+          ¿Listo para llevar VOLTS a casa o a tu institución?
+        </h2>
+
+        <p>
+          Selecciona el plan que mejor se adapte a tus necesidades
+          y solicita una cotización.
+        </p>
+      </div>
+
+      <div class="bottom-cta-action">
+        <button
+          class="primary-button cta-button"
+          type="button"
+          (click)="goTo('/cotizacion')"
+        >
+          Ver Cotización →
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

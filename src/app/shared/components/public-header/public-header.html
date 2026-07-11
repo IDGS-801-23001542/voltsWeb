@@ -1,0 +1,98 @@
+<header
+  class="public-header"
+  [class.header-hidden]="headerHidden()"
+  [class.header-scrolled]="headerScrolled()"
+  [class.menu-is-open]="menuOpen()"
+>
+  <div class="header-container">
+
+    <div class="brand-area">
+      <a
+        routerLink="/"
+        class="brand"
+        (click)="closeMenu()"
+      >
+        <img
+          src="assets/images/logo_volts.png"
+          alt="VOLTS"
+        />
+      </a>
+
+      <button
+        type="button"
+        class="theme-toggle"
+        (click)="theme.toggleTheme()"
+        [attr.aria-label]="
+          theme.isNight()
+            ? 'Cambiar a modo claro'
+            : 'Cambiar a modo oscuro'
+        "
+        [title]="
+          theme.isNight()
+            ? 'Cambiar a modo claro'
+            : 'Cambiar a modo oscuro'
+        "
+      >
+        {{ theme.isNight() ? '🌙' : '☀️' }}
+      </button>
+    </div>
+
+    <nav class="desktop-nav">
+      @for (item of navItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{
+            exact: item.exact
+          }"
+        >
+          {{ item.label }}
+        </a>
+      }
+
+      <a
+        routerLink="/login"
+        routerLinkActive="login-active"
+        class="login-link"
+      >
+        🔐 Login
+      </a>
+    </nav>
+
+    <button
+      type="button"
+      class="menu-button"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="menuOpen()"
+      aria-label="Abrir o cerrar menú"
+    >
+      {{ menuOpen() ? '✕' : '☰' }}
+    </button>
+  </div>
+
+  @if (menuOpen()) {
+    <nav class="mobile-nav">
+      @for (item of navItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{
+            exact: item.exact
+          }"
+          (click)="closeMenu()"
+        >
+          {{ item.label }}
+        </a>
+      }
+
+      <a
+        routerLink="/login"
+        routerLinkActive="login-active"
+        class="mobile-login"
+        (click)="closeMenu()"
+      >
+        🔐 Login
+      </a>
+    </nav>
+  }
+</header>

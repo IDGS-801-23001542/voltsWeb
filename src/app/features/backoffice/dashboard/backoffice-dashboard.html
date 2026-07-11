@@ -1,0 +1,187 @@
+<section class="dashboard-page">
+  <div class="dashboard-heading">
+    <div>
+      <span class="page-label">
+        Panel ejecutivo
+      </span>
+
+      <h1>
+        Hola, {{ auth.currentUser()?.fullName }}
+      </h1>
+
+      <p>
+        Aquí tienes un resumen general de la operación
+        del ecosistema VOLTS.
+      </p>
+    </div>
+
+    <div class="current-date">
+      <span>📅</span>
+
+      <div>
+        <small>Fecha actual</small>
+        <strong>
+          {{ currentDate | date:'dd/MM/yyyy' }}
+        </strong>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="dashboard-loading">
+      <span class="loader"></span>
+      <p>Cargando información del sistema...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="dashboard-error">
+      <span>⚠️</span>
+
+      <div>
+        <strong>No se pudo cargar el resumen</strong>
+        <p>{{ errorMessage() }}</p>
+      </div>
+
+      <button
+        type="button"
+        (click)="loadSummary()"
+      >
+        Reintentar
+      </button>
+    </div>
+  } @else if (summary(); as data) {
+    <div class="main-statistics">
+      <article class="stat-card revenue-card">
+        <div class="stat-icon">💰</div>
+
+        <div>
+          <span>Ingresos acumulados</span>
+
+          <strong>
+            {{
+              data.totalRevenue
+                | currency:'MXN':'symbol':'1.2-2'
+            }}
+          </strong>
+
+          <small>
+            {{ data.totalSales }} ventas registradas
+          </small>
+        </div>
+      </article>
+
+      <article class="stat-card licenses-card">
+        <div class="stat-icon">🔑</div>
+
+        <div>
+          <span>Licencias</span>
+          <strong>{{ data.totalLicenses }}</strong>
+          <small>Licencias del ecosistema</small>
+        </div>
+      </article>
+
+      <article class="stat-card products-card">
+        <div class="stat-icon">🐕</div>
+
+        <div>
+          <span>Productos</span>
+          <strong>{{ data.totalProducts }}</strong>
+          <small>Productos en catálogo</small>
+        </div>
+      </article>
+
+      <article class="stat-card users-card">
+        <div class="stat-icon">👤</div>
+
+        <div>
+          <span>Usuarios</span>
+          <strong>{{ data.totalUsers }}</strong>
+          <small>Cuentas registradas</small>
+        </div>
+      </article>
+    </div>
+
+    <div class="dashboard-grid">
+      <section class="dashboard-panel commercial-panel">
+        <div class="panel-heading">
+          <div>
+            <span>Actividad comercial</span>
+            <h2>Resumen de operación</h2>
+          </div>
+
+          <div class="panel-icon">📈</div>
+        </div>
+
+        <div class="commercial-cards">
+          @for (
+            card of commercialCards();
+            track card.label
+          ) {
+            <article class="commercial-card">
+              <span class="commercial-icon">
+                {{ card.icon }}
+              </span>
+
+              <div>
+                <strong>{{ card.value }}</strong>
+                <b>{{ card.label }}</b>
+                <small>{{ card.description }}</small>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+
+      <section class="dashboard-panel alerts-panel">
+        <div class="panel-heading">
+          <div>
+            <span>Atención requerida</span>
+            <h2>Alertas del sistema</h2>
+          </div>
+
+          <div class="panel-icon">🚨</div>
+        </div>
+
+        <div class="alert-list">
+          <article
+            class="system-alert"
+            [class.alert-warning]="data.lowStock > 0"
+          >
+            <span class="alert-icon">📦</span>
+
+            <div>
+              <strong>
+                {{ data.lowStock }} materiales con stock bajo
+              </strong>
+
+              <p>
+                De {{ data.totalRawMaterials }}
+                materias primas registradas.
+              </p>
+            </div>
+          </article>
+
+          <article
+            class="system-alert"
+            [class.alert-warning]="
+              data.openSupportTickets > 0
+            "
+          >
+            <span class="alert-icon">🎧</span>
+
+            <div>
+              <strong>
+                {{ data.openSupportTickets }}
+                tickets abiertos
+              </strong>
+
+              <p>
+                De {{ data.totalSupportTickets }}
+                solicitudes de soporte.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+  }
+</section>

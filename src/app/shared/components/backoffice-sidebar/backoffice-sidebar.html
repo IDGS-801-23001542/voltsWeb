@@ -1,0 +1,157 @@
+<aside
+  class="sidebar"
+  [class.sidebar-open]="open"
+>
+  <div class="sidebar-brand">
+    <a
+      routerLink="/backoffice"
+      class="brand-link"
+      (click)="closeAfterNavigation()"
+    >
+      <img
+        src="assets/images/logo_volts.png"
+        alt="VOLTS"
+      />
+
+      <div>
+        <strong>VOLTS</strong>
+        <small>Centro de gestión</small>
+      </div>
+    </a>
+
+    <button
+      type="button"
+      class="sidebar-close"
+      aria-label="Cerrar menú"
+      (click)="close()"
+    >
+      ✕
+    </button>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">
+      {{
+        auth.currentUser()
+          ?.fullName
+          ?.charAt(0)
+          ?.toUpperCase()
+        ?? 'V'
+      }}
+    </div>
+
+    <div class="user-information">
+      <strong>
+        {{ auth.currentUser()?.fullName }}
+      </strong>
+
+      <span
+        class="role-badge"
+        [class.admin-role]="
+          auth.hasRole('Admin')
+        "
+      >
+        {{
+          auth.hasRole('Admin')
+            ? 'Administrador'
+            : 'Empleado'
+        }}
+      </span>
+    </div>
+  </div>
+
+  <nav class="sidebar-navigation">
+    @for (
+      group of menuGroups();
+      track group.title
+    ) {
+      <section
+        class="menu-group"
+        [class.group-expanded]="
+          isExpanded(group.title)
+        "
+      >
+        @if (isPrincipal(group.title)) {
+          <p class="menu-title principal-title">
+            {{ group.title }}
+          </p>
+        } @else {
+          <button
+            type="button"
+            class="menu-group-button"
+            [attr.aria-expanded]="
+              isExpanded(group.title)
+            "
+            (click)="toggleGroup(group.title)"
+          >
+            <span class="menu-title">
+              {{ group.title }}
+            </span>
+
+            <span
+              class="group-chevron"
+              aria-hidden="true"
+            >
+              ›
+            </span>
+          </button>
+        }
+
+        <div
+          class="menu-items-wrapper"
+          [class.items-visible]="
+            isExpanded(group.title)
+          "
+        >
+          <div class="menu-items">
+            @for (
+              item of group.items;
+              track item.route
+            ) {
+              <a
+                [routerLink]="item.route"
+                routerLinkActive="active-link"
+                [routerLinkActiveOptions]="{
+                  exact: item.exact ?? false
+                }"
+                class="menu-link"
+                (click)="closeAfterNavigation()"
+              >
+                <span
+                  class="menu-icon"
+                  aria-hidden="true"
+                >
+                  {{ item.icon }}
+                </span>
+
+                <span class="menu-label">
+                  {{ item.label }}
+                </span>
+              </a>
+            }
+          </div>
+        </div>
+      </section>
+    }
+  </nav>
+
+  <div class="sidebar-footer">
+    <a
+      routerLink="/"
+      class="site-link"
+      (click)="closeAfterNavigation()"
+    >
+      <span>🌐</span>
+      Ir al sitio público
+    </a>
+
+    <button
+      type="button"
+      class="logout-button"
+      (click)="auth.logout()"
+    >
+      <span>🚪</span>
+      Cerrar sesión
+    </button>
+  </div>
+</aside>

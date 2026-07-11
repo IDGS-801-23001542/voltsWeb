@@ -1,0 +1,431 @@
+<div class="contact-page">
+
+  <!-- =====================================================
+       HERO
+       ===================================================== -->
+  <section class="contact-hero">
+    <div
+      class="hero-decoration decoration-one"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="hero-decoration decoration-two"
+      aria-hidden="true"
+    ></div>
+
+    <div class="contact-hero-container">
+      <div class="hero-logo-container">
+        <div class="hero-logo-glow"></div>
+
+        <img
+          src="assets/images/logo_volts.png"
+          alt="VOLTS"
+        />
+      </div>
+
+      <span class="hero-label">
+        Estamos para ayudarte
+      </span>
+
+      <h1>📬 Contáctanos</h1>
+
+      <p>
+        Cuéntanos cómo podemos apoyarte con VOLTS.
+        Nuestro equipo revisará tu mensaje y podrá darle seguimiento.
+      </p>
+
+      <div class="hero-contact-badges">
+        <span>✉️ Atención por correo</span>
+        <span>📍 León, Guanajuato</span>
+        <span>🐾 Soporte VOLTS</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       CONTENIDO
+       ===================================================== -->
+  <section class="contact-content">
+    <div class="contact-main-container">
+      <div class="section-heading">
+        <span class="section-kicker">
+          Hablemos de tu proyecto
+        </span>
+
+        <h2>¿Cómo podemos ayudarte?</h2>
+
+        <p>
+          Completa el formulario o utiliza alguno de nuestros
+          medios de contacto.
+        </p>
+      </div>
+
+      <div class="contact-grid">
+
+        <!-- FORMULARIO -->
+        <div class="form-column">
+          @if (!submitted()) {
+            <form
+              class="contact-form"
+              [formGroup]="form"
+              (ngSubmit)="submit()"
+            >
+              <div class="form-heading">
+                <div class="form-heading-icon">
+                  💌
+                </div>
+
+                <div>
+                  <span>Escríbenos</span>
+                  <h2>Envíanos un mensaje</h2>
+                  <p>
+                    Los campos marcados con * son obligatorios.
+                  </p>
+                </div>
+              </div>
+
+              @if (errorMessage()) {
+                <div
+                  class="error-message"
+                  role="alert"
+                >
+                  <span>⚠️</span>
+                  <p>{{ errorMessage() }}</p>
+                </div>
+              }
+
+              <div class="form-grid">
+                <div class="field">
+                  <label for="contact-name">
+                    Nombre completo *
+                  </label>
+
+                  <input
+                    id="contact-name"
+                    formControlName="fullName"
+                    autocomplete="name"
+                    placeholder="Tu nombre completo"
+                  />
+
+                  @if (
+                    form.controls.fullName.touched &&
+                    form.controls.fullName.invalid
+                  ) {
+                    <small>
+                      Ingresa un nombre de al menos 3 caracteres.
+                    </small>
+                  }
+                </div>
+
+                <div class="field">
+                  <label for="contact-email">
+                    Correo electrónico *
+                  </label>
+
+                  <input
+                    id="contact-email"
+                    type="email"
+                    formControlName="email"
+                    autocomplete="email"
+                    placeholder="correo@ejemplo.com"
+                  />
+
+                  @if (
+                    form.controls.email.touched &&
+                    form.controls.email.invalid
+                  ) {
+                    <small>
+                      Ingresa un correo electrónico válido.
+                    </small>
+                  }
+                </div>
+
+                <div class="field">
+                  <label for="contact-phone">
+                    Teléfono
+                  </label>
+
+                  <input
+                    id="contact-phone"
+                    type="tel"
+                    formControlName="phone"
+                    autocomplete="tel"
+                    placeholder="+52 477 000 0000"
+                  />
+
+                  @if (
+                    form.controls.phone.touched &&
+                    form.controls.phone.invalid
+                  ) {
+                    <small>
+                      El teléfono no puede exceder 25 caracteres.
+                    </small>
+                  }
+                </div>
+
+                <div class="field">
+                  <label for="contact-subject">
+                    Asunto *
+                  </label>
+
+                  <input
+                    id="contact-subject"
+                    formControlName="subject"
+                    placeholder="¿En qué podemos ayudarte?"
+                  />
+
+                  @if (
+                    form.controls.subject.touched &&
+                    form.controls.subject.invalid
+                  ) {
+                    <small>
+                      Ingresa un asunto de al menos 4 caracteres.
+                    </small>
+                  }
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="contact-message">
+                  Mensaje *
+                </label>
+
+                <textarea
+                  id="contact-message"
+                  rows="7"
+                  formControlName="message"
+                  placeholder="Escribe tu mensaje aquí..."
+                ></textarea>
+
+                <div class="message-footer">
+                  @if (
+                    form.controls.message.touched &&
+                    form.controls.message.invalid
+                  ) {
+                    <small>
+                      Escribe un mensaje de al menos 10 caracteres.
+                    </small>
+                  } @else {
+                    <span>
+                      Cuéntanos todos los detalles que consideres necesarios.
+                    </span>
+                  }
+
+                  <b>
+                    {{ form.controls.message.value.length }}/2000
+                  </b>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                class="submit-contact-button"
+                [disabled]="loading()"
+              >
+                @if (loading()) {
+                  <span class="button-loader"></span>
+                  Enviando mensaje...
+                } @else {
+                  Enviar mensaje 💌
+                }
+              </button>
+
+              <p class="form-privacy">
+                🔒 Tus datos serán utilizados únicamente para
+                responder tu mensaje.
+              </p>
+            </form>
+          } @else {
+            <article class="contact-success">
+              <div class="success-decoration success-one"></div>
+              <div class="success-decoration success-two"></div>
+
+              <div class="success-icon">
+                🐾
+              </div>
+
+              <span class="success-label">
+                Mensaje registrado
+              </span>
+
+              <h2>¡Mensaje enviado!</h2>
+
+              <p>
+                Gracias,
+                <strong>
+                  {{ form.controls.fullName.value }}
+                </strong>.
+                Recibimos correctamente tu mensaje.
+              </p>
+
+              <div class="success-email">
+                <span>Responderemos a:</span>
+
+                <strong>
+                  {{ form.controls.email.value }}
+                </strong>
+              </div>
+
+              <p class="success-note">
+                Nuestro equipo podrá revisar el mensaje desde
+                el portal administrativo.
+              </p>
+
+              <button
+                type="button"
+                (click)="sendAnother()"
+              >
+                Enviar otro mensaje
+              </button>
+            </article>
+          }
+        </div>
+
+        <!-- INFORMACIÓN -->
+        <aside class="contact-sidebar">
+
+          <article class="contact-info info-card">
+            <div class="card-heading">
+              <div class="card-heading-icon green-icon">
+                📇
+              </div>
+
+              <div>
+                <span>Medios disponibles</span>
+                <h2>Información de contacto</h2>
+              </div>
+            </div>
+
+            <div class="contact-items">
+              <a
+                class="contact-item"
+                href="mailto:voltsidgs@gmail.com"
+              >
+                <span class="contact-item-icon">
+                  ✉️
+                </span>
+
+                <div>
+                  <small>Correo electrónico</small>
+                  <strong>
+                    voltsidgs&#64;gmail.com
+                  </strong>
+                </div>
+
+                <b>→</b>
+              </a>
+
+              <a
+                class="contact-item"
+                href="tel:+524770000000"
+              >
+                <span class="contact-item-icon">
+                  📞
+                </span>
+
+                <div>
+                  <small>Teléfono</small>
+                  <strong>
+                    +52 477 000 0000
+                  </strong>
+                </div>
+
+                <b>→</b>
+              </a>
+
+              <div class="contact-item location-item">
+                <span class="contact-item-icon">
+                  📍
+                </span>
+
+                <div>
+                  <small>Ubicación</small>
+                  <strong>
+                    León, Guanajuato, México
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="response-card">
+            <div class="response-icon">
+              ⚡
+            </div>
+
+            <div>
+              <span>Tiempo de respuesta</span>
+              <strong>Seguimiento personalizado</strong>
+              <p>
+                Revisaremos tu mensaje desde el portal de VOLTS.
+              </p>
+            </div>
+          </article>
+
+          <article class="social-card info-card">
+            <div class="card-heading">
+              <div class="card-heading-icon purple-icon">
+                🐾
+              </div>
+
+              <div>
+                <span>Comunidad VOLTS</span>
+                <h2>Síguenos</h2>
+              </div>
+            </div>
+
+            <div class="social-links">
+              <a
+                href="#"
+                class="facebook"
+                aria-label="Facebook de VOLTS"
+              >
+                <i class="bi bi-facebook"></i>
+                <span>Facebook</span>
+                <b>→</b>
+              </a>
+
+              <a
+                href="#"
+                class="instagram"
+                aria-label="Instagram de VOLTS"
+              >
+                <i class="bi bi-instagram"></i>
+                <span>Instagram</span>
+                <b>→</b>
+              </a>
+
+              <a
+                href="#"
+                class="tiktok"
+                aria-label="TikTok de VOLTS"
+              >
+                <i class="bi bi-tiktok"></i>
+                <span>TikTok</span>
+                <b>→</b>
+              </a>
+            </div>
+          </article>
+
+          <article class="schedule-card">
+            <div class="schedule-decoration"></div>
+
+            <div class="schedule-icon">
+              🕐
+            </div>
+
+            <div>
+              <span>Horario de atención</span>
+              <h2>Lunes a viernes</h2>
+              <strong>9:00–18:00 horas</strong>
+              <small>
+                Atención y seguimiento por correo electrónico.
+              </small>
+            </div>
+          </article>
+        </aside>
+      </div>
+    </div>
+  </section>
+</div>

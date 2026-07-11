@@ -1,0 +1,130 @@
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+:root {
+  --green-main: #16a34a;
+  --green-bright: #22c55e;
+  --green-dark: #1a2e1a;
+  --green-deep: #15803d;
+  --green-bg: #f0fdf4;
+  --green-soft: #dcfce7;
+  --green-light: #86efac;
+
+  --purple-main: #7c6bbd;
+  --purple-dark: #5b4f9e;
+  --purple-light: #c4b5fd;
+  --purple-bg: #f5f3ff;
+
+  --cyan-main: #0891b2;
+  --yellow-soft: #fef9c3;
+  --brown-main: #b45309;
+
+  --text-main: #1a2e1a;
+  --text-muted: #64748b;
+  --white: #ffffff;
+
+  --font-title: 'Fredoka One', cursive;
+  --font-body: 'Nunito', sans-serif;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-body);
+  color: var(--text-main);
+  background: var(--green-bg);
+}
+
+body {
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+.container {
+  width: min(100% - 2rem, 1152px);
+  margin-inline: auto;
+}
+
+.page-section {
+  padding: 4rem 1rem;
+}
+
+.volts-title {
+  font-family: var(--font-title);
+  font-weight: 900;
+}
+
+.volts-button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.9rem 1.8rem;
+  font-family: var(--font-title);
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.volts-button-primary {
+  @extend .volts-button;
+  color: white;
+  background: linear-gradient(135deg, var(--green-bright), var(--green-main));
+  box-shadow: 0 8px 32px rgba(22, 163, 74, 0.4);
+}
+
+.volts-button-secondary {
+  @extend .volts-button;
+  color: var(--green-main);
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid var(--green-main);
+}
+
+.volts-card {
+  background: white;
+  border: 2px solid var(--green-light);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.volts-input {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 1rem;
+  border: 2px solid var(--green-light);
+  background: var(--green-bg);
+  color: var(--text-main);
+  font-weight: 700;
+  outline: none;
+
+  &:focus {
+    border-color: var(--green-main);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+  }
+}

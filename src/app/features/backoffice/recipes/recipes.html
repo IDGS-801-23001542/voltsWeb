@@ -1,0 +1,665 @@
+<section class="recipes-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Producción e inventario
+      </span>
+
+      <h1>Recetas BOM</h1>
+
+      <p>
+        Define los materiales y cantidades requeridos
+        para fabricar cada producto VOLTS.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateForm()"
+    >
+      ＋ Nueva receta
+    </button>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="summary-grid">
+    <article class="summary-card">
+      <span>📋</span>
+
+      <div>
+        <small>Total de recetas</small>
+        <strong>{{ recipes().length }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>✅</span>
+
+      <div>
+        <small>Recetas activas</small>
+        <strong>{{ activeRecipes() }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>⏸️</span>
+
+      <div>
+        <small>Recetas inactivas</small>
+        <strong>{{ inactiveRecipes() }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>💰</span>
+
+      <div>
+        <small>Costo promedio</small>
+
+        <strong>
+          {{
+            averageRecipeCost()
+              | currency:'MXN'
+          }}
+        </strong>
+      </div>
+    </article>
+  </div>
+
+  <section class="recipes-panel">
+    <div class="panel-toolbar">
+      <div class="search-control">
+        <span>🔎</span>
+
+        <input
+          type="search"
+          placeholder="Buscar por código o producto..."
+          [value]="searchTerm()"
+          (input)="updateSearch($event)"
+        />
+      </div>
+
+      <select
+        [value]="statusFilter()"
+        (change)="updateStatusFilter($event)"
+      >
+        <option value="all">
+          Todas las recetas
+        </option>
+
+        <option value="active">
+          Activas
+        </option>
+
+        <option value="inactive">
+          Inactivas
+        </option>
+      </select>
+    </div>
+
+    @if (loading()) {
+      <div class="state-container">
+        <span class="loader"></span>
+        <p>Cargando recetas...</p>
+      </div>
+    } @else if (
+      filteredRecipes().length === 0
+    ) {
+      <div class="state-container">
+        <span class="state-icon">📋</span>
+
+        <strong>
+          No se encontraron recetas
+        </strong>
+
+        <p>
+          Registra la receta de un producto para
+          comenzar a producirlo.
+        </p>
+      </div>
+    } @else {
+      <div class="recipe-grid">
+        @for (
+          recipe of filteredRecipes();
+          track recipe.id
+        ) {
+          <article class="recipe-card">
+            <header class="recipe-header">
+              <div class="recipe-icon">
+                🧾
+              </div>
+
+              <div>
+                <small>{{ recipe.code }}</small>
+                <h2>{{ recipe.productName }}</h2>
+              </div>
+
+              <span
+                class="status-badge"
+                [class.inactive-status]="
+                  !recipe.isActive
+                "
+              >
+                {{
+                  recipe.isActive
+                    ? 'Activa'
+                    : 'Inactiva'
+                }}
+              </span>
+            </header>
+
+            <div class="recipe-data">
+              <div>
+                <small>Versión</small>
+                <strong>V{{ recipe.version }}</strong>
+              </div>
+
+              <div>
+                <small>Componentes</small>
+                <strong>
+                  {{ recipe.details.length }}
+                </strong>
+              </div>
+
+              <div>
+                <small>Costo estimado</small>
+
+                <strong>
+                  {{
+                    recipe.estimatedUnitCost
+                      | currency:'MXN'
+                  }}
+                </strong>
+              </div>
+            </div>
+
+            @if (recipe.notes) {
+              <p class="recipe-notes">
+                {{ recipe.notes }}
+              </p>
+            }
+
+            <div class="recipe-actions">
+              <button
+                type="button"
+                (click)="openDetail(recipe)"
+              >
+                👁️ Detalle
+              </button>
+
+              <button
+                type="button"
+                (click)="openEditForm(recipe)"
+              >
+                ✏️ Editar
+              </button>
+
+              <button
+                type="button"
+                (click)="toggleStatus(recipe)"
+              >
+                {{
+                  recipe.isActive
+                    ? '⏸️ Desactivar'
+                    : '▶️ Activar'
+                }}
+              </button>
+
+              @if (isAdmin()) {
+                <button
+                  type="button"
+                  class="delete-button"
+                  (click)="requestDelete(recipe)"
+                >
+                  🗑️
+                </button>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>
+
+@if (formOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="closeForm()"
+  >
+    <section
+      class="modal-card recipe-modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            Lista de materiales
+          </span>
+
+          <h2>
+            {{
+              editingRecipe()
+                ? 'Editar receta'
+                : 'Nueva receta'
+            }}
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeForm()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
+        <section class="recipe-information">
+          <div class="form-field">
+            <label>Producto *</label>
+
+            <select formControlName="productId">
+              <option value="">
+                Selecciona un producto
+              </option>
+
+              @for (
+                product of products();
+                track product.id
+              ) {
+                <option [value]="product.id">
+                  {{ product.name }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Versión *</label>
+
+            <input
+              type="number"
+              min="1"
+              formControlName="version"
+            />
+          </div>
+
+          <label class="active-control">
+            <input
+              type="checkbox"
+              formControlName="isActive"
+            />
+
+            <span>
+              Receta activa para producción
+            </span>
+          </label>
+        </section>
+
+        <section class="materials-section">
+          <header class="section-heading">
+            <div>
+              <strong>Componentes</strong>
+
+              <small>
+                Cantidades necesarias para fabricar
+                una unidad.
+              </small>
+            </div>
+
+            <button
+              type="button"
+              class="add-button"
+              (click)="addDetail()"
+            >
+              ＋ Agregar material
+            </button>
+          </header>
+
+          <div
+            class="details-list"
+            formArrayName="details"
+          >
+            @for (
+              detail of details.controls;
+              track $index;
+              let index = $index
+            ) {
+              <article
+                class="detail-row"
+                [formGroupName]="index"
+              >
+                <span class="detail-number">
+                  {{ index + 1 }}
+                </span>
+
+                <div class="form-field material-field">
+                  <label>Materia prima *</label>
+
+                  <select
+                    formControlName="rawMaterialId"
+                  >
+                    <option value="">
+                      Selecciona un material
+                    </option>
+
+                    @for (
+                      material of materials();
+                      track material.id
+                    ) {
+                      <option [value]="material.id">
+                        {{ material.code }} -
+                        {{ material.name }}
+                      </option>
+                    }
+                  </select>
+
+                  @if (
+                    getMaterial(
+                      detail.get('rawMaterialId')?.value
+                    );
+                    as material
+                  ) {
+                    <small>
+                      {{ material.unit }}
+                      · Costo promedio:
+                      {{
+                        material.averageCost
+                          | currency:'MXN'
+                      }}
+                    </small>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label>Cantidad por unidad *</label>
+
+                  <input
+                    type="number"
+                    min="0.0001"
+                    step="0.0001"
+                    formControlName="quantityRequired"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label>Merma estimada %</label>
+
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    formControlName="wastePercentage"
+                  />
+                </div>
+
+                <label class="recovered-control">
+                  <input
+                    type="checkbox"
+                    formControlName="acceptsRecoveredWaste"
+                  />
+
+                  <span>
+                    Acepta material recuperado
+                  </span>
+                </label>
+
+                <div class="detail-cost">
+                  <small>Costo estimado</small>
+
+                  <strong>
+                    {{
+                      getDetailEstimatedCost(index)
+                        | currency:'MXN'
+                    }}
+                  </strong>
+                </div>
+
+                <button
+                  type="button"
+                  class="remove-button"
+                  [disabled]="details.length === 1"
+                  (click)="removeDetail(index)"
+                >
+                  🗑️
+                </button>
+              </article>
+            }
+          </div>
+        </section>
+
+        <section class="recipe-footer">
+          <div class="form-field">
+            <label>Observaciones</label>
+
+            <textarea
+              rows="4"
+              formControlName="notes"
+              placeholder="Indicaciones de ensamblaje o consideraciones de fabricación."
+            ></textarea>
+          </div>
+
+          <div class="cost-summary">
+            <small>
+              Costo estimado por unidad
+            </small>
+
+            <strong>
+              {{
+                estimatedTotal()
+                  | currency:'MXN'
+              }}
+            </strong>
+
+            <p>
+              Calculado con el costo promedio actual
+              de las materias primas.
+            </p>
+          </div>
+        </section>
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="closeForm()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            {{
+              saving()
+                ? 'Guardando...'
+                : 'Guardar receta'
+            }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (detailOpen() && selectedRecipe(); as recipe) {
+  <div
+    class="modal-backdrop"
+    (click)="closeDetail()"
+  >
+    <section
+      class="modal-card detail-modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            {{ recipe.code }}
+          </span>
+
+          <h2>{{ recipe.productName }}</h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeDetail()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <div class="detail-summary">
+        <div>
+          <small>Versión</small>
+          <strong>V{{ recipe.version }}</strong>
+        </div>
+
+        <div>
+          <small>Componentes</small>
+          <strong>{{ recipe.details.length }}</strong>
+        </div>
+
+        <div>
+          <small>Costo unitario</small>
+
+          <strong>
+            {{
+              recipe.estimatedUnitCost
+                | currency:'MXN'
+            }}
+          </strong>
+        </div>
+      </div>
+
+      <div class="component-list">
+        @for (
+          detail of recipe.details;
+          track detail.rawMaterialId
+        ) {
+          <article class="component-card">
+            <div>
+              <small>
+                {{ detail.rawMaterialCode }}
+              </small>
+
+              <strong>
+                {{ detail.rawMaterialName }}
+              </strong>
+            </div>
+
+            <div>
+              <small>Cantidad neta</small>
+
+              <strong>
+                {{ detail.quantityRequired }}
+                {{ detail.unit }}
+              </strong>
+            </div>
+
+            <div>
+              <small>Merma estimada</small>
+
+              <strong>
+                {{ detail.wastePercentage }}%
+              </strong>
+            </div>
+
+            <div>
+              <small>Costo</small>
+
+              <strong>
+                {{
+                  detail.estimatedSubtotal
+                    | currency:'MXN'
+                }}
+              </strong>
+            </div>
+
+            @if (detail.acceptsRecoveredWaste) {
+              <span class="recovered-badge">
+                ♻️ Acepta recuperado
+              </span>
+            }
+          </article>
+        }
+      </div>
+
+      @if (recipe.notes) {
+        <div class="notes-box">
+          <small>Observaciones</small>
+          <p>{{ recipe.notes }}</p>
+        </div>
+      }
+    </section>
+  </div>
+}
+
+@if (deleteCandidate(); as recipe) {
+  <div
+    class="modal-backdrop"
+    (click)="cancelDelete()"
+  >
+    <section
+      class="confirmation-card"
+      (click)="$event.stopPropagation()"
+    >
+      <span>🗑️</span>
+
+      <h2>Eliminar receta</h2>
+
+      <p>
+        ¿Deseas eliminar
+        <strong>{{ recipe.code }}</strong>?
+      </p>
+
+      <small>
+        Si ya fue utilizada en una producción,
+        el backend impedirá eliminarla.
+      </small>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="cancelDelete()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="danger-button"
+          [disabled]="deleting()"
+          (click)="confirmDelete()"
+        >
+          {{
+            deleting()
+              ? 'Eliminando...'
+              : 'Eliminar'
+          }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

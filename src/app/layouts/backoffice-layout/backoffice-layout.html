@@ -1,0 +1,25 @@
+<div class="backoffice-layout">
+  <app-backoffice-sidebar
+    [open]="sidebarOpen()"
+    (closeSidebar)="closeSidebar()"
+  />
+
+  @if (sidebarOpen()) {
+    <button
+      type="button"
+      class="sidebar-overlay"
+      aria-label="Cerrar menú"
+      (click)="closeSidebar()"
+    ></button>
+  }
+
+  <div class="backoffice-main">
+    <app-backoffice-header
+      (openSidebar)="openSidebar()"
+    />
+
+    <main class="backoffice-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

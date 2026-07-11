@@ -1,0 +1,268 @@
+<div class="learning-page">
+  <!-- =====================================================
+       HERO
+       ===================================================== -->
+  <section class="learning-hero">
+    <div class="learning-hero-decoration decoration-one"></div>
+    <div class="learning-hero-decoration decoration-two"></div>
+
+    <div class="hero-container">
+      <div class="learning-logo-container">
+        <div class="learning-logo-glow"></div>
+
+        <img
+          src="assets/images/logo_volts.png"
+          alt="VOLTS"
+        />
+      </div>
+
+      <span class="hero-label">
+        Educación, tecnología y juego
+      </span>
+
+      <h1>🎓 Aprender jugando</h1>
+
+      <p>
+        VOLTS es una herramienta educativa que desarrolla
+        responsabilidad, empatía y conciencia ambiental
+        mediante experiencias de juego e interacción.
+      </p>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       POR QUÉ FUNCIONA
+       ===================================================== -->
+  <section class="learning-section theories-section">
+    <div class="container">
+      <div class="section-heading">
+        <span class="section-kicker">
+          Aprendizaje significativo
+        </span>
+
+        <h2>¿Por qué funciona?</h2>
+
+        <p class="section-description">
+          VOLTS combina interacción, juego y reflexión para convertir
+          conceptos abstractos en experiencias claras, memorables
+          y cercanas para los niños.
+        </p>
+      </div>
+
+      <div class="theory-grid">
+        @for (theory of theories; track theory.title) {
+          <article class="theory-card">
+            <div class="theory-icon">
+              {{ theory.icon }}
+            </div>
+
+            <h3>{{ theory.title }}</h3>
+
+            <p>{{ theory.text }}</p>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       CUATRO PILARES
+       ===================================================== -->
+  <section class="learning-section pillars-section">
+    <div class="container">
+      <div class="section-heading">
+        <span class="section-kicker purple-kicker">
+          Cuatro formas de aprender
+        </span>
+
+        <h2>Los cuatro pilares educativos</h2>
+
+        <p class="section-description">
+          Cada forma de interactuar con VOLTS responde a un objetivo
+          educativo concreto y desarrolla habilidades distintas.
+        </p>
+      </div>
+
+      <div class="pillars-grid">
+        @for (pillar of pillars; track pillar.title) {
+          <article
+            class="pillar-card"
+            [class]="pillar.className"
+          >
+            <div class="pillar-image">
+              <img
+                [src]="pillar.image"
+                [alt]="pillar.title"
+              />
+            </div>
+
+            <div class="pillar-content">
+              <h3>{{ pillar.title }}</h3>
+
+              <p>{{ pillar.text }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       ETAPAS
+       ===================================================== -->
+  <section class="learning-section stages-section">
+    <div class="container">
+      <div class="section-heading">
+        <span class="section-kicker">
+          Crece junto con el niño
+        </span>
+
+        <h2>Aprendizaje por etapas</h2>
+
+        <p class="section-description">
+          El mismo VOLTS puede acompañar diferentes edades y ofrecer
+          nuevos niveles de comprensión conforme el niño se desarrolla.
+        </p>
+      </div>
+
+      <div class="stages-grid">
+        @for (stage of stages; track stage.age) {
+          <article
+            class="stage-card"
+            [class]="stage.className"
+          >
+            <header>
+              <span class="stage-icon">
+                {{ stage.icon }}
+              </span>
+
+              <strong>{{ stage.age }}</strong>
+
+              <small>{{ stage.title }}</small>
+            </header>
+
+            <ul>
+              @for (goal of stage.goals; track goal) {
+                <li>
+                  <b>✓</b>
+                  <span>{{ goal }}</span>
+                </li>
+              }
+            </ul>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       CURRÍCULO
+       ===================================================== -->
+  <section class="curriculum-section">
+    <div class="curriculum-decoration curriculum-decoration-one"></div>
+    <div class="curriculum-decoration curriculum-decoration-two"></div>
+
+    <div class="container curriculum-content">
+      <div class="curriculum-heading">
+        <span>Uso educativo</span>
+
+        <h2>📚 Alineación curricular</h2>
+
+        <p>
+          VOLTS puede utilizarse como recurso complementario en distintas
+          materias, proyectos escolares y actividades de formación.
+        </p>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Asignatura</th>
+              <th>Grado</th>
+              <th>Contenido relacionado</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (row of curriculum; track row.subject) {
+              <tr>
+                <td>{{ row.subject }}</td>
+                <td>{{ row.grade }}</td>
+                <td>{{ row.content }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       TESTIMONIOS Y CTA
+       ===================================================== -->
+  <section class="learning-section community-section">
+    <div class="container">
+      <div class="section-heading community-heading">
+        <span class="section-kicker">
+          Experiencias reales
+        </span>
+
+        <h2>💬 Voces de la comunidad</h2>
+
+        <p class="section-description">
+          Docentes, especialistas y familias descubren nuevas formas
+          de enseñar valores mediante la tecnología.
+        </p>
+      </div>
+
+      <div class="testimonial-grid">
+        @for (testimonial of testimonials; track testimonial.name) {
+          <article class="testimonial-card">
+            <span class="quote-mark" aria-hidden="true">
+              “
+            </span>
+
+            <p>“{{ testimonial.quote }}”</p>
+
+            <div class="testimonial-person">
+              <span class="testimonial-avatar">
+                {{ testimonial.name.charAt(0) }}
+              </span>
+
+              <div>
+                <strong>{{ testimonial.name }}</strong>
+                <small>{{ testimonial.role }}</small>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+
+      <div class="learning-cta">
+        <div class="learning-cta-icon" aria-hidden="true">
+          🏫
+        </div>
+
+        <div class="learning-cta-content">
+          <span>Una experiencia diferente para el aula</span>
+
+          <h2>¿Llevarías VOLTS a tu salón?</h2>
+
+          <p>
+            Conoce las opciones disponibles para escuelas,
+            instituciones y proyectos educativos.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="primary-button learning-cta-button"
+          (click)="goToQuote()"
+        >
+          Ver Cotización →
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

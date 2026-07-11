@@ -1,0 +1,51 @@
+<header class="backoffice-header">
+  <div class="header-left">
+    <button
+      type="button"
+      class="menu-button"
+      aria-label="Abrir menú"
+      title="Abrir menú"
+      (click)="openMenu()"
+    >
+      ☰
+    </button>
+  </div>
+
+  <div class="header-actions">
+    <button
+      type="button"
+      class="icon-button notification-button"
+      aria-label="Notificaciones"
+      title="Notificaciones"
+    >
+      🔔
+
+      <span
+        class="notification-dot"
+        aria-hidden="true"
+      ></span>
+    </button>
+
+    <button
+      type="button"
+      class="icon-button"
+      (click)="theme.toggleTheme()"
+      [attr.aria-label]="
+        theme.isNight()
+          ? 'Cambiar a modo claro'
+          : 'Cambiar a modo oscuro'
+      "
+      [title]="
+        theme.isNight()
+          ? 'Modo claro'
+          : 'Modo oscuro'
+      "
+    >
+      {{
+        theme.isNight()
+          ? '🌙'
+          : '☀️'
+      }}
+    </button>
+  </div>
+</header>

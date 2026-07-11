@@ -1,0 +1,65 @@
+:host {
+  display: block;
+}
+
+.backoffice-layout {
+  min-height: 100svh;
+  color: #17211a;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(124, 107, 189, 0.075),
+      transparent 24%
+    ),
+    #f5f8f5;
+  transition:
+    color 0.3s ease,
+    background 0.3s ease;
+}
+
+.backoffice-main {
+  min-height: 100svh;
+  margin-left: 285px;
+}
+
+.backoffice-content {
+  padding: 1.5rem;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+:host-context(body.night-mode) .backoffice-layout {
+  color: #f8fafc;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(124, 107, 189, 0.12),
+      transparent 26%
+    ),
+    #0d0d11;
+}
+
+@media (max-width: 950px) {
+  .backoffice-main {
+    margin-left: 0;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    display: block;
+    padding: 0;
+    border: none;
+    background: rgba(2, 6, 23, 0.58);
+    backdrop-filter: blur(3px);
+  }
+}
+
+@media (max-width: 650px) {
+  .backoffice-content {
+    padding: 1rem;
+  }
+}

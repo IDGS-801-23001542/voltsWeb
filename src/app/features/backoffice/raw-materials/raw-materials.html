@@ -1,0 +1,807 @@
+<section class="raw-materials-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Producción e inventario
+      </span>
+
+      <h1>Materia prima</h1>
+
+      <p>
+        Controla existencias, costos, ubicaciones y
+        movimientos de los materiales de fabricación.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateForm()"
+    >
+      ＋ Nueva materia prima
+    </button>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  @if (summary(); as data) {
+    <div class="summary-grid">
+      <article class="summary-card">
+        <span>🧰</span>
+
+        <div>
+          <small>Materiales</small>
+          <strong>{{ data.totalMaterials }}</strong>
+        </div>
+      </article>
+
+      <article class="summary-card warning-card">
+        <span>⚠️</span>
+
+        <div>
+          <small>Stock bajo</small>
+          <strong>{{ data.lowStockMaterials }}</strong>
+        </div>
+      </article>
+
+      <article class="summary-card danger-card">
+        <span>📭</span>
+
+        <div>
+          <small>Sin existencias</small>
+          <strong>{{ data.outOfStockMaterials }}</strong>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <span>💰</span>
+
+        <div>
+          <small>Valor del inventario</small>
+
+          <strong>
+            {{
+              data.totalInventoryValue
+                | currency:'MXN'
+            }}
+          </strong>
+        </div>
+      </article>
+    </div>
+  }
+
+  <section class="materials-panel">
+    <div class="panel-toolbar">
+      <div class="search-control">
+        <span>🔎</span>
+
+        <input
+          type="search"
+          placeholder="Buscar por código, nombre o descripción..."
+          [value]="searchTerm()"
+          (input)="updateSearch($event)"
+        />
+      </div>
+
+      <select
+        [value]="categoryFilter()"
+        (change)="updateCategoryFilter($event)"
+      >
+        <option value="all">
+          Todas las categorías
+        </option>
+
+        @for (
+          category of categories;
+          track category.value
+        ) {
+          <option [value]="category.value">
+            {{ category.label }}
+          </option>
+        }
+      </select>
+
+      <select
+        [value]="stockFilter()"
+        (change)="updateStockFilter($event)"
+      >
+        <option value="all">
+          Todo el inventario
+        </option>
+
+        <option value="normal">
+          Stock normal
+        </option>
+
+        <option value="low">
+          Stock bajo
+        </option>
+
+        <option value="empty">
+          Sin existencias
+        </option>
+      </select>
+    </div>
+
+    @if (loading()) {
+      <div class="state-container">
+        <span class="loader"></span>
+        <p>Cargando materia prima...</p>
+      </div>
+    } @else if (
+      filteredMaterials().length === 0
+    ) {
+      <div class="state-container">
+        <span class="state-icon">🧰</span>
+        <strong>No se encontraron materiales</strong>
+        <p>Ajusta los filtros utilizados.</p>
+      </div>
+    } @else {
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Categoría</th>
+              <th>Existencias</th>
+              <th>Costo promedio</th>
+              <th>Ubicación</th>
+              <th>Características</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              material of filteredMaterials();
+              track material.id
+            ) {
+              <tr
+                [class.low-stock-row]="
+                  isLowStock(material)
+                "
+              >
+                <td data-label="Material">
+                  <div class="material-name">
+                    <strong>
+                      {{ material.name }}
+                    </strong>
+
+                    <small>
+                      {{ material.code }}
+                    </small>
+                  </div>
+                </td>
+
+                <td data-label="Categoría">
+                  <span class="category-badge">
+                    {{
+                      getCategoryLabel(
+                        material.category
+                      )
+                    }}
+                  </span>
+                </td>
+
+                <td data-label="Existencias">
+                  <div class="stock-data">
+                    <strong
+                      [class.low-stock-value]="
+                        isLowStock(material)
+                      "
+                    >
+                      {{ material.currentStock }}
+                      {{ material.unit }}
+                    </strong>
+
+                    <small>
+                      Mínimo:
+                      {{ material.minimumStock }}
+                    </small>
+                  </div>
+                </td>
+
+                <td data-label="Costo">
+                  {{
+                    material.averageCost
+                      | currency:'MXN'
+                  }}
+                </td>
+
+                <td data-label="Ubicación">
+                  {{
+                    material.storageLocation ||
+                    'Sin asignar'
+                  }}
+                </td>
+
+                <td data-label="Características">
+                  <div class="feature-badges">
+                    @if (material.isRecycled) {
+                      <span>♻️ Reciclado</span>
+                    }
+
+                    @if (material.isReusable) {
+                      <span>🔁 Reutilizable</span>
+                    }
+
+                    @if (!material.requiresPurchase) {
+                      <span>🎁 Donable</span>
+                    }
+                  </div>
+                </td>
+
+                <td data-label="Estado">
+                  <span
+                    class="status-badge"
+                    [class.inactive-status]="
+                      !material.isActive
+                    "
+                  >
+                    {{
+                      material.isActive
+                        ? 'Activo'
+                        : 'Inactivo'
+                    }}
+                  </span>
+                </td>
+
+                <td
+                  data-label="Acciones"
+                  class="actions-cell"
+                >
+                  <button
+                    type="button"
+                    title="Registrar movimiento"
+                    (click)="openStockModal(material)"
+                  >
+                    📦
+                  </button>
+
+                  <button
+                    type="button"
+                    title="Ver movimientos"
+                    (click)="openMovements(material)"
+                  >
+                    📋
+                  </button>
+
+                  <button
+                    type="button"
+                    title="Editar"
+                    (click)="openEditForm(material)"
+                  >
+                    ✏️
+                  </button>
+
+                  @if (isAdmin()) {
+                    <button
+                      type="button"
+                      class="delete-button"
+                      title="Eliminar"
+                      (click)="requestDelete(material)"
+                    >
+                      🗑️
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>
+
+@if (formOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="closeForm()"
+  >
+    <section
+      class="modal-card large-modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            Inventario
+          </span>
+
+          <h2>
+            {{
+              editingMaterial()
+                ? 'Editar materia prima'
+                : 'Nueva materia prima'
+            }}
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeForm()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Código *</label>
+
+            <input
+              type="text"
+              formControlName="code"
+              placeholder="RAW-ELE-001"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Nombre *</label>
+
+            <input
+              type="text"
+              formControlName="name"
+              placeholder="Servomotor SG90"
+            />
+          </div>
+
+          <div class="form-field full-field">
+            <label>Descripción</label>
+
+            <textarea
+              rows="3"
+              formControlName="description"
+            ></textarea>
+          </div>
+
+          <div class="form-field">
+            <label>Categoría *</label>
+
+            <select formControlName="category">
+              @for (
+                category of categories;
+                track category.value
+              ) {
+                <option [value]="category.value">
+                  {{ category.label }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Unidad de medida *</label>
+
+            <input
+              type="text"
+              formControlName="unit"
+              placeholder="Pieza"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Stock actual</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="currentStock"
+            />
+
+            @if (editingMaterial()) {
+              <small>
+                Utiliza movimientos para cambiar
+                las existencias.
+              </small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label>Stock mínimo</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="minimumStock"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Stock máximo</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="maximumStock"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Costo promedio</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="averageCost"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Último costo de compra</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="lastPurchaseCost"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Ubicación de almacén</label>
+
+            <input
+              type="text"
+              formControlName="storageLocation"
+              placeholder="B-02"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Proveedor preferente</label>
+
+            <input
+              type="text"
+              formControlName="preferredSupplierName"
+              placeholder="Pendiente de vincular"
+            />
+          </div>
+        </div>
+
+        <div class="switch-grid">
+          <label>
+            <input
+              type="checkbox"
+              formControlName="isRecycled"
+            />
+            Material reciclado
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              formControlName="isReusable"
+            />
+            Material reutilizable
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              formControlName="requiresPurchase"
+            />
+            Requiere compra
+          </label>
+
+          @if (editingMaterial()) {
+            <label>
+              <input
+                type="checkbox"
+                formControlName="isActive"
+              />
+              Materia prima activa
+            </label>
+          }
+        </div>
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="closeForm()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            {{
+              saving()
+                ? 'Guardando...'
+                : 'Guardar materia prima'
+            }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (stockModalOpen() && selectedMaterial(); as material) {
+  <div
+    class="modal-backdrop"
+    (click)="closeStockModal()"
+  >
+    <section
+      class="modal-card stock-modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            Movimiento de almacén
+          </span>
+
+          <h2>{{ material.name }}</h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeStockModal()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <div class="current-stock-box">
+        <small>Existencia actual</small>
+
+        <strong>
+          {{ material.currentStock }}
+          {{ material.unit }}
+        </strong>
+      </div>
+
+      <form
+        [formGroup]="stockForm"
+        (ngSubmit)="submitStockMovement()"
+      >
+        <div class="form-field">
+          <label>Tipo de movimiento</label>
+
+          <select formControlName="movementType">
+            <option value="Entry">
+              Entrada
+            </option>
+
+            <option value="Exit">
+              Salida
+            </option>
+
+            <option value="Adjustment">
+              Ajuste positivo
+            </option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Cantidad</label>
+
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            formControlName="quantity"
+          />
+        </div>
+
+        @if (
+          stockForm.controls.movementType.value ===
+          'Entry'
+        ) {
+          <div class="form-field">
+            <label>Costo unitario</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="unitCost"
+            />
+          </div>
+        }
+
+        <div class="form-field">
+          <label>Motivo *</label>
+
+          <textarea
+            rows="3"
+            formControlName="reason"
+            placeholder="Ej. Conteo inicial, entrada manual o material utilizado en pruebas."
+          ></textarea>
+        </div>
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="closeStockModal()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="adjusting()"
+          >
+            {{
+              adjusting()
+                ? 'Registrando...'
+                : 'Registrar movimiento'
+            }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (movementsModalOpen() && selectedMaterial(); as material) {
+  <div
+    class="modal-backdrop"
+    (click)="closeMovements()"
+  >
+    <section
+      class="modal-card movements-modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            Historial de inventario
+          </span>
+
+          <h2>{{ material.name }}</h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeMovements()"
+        >
+          ✕
+        </button>
+      </header>
+
+      @if (loadingMovements()) {
+        <div class="state-container">
+          <span class="loader"></span>
+          <p>Cargando movimientos...</p>
+        </div>
+      } @else if (movements().length === 0) {
+        <div class="state-container">
+          <span class="state-icon">📋</span>
+          <strong>Sin movimientos</strong>
+        </div>
+      } @else {
+        <div class="movements-list">
+          @for (
+            movement of movements();
+            track movement.id
+          ) {
+            <article class="movement-item">
+              <span
+                class="movement-icon"
+                [class.exit-movement]="
+                  movement.movementType === 'Exit'
+                "
+              >
+                {{
+                  movement.movementType === 'Exit'
+                    ? '↗'
+                    : '↘'
+                }}
+              </span>
+
+              <div>
+                <strong>
+                  {{
+                    movement.movementType === 'Exit'
+                      ? 'Salida'
+                      : 'Entrada'
+                  }}
+                  de {{ movement.quantity }}
+                  {{ movement.unit }}
+                </strong>
+
+                <p>{{ movement.reason }}</p>
+
+                <small>
+                  {{
+                    movement.movementDate
+                      | date:'dd/MM/yyyy HH:mm'
+                  }}
+                </small>
+              </div>
+
+              <b>
+                {{ movement.previousStock }}
+                →
+                {{ movement.newStock }}
+              </b>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </div>
+}
+
+@if (deleteCandidate(); as material) {
+  <div
+    class="modal-backdrop"
+    (click)="cancelDelete()"
+  >
+    <section
+      class="confirmation-card"
+      (click)="$event.stopPropagation()"
+    >
+      <span>🗑️</span>
+
+      <h2>Eliminar materia prima</h2>
+
+      <p>
+        ¿Deseas eliminar
+        <strong>{{ material.name }}</strong>?
+      </p>
+
+      @if (material.currentStock > 0) {
+        <small class="warning-text">
+          Tiene {{ material.currentStock }}
+          {{ material.unit }} disponibles y el backend
+          impedirá su eliminación.
+        </small>
+      }
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="cancelDelete()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="danger-button"
+          [disabled]="deleting()"
+          (click)="confirmDelete()"
+        >
+          {{
+            deleting()
+              ? 'Eliminando...'
+              : 'Eliminar'
+          }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

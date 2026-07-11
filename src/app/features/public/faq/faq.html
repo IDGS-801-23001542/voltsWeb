@@ -1,0 +1,158 @@
+<div class="faq-page">
+
+  <!-- =====================================================
+       HERO
+       ===================================================== -->
+  <section class="faq-hero">
+    <div
+      class="hero-decoration decoration-one"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="hero-decoration decoration-two"
+      aria-hidden="true"
+    ></div>
+
+    <div class="faq-hero-container">
+      <div class="hero-logo-container">
+        <div class="hero-logo-glow"></div>
+
+        <img
+          src="assets/images/logo_volts.png"
+          alt="VOLTS"
+        />
+      </div>
+
+      <span class="hero-label">
+        Centro de ayuda
+      </span>
+
+      <h1>🙋 Preguntas frecuentes</h1>
+
+      <p>
+        Resolvemos tus dudas sobre VOLTS, su funcionamiento,
+        su propuesta educativa y las opciones disponibles.
+      </p>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       ACORDEÓN
+       ===================================================== -->
+  <section class="faq-content">
+    <div class="faq-main-container">
+      <div class="section-heading">
+        <span class="section-kicker">
+          Todo lo que necesitas saber
+        </span>
+
+        <h2>¿En qué podemos ayudarte?</h2>
+
+        <p>
+          Selecciona una pregunta para consultar la respuesta.
+          Puedes abrir o cerrar cada sección cuando lo necesites.
+        </p>
+      </div>
+
+      <div class="faq-layout">
+        <aside class="faq-side-card">
+          <div class="side-icon">
+            💡
+          </div>
+
+          <span>Información rápida</span>
+
+          <h3>Conoce mejor a VOLTS</h3>
+
+          <p>
+            Aquí encontrarás información sobre el prototipo,
+            su tecnología y su uso educativo.
+          </p>
+
+          <div class="side-stats">
+            <div>
+              <strong>{{ questions.length }}</strong>
+              <span>Preguntas</span>
+            </div>
+
+            <div>
+              <strong>4</strong>
+              <span>Interacciones</span>
+            </div>
+          </div>
+        </aside>
+
+        <div class="faq-list">
+          @for (
+            item of questions;
+            track item.question;
+            let index = $index
+          ) {
+            <article
+              class="faq-card"
+              [class.open]="openIndex() === index"
+            >
+              <button
+                type="button"
+                [attr.aria-expanded]="openIndex() === index"
+                [attr.aria-controls]="'faq-answer-' + index"
+                (click)="toggle(index)"
+              >
+                <span class="question-icon">
+                  {{ item.icon }}
+                </span>
+
+                <span class="question-content">
+                  <small>{{ item.category }}</small>
+                  <strong>{{ item.question }}</strong>
+                </span>
+
+                <span
+                  class="toggle-icon"
+                  aria-hidden="true"
+                >
+                  +
+                </span>
+              </button>
+
+              <div
+                class="faq-answer"
+                [class.visible]="openIndex() === index"
+                [id]="'faq-answer-' + index"
+              >
+                <div class="answer-inner">
+                  <div class="answer-line"></div>
+
+                  <p>{{ item.answer }}</p>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+
+      <!-- CTA INTEGRADO -->
+      <div class="faq-cta">
+        <div class="faq-cta-icon">
+          💬
+        </div>
+
+        <div class="faq-cta-copy">
+          <span>Atención personalizada</span>
+
+          <h2>¿Tienes otra pregunta?</h2>
+
+          <p>
+            Escríbenos y cuéntanos qué necesitas saber
+            sobre VOLTS.
+          </p>
+        </div>
+
+        <a routerLink="/contacto">
+          Contáctanos →
+        </a>
+      </div>
+    </div>
+  </section>
+</div>

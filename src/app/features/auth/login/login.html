@@ -1,0 +1,210 @@
+<div class="auth-page">
+  <!-- FONDO SEGÚN EL TEMA -->
+  <div class="auth-background">
+    <img
+      [src]="
+        theme.isNight()
+          ? 'assets/images/background_night.jpg'
+          : 'assets/images/background_day.jpg'
+      "
+      [alt]="
+        theme.isNight()
+          ? 'Paisaje nocturno de VOLTS'
+          : 'Paisaje diurno de VOLTS'
+      "
+    />
+  </div>
+
+  <div class="auth-overlay"></div>
+
+  <div
+    class="auth-decoration decoration-one"
+    aria-hidden="true"
+  ></div>
+
+  <div
+    class="auth-decoration decoration-two"
+    aria-hidden="true"
+  ></div>
+
+  <!-- TARJETA -->
+  <main class="auth-card">
+    <div class="auth-card-header">
+      <a
+        routerLink="/"
+        class="back-home"
+      >
+        <span>←</span>
+        Volver al inicio
+      </a>
+
+      <button
+        type="button"
+        class="theme-toggle"
+        (click)="theme.toggleTheme()"
+        [attr.aria-label]="
+          theme.isNight()
+            ? 'Cambiar a modo claro'
+            : 'Cambiar a modo oscuro'
+        "
+        [title]="
+          theme.isNight()
+            ? 'Cambiar a modo claro'
+            : 'Cambiar a modo oscuro'
+        "
+      >
+        {{ theme.isNight() ? '🌙' : '☀️' }}
+      </button>
+    </div>
+
+    <div class="auth-brand">
+      <div class="logo-container">
+        <div class="logo-glow"></div>
+
+        <img
+          src="assets/images/logo_volts.png"
+          alt="VOLTS"
+          class="auth-logo"
+        />
+      </div>
+
+      <span class="auth-label">
+        Portal VOLTS
+      </span>
+
+      <h1>Bienvenido de nuevo</h1>
+
+      <p class="auth-description">
+        Accede a tus compras, licencias, documentación
+        y recursos educativos.
+      </p>
+    </div>
+
+    @if (errorMessage()) {
+      <div
+        class="form-alert error-alert"
+        role="alert"
+      >
+        <span>⚠️</span>
+        <p>{{ errorMessage() }}</p>
+      </div>
+    }
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+    >
+      <div class="field">
+        <label for="login-email">
+          Correo electrónico
+        </label>
+
+        <div class="input-control">
+          <span
+            class="input-icon"
+            aria-hidden="true"
+          >
+            ✉️
+          </span>
+
+          <input
+            id="login-email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="correo@ejemplo.com"
+          />
+        </div>
+
+        @if (
+          form.controls.email.touched &&
+          form.controls.email.invalid
+        ) {
+          <small>
+            Ingresa un correo electrónico válido.
+          </small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="login-password">
+          Contraseña
+        </label>
+
+        <div class="input-control password-control">
+          <span
+            class="input-icon"
+            aria-hidden="true"
+          >
+            🔒
+          </span>
+
+          <input
+            id="login-password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="Mínimo 8 caracteres"
+          />
+
+          <button
+            type="button"
+            class="password-button"
+            (click)="togglePassword()"
+            [attr.aria-label]="
+              showPassword()
+                ? 'Ocultar contraseña'
+                : 'Mostrar contraseña'
+            "
+          >
+            {{ showPassword() ? '🙈' : '👁️' }}
+          </button>
+        </div>
+
+        @if (
+          form.controls.password.touched &&
+          form.controls.password.invalid
+        ) {
+          <small>
+            La contraseña debe tener mínimo 8 caracteres.
+          </small>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="auth-submit"
+        [disabled]="loading()"
+      >
+        @if (loading()) {
+          <span class="button-loader"></span>
+          Ingresando...
+        } @else {
+          Iniciar sesión 🐾
+        }
+      </button>
+    </form>
+
+    <div class="auth-divider">
+      <span></span>
+      <b>o</b>
+      <span></span>
+    </div>
+
+    <div class="register-section">
+      <p>¿Aún no tienes una cuenta?</p>
+
+      <a
+        routerLink="/crear-cuenta"
+        class="register-link"
+      >
+        <span>🌱</span>
+        Crear una cuenta
+      </a>
+    </div>
+
+    <p class="auth-security">
+      🔒 Acceso protegido para clientes VOLTS
+    </p>
+  </main>
+</div>

@@ -1,1 +1,233 @@
 /* You can add global styles to this file, and also import other style files */
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap');
+
+:root {
+  --green-main: #16a34a;
+  --green-bright: #22c55e;
+  --green-dark: #1a2e1a;
+  --green-deep: #15803d;
+  --green-bg: #f0fdf4;
+  --green-soft: #dcfce7;
+  --green-light: #86efac;
+
+  --purple-main: #7c6bbd;
+  --purple-dark: #5b4f9e;
+  --purple-light: #c4b5fd;
+  --purple-bg: #f5f3ff;
+
+  --cyan-main: #0891b2;
+  --yellow-soft: #fef9c3;
+  --brown-main: #b45309;
+
+  --text-main: #1a2e1a;
+  --text-muted: #64748b;
+  --white: #ffffff;
+
+  --font-title: 'Fredoka One', cursive;
+  --font-body: 'Nunito', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-body);
+  color: var(--text-main);
+  background: var(--green-bg);
+}
+
+body {
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+}
+
+.page {
+  overflow-x: hidden;
+}
+
+.container {
+  width: min(100% - 2rem, 1120px);
+  margin: 0 auto;
+}
+
+.section {
+  padding: 4rem 1rem;
+}
+
+.volts-title {
+  font-family: var(--font-title);
+  font-weight: 900;
+}
+
+.primary-button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.9rem 1.8rem;
+  background: linear-gradient(135deg, var(--green-bright), var(--green-main));
+  color: white;
+  font-family: var(--font-title);
+  font-weight: 900;
+  box-shadow: 0 8px 32px rgba(22, 163, 74, 0.4);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.secondary-button {
+  border-radius: 999px;
+  padding: 0.9rem 1.8rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--green-main);
+  font-family: var(--font-title);
+  font-weight: 900;
+  border: 2px solid var(--green-main);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.primary-button:hover,
+.secondary-button:hover {
+  transform: scale(1.05);
+}
+
+.card {
+  background: white;
+  border: 2px solid var(--green-light);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+body.night-mode {
+  background: #071207;
+  color: #f8fff8;
+}
+
+body.night-mode .public-header {
+  background: rgba(7, 18, 7, 0.92);
+  border-bottom-color: rgba(124, 107, 189, 0.5);
+}
+
+body.night-mode .brand span {
+  color: #ffe566;
+}
+
+body.night-mode .desktop-nav a {
+  color: #e9d5ff;
+  border-color: #7c6bbd;
+}
+
+body.night-mode .desktop-nav a.active {
+  background: linear-gradient(135deg, #7c6bbd, #5b4f9e);
+}
+
+body.night-mode .theme-toggle {
+  background: #1f153f;
+  color: #ffe566;
+  border-color: #7c6bbd;
+}
+
+body.night-mode .interactions-section,
+body.night-mode .eco-section {
+  background: #071207;
+}
+
+body.night-mode .interactions-section h2,
+body.night-mode .eco-section h2,
+body.night-mode .section-description {
+  color: #f8fff8;
+}
+
+body.night-mode .interaction-card,
+body.night-mode .eco-card {
+  background: #101f10;
+  border-color: #7c6bbd;
+}
+
+body.night-mode .interaction-card p,
+body.night-mode .eco-card p {
+  color: #d1d5db;
+}
+
+body,
+.public-main,
+.page-surface {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+body.night-mode {
+  color: #f8fafc;
+  background: #000000;
+}
+
+body.night-mode .page-surface,
+body.night-mode .light-section,
+body.night-mode .green-section {
+  color: #f8fafc;
+  background: #000000 !important;
+}
+
+body.night-mode .soft-section {
+  color: #f8fafc;
+  background: #08080b !important;
+}
+
+body.night-mode .public-card,
+body.night-mode .content-card,
+body.night-mode .form-card,
+body.night-mode .info-card,
+body.night-mode .faq-card,
+body.night-mode .plan-card {
+  color: #f8fafc;
+  background: #101014 !important;
+  border-color: #42376c !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+
+body.night-mode .muted-text,
+body.night-mode .section-description,
+body.night-mode .page-description,
+body.night-mode .card-description {
+  color: #cbd5e1 !important;
+}
+
+body.night-mode input,
+body.night-mode textarea,
+body.night-mode select {
+  color: #f8fafc !important;
+  background: #17171c !important;
+  border-color: #4c3f86 !important;
+}
+
+body.night-mode input::placeholder,
+body.night-mode textarea::placeholder {
+  color: #94a3b8;
+}
+
+body.night-mode label {
+  color: #f8fafc;
+}
+
+body.night-mode .public-footer {
+  background: #000000;
+  border-top: 1px solid #27272a;
+}
+
+body.night-mode .bottom-cta,
+body.night-mode .dark-cta {
+  background: #050507 !important;
+}

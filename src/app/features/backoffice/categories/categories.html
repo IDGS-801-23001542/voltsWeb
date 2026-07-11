@@ -1,0 +1,461 @@
+<section class="categories-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Producción e inventario
+      </span>
+
+      <h1>Categorías</h1>
+
+      <p>
+        Organiza y administra la clasificación de los
+        productos del ecosistema VOLTS.
+      </p>
+    </div>
+
+    @if (isAdmin()) {
+      <button
+        type="button"
+        class="primary-button"
+        (click)="openCreateForm()"
+      >
+        <span>＋</span>
+        Nueva categoría
+      </button>
+    }
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      <span>✓</span>
+      {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      <span>⚠</span>
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="summary-grid">
+    <article class="summary-card">
+      <span class="summary-icon">🏷️</span>
+
+      <div>
+        <small>Total de categorías</small>
+        <strong>{{ categories().length }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card active-card">
+      <span class="summary-icon">✅</span>
+
+      <div>
+        <small>Categorías activas</small>
+        <strong>{{ activeCategories() }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card inactive-card">
+      <span class="summary-icon">⏸️</span>
+
+      <div>
+        <small>Categorías inactivas</small>
+        <strong>{{ inactiveCategories() }}</strong>
+      </div>
+    </article>
+  </div>
+
+  <section class="categories-panel">
+    <div class="panel-toolbar">
+      <div class="search-control">
+        <span>🔎</span>
+
+        <input
+          type="search"
+          placeholder="Buscar por nombre o descripción..."
+          [value]="searchTerm()"
+          (input)="updateSearch($event)"
+        />
+      </div>
+
+      <div class="filter-control">
+        <label for="categoryStatus">
+          Estado
+        </label>
+
+        <select
+          id="categoryStatus"
+          [value]="statusFilter()"
+          (change)="updateStatusFilter($event)"
+        >
+          <option value="all">
+            Todas
+          </option>
+
+          <option value="active">
+            Activas
+          </option>
+
+          <option value="inactive">
+            Inactivas
+          </option>
+        </select>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-state">
+        <span class="loader"></span>
+
+        <p>Cargando categorías...</p>
+      </div>
+    } @else if (filteredCategories().length === 0) {
+      <div class="empty-state">
+        <span>🏷️</span>
+
+        <strong>
+          No se encontraron categorías
+        </strong>
+
+        <p>
+          Ajusta los filtros o registra una categoría
+          nueva.
+        </p>
+      </div>
+    } @else {
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th>Descripción</th>
+              <th>Estado</th>
+              <th>Fecha de registro</th>
+
+              @if (isAdmin()) {
+                <th class="actions-column">
+                  Acciones
+                </th>
+              }
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              category of filteredCategories();
+              track category.id
+            ) {
+              <tr>
+                <td data-label="Categoría">
+                  <div class="category-name">
+                    <span>🏷️</span>
+
+                    <strong>
+                      {{ category.name }}
+                    </strong>
+                  </div>
+                </td>
+
+                <td data-label="Descripción">
+                  <p class="category-description">
+                    {{
+                      category.description ||
+                      'Sin descripción'
+                    }}
+                  </p>
+                </td>
+
+                <td data-label="Estado">
+                  <span
+                    class="status-badge"
+                    [class.inactive-status]="
+                      !category.isActive
+                    "
+                  >
+                    {{
+                      category.isActive
+                        ? 'Activa'
+                        : 'Inactiva'
+                    }}
+                  </span>
+                </td>
+
+                <td data-label="Registro">
+                  {{
+                    category.createdAt
+                      | date:'dd/MM/yyyy'
+                  }}
+                </td>
+
+                @if (isAdmin()) {
+                  <td
+                    data-label="Acciones"
+                    class="actions-cell"
+                  >
+                    <button
+                      type="button"
+                      class="action-button edit-button"
+                      title="Editar categoría"
+                      aria-label="Editar categoría"
+                      (click)="openEditForm(category)"
+                    >
+                      ✏️
+                    </button>
+
+                    <button
+                      type="button"
+                      class="action-button status-button"
+                      [title]="
+                        category.isActive
+                          ? 'Desactivar categoría'
+                          : 'Activar categoría'
+                      "
+                      [attr.aria-label]="
+                        category.isActive
+                          ? 'Desactivar categoría'
+                          : 'Activar categoría'
+                      "
+                      (click)="toggleStatus(category)"
+                    >
+                      {{
+                        category.isActive
+                          ? '⏸️'
+                          : '▶️'
+                      }}
+                    </button>
+
+                    <button
+                      type="button"
+                      class="action-button delete-button"
+                      title="Eliminar categoría"
+                      aria-label="Eliminar categoría"
+                      (click)="requestDelete(category)"
+                    >
+                      🗑️
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>
+
+@if (formOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="closeForm()"
+  >
+    <section
+      class="modal-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="categoryFormTitle"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="modal-label">
+            {{
+              editingCategory()
+                ? 'Editar registro'
+                : 'Nuevo registro'
+            }}
+          </span>
+
+          <h2 id="categoryFormTitle">
+            {{
+              editingCategory()
+                ? 'Editar categoría'
+                : 'Crear categoría'
+            }}
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          aria-label="Cerrar formulario"
+          (click)="closeForm()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <form
+        class="category-form"
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
+        <div class="form-field">
+          <label for="categoryName">
+            Nombre
+            <span>*</span>
+          </label>
+
+          <input
+            id="categoryName"
+            type="text"
+            maxlength="80"
+            formControlName="name"
+            placeholder="Ej. Robot educativo"
+          />
+
+          <div class="field-information">
+            @if (
+              form.controls.name.touched &&
+              form.controls.name.hasError('required')
+            ) {
+              <small class="field-error">
+                El nombre es obligatorio.
+              </small>
+            } @else if (
+              form.controls.name.touched &&
+              form.controls.name.hasError('minlength')
+            ) {
+              <small class="field-error">
+                Escribe al menos 3 caracteres.
+              </small>
+            } @else {
+              <small>
+                {{
+                  form.controls.name.value.length
+                }}/80
+              </small>
+            }
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="categoryDescription">
+            Descripción
+          </label>
+
+          <textarea
+            id="categoryDescription"
+            rows="5"
+            maxlength="300"
+            formControlName="description"
+            placeholder="Describe qué productos pertenecen a esta categoría."
+          ></textarea>
+
+          <div class="field-information">
+            <small>
+              {{
+                form.controls.description.value.length
+              }}/300
+            </small>
+          </div>
+        </div>
+
+        @if (editingCategory()) {
+          <label class="status-checkbox">
+            <input
+              type="checkbox"
+              formControlName="isActive"
+            />
+
+            <span class="checkbox-control"></span>
+
+            <span>
+              <strong>Categoría activa</strong>
+
+              <small>
+                Las categorías inactivas no se muestran
+                en el sitio público.
+              </small>
+            </span>
+          </label>
+        }
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="saving()"
+            (click)="closeForm()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            @if (saving()) {
+              <span class="button-loader"></span>
+              Guardando...
+            } @else {
+              {{
+                editingCategory()
+                  ? 'Guardar cambios'
+                  : 'Crear categoría'
+              }}
+            }
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (deleteCandidate(); as category) {
+  <div
+    class="modal-backdrop confirmation-backdrop"
+    (click)="cancelDelete()"
+  >
+    <section
+      class="confirmation-card"
+      role="alertdialog"
+      aria-modal="true"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="confirmation-icon">
+        🗑️
+      </div>
+
+      <h2>Eliminar categoría</h2>
+
+      <p>
+        ¿Seguro que deseas eliminar
+        <strong>{{ category.name }}</strong>?
+      </p>
+
+      <small>
+        La eliminación será lógica y la categoría dejará
+        de aparecer en el sistema.
+      </small>
+
+      <div class="confirmation-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          [disabled]="deleting()"
+          (click)="cancelDelete()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="danger-button"
+          [disabled]="deleting()"
+          (click)="confirmDelete()"
+        >
+          {{
+            deleting()
+              ? 'Eliminando...'
+              : 'Sí, eliminar'
+          }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

@@ -1,0 +1,319 @@
+<div class="register-page">
+  <!-- FONDO SEGÚN EL TEMA -->
+  <div class="register-background">
+    <img
+      [src]="
+        theme.isNight()
+          ? 'assets/images/background_night.jpg'
+          : 'assets/images/background_day.jpg'
+      "
+      [alt]="
+        theme.isNight()
+          ? 'Paisaje nocturno de VOLTS'
+          : 'Paisaje diurno de VOLTS'
+      "
+    />
+  </div>
+
+  <div class="register-overlay"></div>
+
+  <div
+    class="page-decoration decoration-one"
+    aria-hidden="true"
+  ></div>
+
+  <div
+    class="page-decoration decoration-two"
+    aria-hidden="true"
+  ></div>
+
+  <main class="register-card">
+    <div class="register-card-header">
+      <a
+        routerLink="/"
+        class="back-home"
+      >
+        <span>←</span>
+        Volver al inicio
+      </a>
+
+      <button
+        type="button"
+        class="theme-toggle"
+        (click)="theme.toggleTheme()"
+        [attr.aria-label]="
+          theme.isNight()
+            ? 'Cambiar a modo claro'
+            : 'Cambiar a modo oscuro'
+        "
+        [title]="
+          theme.isNight()
+            ? 'Cambiar a modo claro'
+            : 'Cambiar a modo oscuro'
+        "
+      >
+        {{ theme.isNight() ? '🌙' : '☀️' }}
+      </button>
+    </div>
+
+    <div class="register-brand">
+      <div class="logo-container">
+        <div class="logo-glow"></div>
+
+        <img
+          src="assets/images/logo_volts.png"
+          alt="VOLTS"
+        />
+      </div>
+
+      <span class="register-label">
+        Únete a VOLTS
+      </span>
+
+      <h1>Crear una cuenta</h1>
+
+      <p>
+        Registra tu cuenta de cliente para consultar compras,
+        licencias, documentación y recursos.
+      </p>
+    </div>
+
+    @if (errorMessage()) {
+      <div
+        class="register-error"
+        role="alert"
+      >
+        <span>⚠️</span>
+        <p>{{ errorMessage() }}</p>
+      </div>
+    }
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+    >
+      <div class="register-grid">
+        <div class="field">
+          <label for="register-name">
+            Nombre completo *
+          </label>
+
+          <div class="input-control">
+            <span class="input-icon">👤</span>
+
+            <input
+              id="register-name"
+              formControlName="fullName"
+              autocomplete="name"
+              placeholder="Tu nombre completo"
+            />
+          </div>
+
+          @if (
+            form.controls.fullName.touched &&
+            form.controls.fullName.invalid
+          ) {
+            <small>
+              Ingresa un nombre de al menos 3 caracteres.
+            </small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="register-email">
+            Correo electrónico *
+          </label>
+
+          <div class="input-control">
+            <span class="input-icon">✉️</span>
+
+            <input
+              id="register-email"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              placeholder="correo@ejemplo.com"
+            />
+          </div>
+
+          @if (
+            form.controls.email.touched &&
+            form.controls.email.invalid
+          ) {
+            <small>
+              Ingresa un correo electrónico válido.
+            </small>
+          }
+        </div>
+
+        <div class="field full-field">
+          <label for="register-phone">
+            Teléfono
+          </label>
+
+          <div class="input-control">
+            <span class="input-icon">📞</span>
+
+            <input
+              id="register-phone"
+              type="tel"
+              formControlName="phone"
+              autocomplete="tel"
+              placeholder="+52 477 000 0000"
+            />
+          </div>
+
+          @if (
+            form.controls.phone.touched &&
+            form.controls.phone.invalid
+          ) {
+            <small>
+              El teléfono no puede exceder 25 caracteres.
+            </small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="register-password">
+            Contraseña *
+          </label>
+
+          <div class="input-control password-control">
+            <span class="input-icon">🔒</span>
+
+            <input
+              id="register-password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="new-password"
+              placeholder="Mínimo 8 caracteres"
+            />
+
+            <button
+              type="button"
+              class="password-button"
+              (click)="togglePassword()"
+              [attr.aria-label]="
+                showPassword()
+                  ? 'Ocultar contraseña'
+                  : 'Mostrar contraseña'
+              "
+            >
+              {{ showPassword() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+
+          @if (
+            form.controls.password.touched &&
+            form.controls.password.invalid
+          ) {
+            <small>
+              La contraseña debe tener mínimo 8 caracteres.
+            </small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="register-confirm-password">
+            Confirmar contraseña *
+          </label>
+
+          <div class="input-control password-control">
+            <span class="input-icon">🔐</span>
+
+            <input
+              id="register-confirm-password"
+              [type]="
+                showConfirmPassword()
+                  ? 'text'
+                  : 'password'
+              "
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+              placeholder="Repite la contraseña"
+            />
+
+            <button
+              type="button"
+              class="password-button"
+              (click)="toggleConfirmPassword()"
+              [attr.aria-label]="
+                showConfirmPassword()
+                  ? 'Ocultar confirmación'
+                  : 'Mostrar confirmación'
+              "
+            >
+              {{
+                showConfirmPassword()
+                  ? '🙈'
+                  : '👁️'
+              }}
+            </button>
+          </div>
+
+          @if (
+            form.controls.confirmPassword.touched &&
+            form.controls.confirmPassword.hasError('required')
+          ) {
+            <small>
+              Confirma tu contraseña.
+            </small>
+          }
+        </div>
+      </div>
+
+      @if (
+        form.controls.confirmPassword.touched &&
+        form.hasError('passwordsMismatch')
+      ) {
+        <div class="password-error">
+          <span>⚠️</span>
+          Las contraseñas no coinciden.
+        </div>
+      }
+
+      <div class="password-requirement">
+        <span>🛡️</span>
+
+        <p>
+          Utiliza al menos 8 caracteres para proteger tu cuenta.
+        </p>
+      </div>
+
+      <button
+        type="submit"
+        class="register-submit"
+        [disabled]="loading()"
+      >
+        @if (loading()) {
+          <span class="button-loader"></span>
+          Creando cuenta...
+        } @else {
+          Crear mi cuenta 🌱
+        }
+      </button>
+    </form>
+
+    <div class="register-divider">
+      <span></span>
+      <b>o</b>
+      <span></span>
+    </div>
+
+    <div class="login-section">
+      <p>¿Ya tienes una cuenta?</p>
+
+      <a
+        routerLink="/login"
+        class="login-link"
+      >
+        <span>🔐</span>
+        Iniciar sesión
+      </a>
+    </div>
+
+    <p class="security-text">
+      🔒 Tus datos se almacenan de forma segura
+    </p>
+  </main>
+</div>
