@@ -1,0 +1,771 @@
+<section class="support-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Atención y contenido
+      </span>
+
+      <h1>
+        Centro de soporte
+      </h1>
+
+      <p>
+        Consulta y da seguimiento a solicitudes
+        relacionadas con hardware, aplicación,
+        garantía y funcionamiento de VOLTS.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      [disabled]="loading()"
+      (click)="loadTickets()"
+    >
+      <span>↻</span>
+      Actualizar
+    </button>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <span class="summary-icon">
+        🎧
+      </span>
+
+      <div>
+        <small>Total</small>
+
+        <strong>
+          {{ summary().total }}
+        </strong>
+
+        <p>
+          Tickets registrados
+        </p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon open-icon">
+        📩
+      </span>
+
+      <div>
+        <small>Abiertos</small>
+
+        <strong>
+          {{ summary().open }}
+        </strong>
+
+        <p>
+          Requieren atención
+        </p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon progress-icon">
+        ⏳
+      </span>
+
+      <div>
+        <small>En proceso</small>
+
+        <strong>
+          {{ summary().inProgress }}
+        </strong>
+
+        <p>
+          En seguimiento
+        </p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon resolved-icon">
+        ✅
+      </span>
+
+      <div>
+        <small>Resueltos</small>
+
+        <strong>
+          {{ summary().resolved }}
+        </strong>
+
+        <p>
+          Solucionados
+        </p>
+      </div>
+    </article>
+
+    @if (summary().urgent > 0) {
+      <article class="urgent-banner">
+        <span>🚨</span>
+
+        <div>
+          <strong>
+            {{ summary().urgent }}
+            tickets urgentes activos
+          </strong>
+
+          <p>
+            Estas solicitudes requieren
+            atención prioritaria.
+          </p>
+        </div>
+      </article>
+    }
+  </section>
+
+  <section class="content-panel">
+    <div class="filters">
+      <label class="search-field">
+        <span>Buscar ticket</span>
+
+        <div class="input-wrapper">
+          <span>🔎</span>
+
+          <input
+            type="search"
+            [formControl]="searchControl"
+            placeholder="Cliente, correo, asunto o descripción..."
+          />
+        </div>
+      </label>
+
+      <label class="filter-field">
+        <span>Estado</span>
+
+        <select
+          [formControl]="statusControl"
+        >
+          <option value="all">
+            Todos
+          </option>
+
+          <option value="Open">
+            Abiertos
+          </option>
+
+          <option value="InProgress">
+            En proceso
+          </option>
+
+          <option value="Resolved">
+            Resueltos
+          </option>
+
+          <option value="Closed">
+            Cerrados
+          </option>
+        </select>
+      </label>
+
+      <label class="filter-field">
+        <span>Prioridad</span>
+
+        <select
+          [formControl]="priorityControl"
+        >
+          <option value="all">
+            Todas
+          </option>
+
+          <option value="Low">
+            Baja
+          </option>
+
+          <option value="Medium">
+            Media
+          </option>
+
+          <option value="High">
+            Alta
+          </option>
+
+          <option value="Urgent">
+            Urgente
+          </option>
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="clear-button"
+        (click)="clearFilters()"
+      >
+        Limpiar
+      </button>
+    </div>
+
+    @if (
+      errorMessage() &&
+      !selectedTicket()
+    ) {
+      <div class="feedback error-feedback">
+        <span>⚠️</span>
+
+        <p>
+          {{ errorMessage() }}
+        </p>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="loading-state">
+        <span class="loader"></span>
+
+        <strong>
+          Cargando tickets...
+        </strong>
+
+        <p>
+          Consultando solicitudes de soporte
+          registradas en VOLTS.
+        </p>
+      </div>
+    } @else if (
+      filteredTickets().length === 0
+    ) {
+      <div class="empty-state">
+        <span>🎧</span>
+
+        <strong>
+          No se encontraron tickets
+        </strong>
+
+        <p>
+          Ajusta los filtros o espera nuevas
+          solicitudes de soporte.
+        </p>
+
+        <button
+          type="button"
+          (click)="clearFilters()"
+        >
+          Mostrar todos
+        </button>
+      </div>
+    } @else {
+      <div class="results-heading">
+        <strong>
+          {{ filteredTickets().length }}
+          tickets
+        </strong>
+
+        <span>
+          de {{ summary().total }}
+          registrados
+        </span>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Asunto</th>
+              <th>Prioridad</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th class="actions-column">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              ticket of filteredTickets();
+              track ticket.id
+            ) {
+              <tr>
+                <td>
+                  <div class="person-cell">
+                    <span class="avatar">
+                      {{
+                        ticket.customerName
+                          .charAt(0)
+                          .toUpperCase()
+                      }}
+                    </span>
+
+                    <div>
+                      <strong>
+                        {{ ticket.customerName }}
+                      </strong>
+
+                      <small>
+                        {{ ticket.email }}
+                      </small>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="subject-cell">
+                    <strong>
+                      {{ ticket.subject }}
+                    </strong>
+
+                    <p>
+                      {{ ticket.description }}
+                    </p>
+                  </div>
+                </td>
+
+                <td>
+                  <span
+                    class="priority-chip"
+                    [class.priority-low]="
+                      ticket.priority === 'Low'
+                    "
+                    [class.priority-medium]="
+                      ticket.priority === 'Medium'
+                    "
+                    [class.priority-high]="
+                      ticket.priority === 'High'
+                    "
+                    [class.priority-urgent]="
+                      ticket.priority === 'Urgent'
+                    "
+                  >
+                    {{
+                      priorityLabel(
+                        ticket.priority
+                      )
+                    }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="date-cell">
+                    <strong>
+                      {{
+                        ticket.createdAt
+                          | date:'dd/MM/yyyy'
+                      }}
+                    </strong>
+
+                    <small>
+                      {{
+                        ticket.createdAt
+                          | date:'HH:mm'
+                      }}
+                    </small>
+                  </div>
+                </td>
+
+                <td>
+                  <span
+                    class="status-chip"
+                    [class.status-open]="
+                      ticket.status === 'Open'
+                    "
+                    [class.status-progress]="
+                      ticket.status ===
+                      'InProgress'
+                    "
+                    [class.status-resolved]="
+                      ticket.status ===
+                      'Resolved'
+                    "
+                    [class.status-closed]="
+                      ticket.status === 'Closed'
+                    "
+                  >
+                    {{
+                      statusLabel(
+                        ticket.status
+                      )
+                    }}
+                  </span>
+                </td>
+
+                <td class="actions-column">
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="openDetails(ticket)"
+                  >
+                    Ver ticket
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-list">
+        @for (
+          ticket of filteredTickets();
+          track ticket.id
+        ) {
+          <article class="ticket-card">
+            <div class="card-heading">
+              <div class="person-cell">
+                <span class="avatar">
+                  {{
+                    ticket.customerName
+                      .charAt(0)
+                      .toUpperCase()
+                  }}
+                </span>
+
+                <div>
+                  <strong>
+                    {{ ticket.customerName }}
+                  </strong>
+
+                  <small>
+                    {{ ticket.email }}
+                  </small>
+                </div>
+              </div>
+
+              <span
+                class="priority-chip"
+                [class.priority-low]="
+                  ticket.priority === 'Low'
+                "
+                [class.priority-medium]="
+                  ticket.priority === 'Medium'
+                "
+                [class.priority-high]="
+                  ticket.priority === 'High'
+                "
+                [class.priority-urgent]="
+                  ticket.priority === 'Urgent'
+                "
+              >
+                {{
+                  priorityLabel(
+                    ticket.priority
+                  )
+                }}
+              </span>
+            </div>
+
+            <div class="card-content">
+              <strong>
+                {{ ticket.subject }}
+              </strong>
+
+              <p>
+                {{ ticket.description }}
+              </p>
+            </div>
+
+            <footer>
+              <span
+                class="status-chip"
+                [class.status-open]="
+                  ticket.status === 'Open'
+                "
+                [class.status-progress]="
+                  ticket.status ===
+                  'InProgress'
+                "
+                [class.status-resolved]="
+                  ticket.status ===
+                  'Resolved'
+                "
+                [class.status-closed]="
+                  ticket.status === 'Closed'
+                "
+              >
+                {{
+                  statusLabel(
+                    ticket.status
+                  )
+                }}
+              </span>
+
+              <button
+                type="button"
+                class="view-button"
+                (click)="openDetails(ticket)"
+              >
+                Ver detalle
+              </button>
+            </footer>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>
+
+@if (selectedTicket(); as ticket) {
+  <div
+    class="drawer-backdrop"
+    (click)="closeDetails()"
+  ></div>
+
+  <aside
+    class="support-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="support-title"
+  >
+    <header class="drawer-heading">
+      <div>
+        <span class="page-label">
+          Detalle del ticket
+        </span>
+
+        <h2 id="support-title">
+          {{ ticket.subject }}
+        </h2>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Cerrar"
+        (click)="closeDetails()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="drawer-content">
+      @if (successMessage()) {
+        <div class="feedback success-feedback">
+          <span>✅</span>
+
+          <p>
+            {{ successMessage() }}
+          </p>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="feedback error-feedback">
+          <span>⚠️</span>
+
+          <p>
+            {{ errorMessage() }}
+          </p>
+        </div>
+      }
+
+      <section class="profile-card">
+        <span class="profile-avatar">
+          {{
+            ticket.customerName
+              .charAt(0)
+              .toUpperCase()
+          }}
+        </span>
+
+        <div>
+          <strong>
+            {{ ticket.customerName }}
+          </strong>
+
+          <a
+            [href]="'mailto:' + ticket.email"
+          >
+            {{ ticket.email }}
+          </a>
+
+          @if (ticket.customerId) {
+            <small>
+              Cliente vinculado
+            </small>
+          } @else {
+            <small>
+              Solicitud sin cliente vinculado
+            </small>
+          }
+        </div>
+      </section>
+
+      <section class="ticket-classification">
+        <span
+          class="priority-chip"
+          [class.priority-low]="
+            ticket.priority === 'Low'
+          "
+          [class.priority-medium]="
+            ticket.priority === 'Medium'
+          "
+          [class.priority-high]="
+            ticket.priority === 'High'
+          "
+          [class.priority-urgent]="
+            ticket.priority === 'Urgent'
+          "
+        >
+          Prioridad
+          {{
+            priorityLabel(
+              ticket.priority
+            )
+          }}
+        </span>
+
+        <span
+          class="status-chip"
+          [class.status-open]="
+            ticket.status === 'Open'
+          "
+          [class.status-progress]="
+            ticket.status ===
+            'InProgress'
+          "
+          [class.status-resolved]="
+            ticket.status ===
+            'Resolved'
+          "
+          [class.status-closed]="
+            ticket.status === 'Closed'
+          "
+        >
+          {{
+            statusLabel(
+              ticket.status
+            )
+          }}
+        </span>
+      </section>
+
+      <section class="detail-section">
+        <h3>
+          Descripción del problema
+        </h3>
+
+        <div class="description-content">
+          {{ ticket.description }}
+        </div>
+      </section>
+
+      <section class="detail-section">
+        <h3>Información</h3>
+
+        <dl class="detail-grid">
+          <div>
+            <dt>Fecha de creación</dt>
+
+            <dd>
+              {{
+                ticket.createdAt
+                  | date:'dd/MM/yyyy HH:mm'
+              }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Última actualización</dt>
+
+            <dd>
+              @if (ticket.updatedAt) {
+                {{
+                  ticket.updatedAt
+                    | date:'dd/MM/yyyy HH:mm'
+                }}
+              } @else {
+                Sin actualizaciones
+              }
+            </dd>
+          </div>
+
+          <div class="full-detail">
+            <dt>Identificador</dt>
+
+            <dd>
+              {{ ticket.id }}
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="detail-section">
+        <h3>
+          Seguimiento del ticket
+        </h3>
+
+        <p class="section-description">
+          Cambia el estado conforme avance
+          la atención de la solicitud.
+        </p>
+
+        <div class="status-actions">
+          <button
+            type="button"
+            [class.selected]="
+              ticket.status === 'Open'
+            "
+            [disabled]="saving()"
+            (click)="updateStatus('Open')"
+          >
+            📩 Abierto
+          </button>
+
+          <button
+            type="button"
+            [class.selected]="
+              ticket.status ===
+              'InProgress'
+            "
+            [disabled]="saving()"
+            (click)="updateStatus('InProgress')"
+          >
+            ⏳ En proceso
+          </button>
+
+          <button
+            type="button"
+            [class.selected]="
+              ticket.status === 'Resolved'
+            "
+            [disabled]="saving()"
+            (click)="updateStatus('Resolved')"
+          >
+            ✅ Resuelto
+          </button>
+
+          <button
+            type="button"
+            [class.selected]="
+              ticket.status === 'Closed'
+            "
+            [disabled]="saving()"
+            (click)="updateStatus('Closed')"
+          >
+            🔒 Cerrado
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <footer class="drawer-footer">
+      <a
+        class="reply-button"
+        [href]="
+          'mailto:' +
+          ticket.email +
+          '?subject=Soporte VOLTS: ' +
+          ticket.subject
+        "
+      >
+        ✉️ Responder por correo
+      </a>
+
+      @if (auth.hasRole('Admin')) {
+        <button
+          type="button"
+          class="delete-button"
+          [disabled]="saving()"
+          (click)="deleteTicket()"
+        >
+          🗑️ Eliminar
+        </button>
+      }
+    </footer>
+  </aside>
+}

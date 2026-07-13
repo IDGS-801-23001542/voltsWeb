@@ -107,7 +107,6 @@ export const routes: Routes = [
 
   // =========================================================
   // BACKOFFICE COMPARTIDO
-  // Admin y Employee usan el mismo layout.
   // =========================================================
   {
     path: 'backoffice',
@@ -122,9 +121,9 @@ export const routes: Routes = [
         module => module.BackofficeLayout
       ),
     children: [
-      // -------------------------------------------------------
+      // =====================================================
       // DASHBOARD
-      // -------------------------------------------------------
+      // =====================================================
       {
         path: '',
         title: 'VOLTS | Dashboard',
@@ -136,276 +135,10 @@ export const routes: Routes = [
           )
       },
 
-      // -------------------------------------------------------
-      // COMERCIAL
-      // -------------------------------------------------------
-      {
-        path: 'clientes',
-        title: 'VOLTS | Clientes',
-        data: {
-          title: 'Clientes',
-          description:
-            'Administración de clientes individuales del ecosistema VOLTS.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-      {
-        path: 'instituciones',
-        title: 'VOLTS | Instituciones',
-        loadComponent: () =>
-          import(
-            './features/backoffice/institutions/institutions'
-          ).then(
-            module => module.Institutions
-          )
-      },
-      {
-        path: 'cotizaciones',
-        title: 'VOLTS | Cotizaciones',
-        data: {
-          title: 'Cotizaciones',
-          description:
-            'Consulta y seguimiento de solicitudes comerciales.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-      {
-        path: 'pedidos',
-        title: 'VOLTS | Pedidos',
-        data: {
-          title: 'Pedidos',
-          description:
-            'Seguimiento de pedidos y estados de entrega.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-      {
-        path: 'ventas',
-        title: 'VOLTS | Ventas',
-        data: {
-          title: 'Ventas',
-          description:
-            'Administración de ventas e ingresos del ecosistema.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-      {
-        path: 'licencias',
-        title: 'VOLTS | Licencias',
-        data: {
-          title: 'Licencias',
-          description:
-            'Gestión de licencias asociadas a productos VOLTS.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-
-      // -------------------------------------------------------
-      // PRODUCCIÓN E INVENTARIO
-      // -------------------------------------------------------
-      {
-        path: 'productos',
-        title: 'VOLTS | Productos',
-        loadComponent: () =>
-          import(
-            './features/backoffice/products/products'
-          ).then(
-            module => module.Products
-          )
-      },
-      {
-        path: 'categorias',
-        title: 'VOLTS | Categorías',
-        loadComponent: () =>
-          import(
-            './features/backoffice/categories/categories'
-          ).then(
-            module => module.Categories
-          )
-      },
-      {
-        path: 'materia-prima',
-        title: 'VOLTS | Materia prima',
-        loadComponent: () =>
-          import(
-            './features/backoffice/raw-materials/raw-materials'
-          ).then(
-            module => module.RawMaterials
-          )
-      },
-      {
-        path: 'proveedores',
-        title: 'VOLTS | Proveedores',
-        loadComponent: () =>
-          import(
-            './features/backoffice/suppliers/suppliers'
-          ).then(
-            module => module.Suppliers
-          )
-      },
-      {
-        path: 'compras',
-        title: 'VOLTS | Compras',
-        loadComponent: () =>
-          import(
-            './features/backoffice/purchases/purchases'
-          ).then(
-            module => module.Purchases
-          )
-      },
-      {
-        path: 'recetas',
-        title: 'VOLTS | Recetas BOM',
-        loadComponent: () =>
-          import(
-            './features/backoffice/recipes/recipes'
-          ).then(
-            module => module.Recipes
-          )
-      },
-      {
-        path: 'produccion',
-        title: 'VOLTS | Producción',
-        loadComponent: () =>
-          import(
-            './features/backoffice/production/production'
-          ).then(
-            module => module.Production
-          )
-      },
-      {
-      path: 'merma',
-      title: 'VOLTS | Merma',
-      loadComponent: () =>
-        import(
-          './features/backoffice/waste/waste'
-        ).then(
-          module => module.WasteManagement
-        )
-     },
-
-      // -------------------------------------------------------
-      // ATENCIÓN Y CONTENIDO
-      // -------------------------------------------------------
-      {
-        path: 'soporte',
-        title: 'VOLTS | Soporte',
-        data: {
-          title: 'Centro de soporte',
-          description:
-            'Atención y seguimiento de tickets de clientes.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-      {
-        path: 'contacto',
-        title: 'VOLTS | Mensajes',
-        data: {
-          title: 'Mensajes de contacto',
-          description:
-            'Consulta de mensajes enviados desde el sitio público.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-      {
-        path: 'comentarios',
-        title: 'VOLTS | Comentarios',
-        data: {
-          title: 'Comentarios',
-          description:
-            'Administración de comentarios y retroalimentación.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-      {
-        path: 'documentacion',
-        title: 'VOLTS | Documentación',
-        data: {
-          title: 'Documentación',
-          description:
-            'Gestión de manuales, archivos y recursos educativos.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-      {
-        path: 'actualizaciones',
-        title: 'VOLTS | Actualizaciones',
-        data: {
-          title: 'Actualizaciones',
-          description:
-            'Noticias y versiones del ecosistema VOLTS.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-      {
-        path: 'notificaciones',
-        title: 'VOLTS | Notificaciones',
-        data: {
-          title: 'Notificaciones',
-          description:
-            'Administración de avisos para clientes y personal.'
-        },
-        loadComponent: () =>
-          import(
-            './features/backoffice/placeholder/backoffice-placeholder'
-          ).then(
-            module => module.BackofficePlaceholder
-          )
-      },
-
-      // -------------------------------------------------------
-      // ADMINISTRACIÓN: SOLO ADMIN
-      // -------------------------------------------------------
+      // =====================================================
+      // ADMINISTRACIÓN
+      // Solo Admin
+      // =====================================================
       {
         path: 'usuarios',
         title: 'VOLTS | Usuarios',
@@ -419,7 +152,7 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import(
-            './features/backoffice/placeholder/backoffice-placeholder'
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
           ).then(
             module => module.BackofficePlaceholder
           )
@@ -437,7 +170,7 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import(
-            './features/backoffice/placeholder/backoffice-placeholder'
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
           ).then(
             module => module.BackofficePlaceholder
           )
@@ -455,7 +188,7 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import(
-            './features/backoffice/placeholder/backoffice-placeholder'
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
           ).then(
             module => module.BackofficePlaceholder
           )
@@ -473,7 +206,7 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import(
-            './features/backoffice/placeholder/backoffice-placeholder'
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
           ).then(
             module => module.BackofficePlaceholder
           )
@@ -491,7 +224,250 @@ export const routes: Routes = [
         },
         loadComponent: () =>
           import(
-            './features/backoffice/placeholder/backoffice-placeholder'
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
+          ).then(
+            module => module.BackofficePlaceholder
+          )
+      },
+
+      // =====================================================
+      // COMERCIAL
+      // =====================================================
+      {
+        path: 'clientes',
+        title: 'VOLTS | Clientes',
+        data: {
+          title: 'Clientes',
+          description:
+            'Administración de clientes individuales e instituciones.'
+        },
+        loadComponent: () =>
+          import(
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
+          ).then(
+            module => module.BackofficePlaceholder
+          )
+      },
+      {
+        path: 'instituciones',
+        title: 'VOLTS | Instituciones',
+        loadComponent: () =>
+          import(
+            './features/backoffice/commercial/institutions/institutions'
+          ).then(
+            module => module.Institutions
+          )
+      },
+      {
+        path: 'cotizaciones',
+        title: 'VOLTS | Cotizaciones',
+        data: {
+          title: 'Cotizaciones',
+          description:
+            'Consulta, evaluación y seguimiento de cotizaciones.'
+        },
+        loadComponent: () =>
+          import(
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
+          ).then(
+            module => module.BackofficePlaceholder
+          )
+      },
+      {
+        path: 'pedidos',
+        title: 'VOLTS | Pedidos',
+        data: {
+          title: 'Pedidos',
+          description:
+            'Seguimiento de pedidos, inventario reservado y entregas.'
+        },
+        loadComponent: () =>
+          import(
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
+          ).then(
+            module => module.BackofficePlaceholder
+          )
+      },
+      {
+        path: 'ventas',
+        title: 'VOLTS | Ventas',
+        data: {
+          title: 'Ventas',
+          description:
+            'Administración de ventas e ingresos del ecosistema.'
+        },
+        loadComponent: () =>
+          import(
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
+          ).then(
+            module => module.BackofficePlaceholder
+          )
+      },
+      {
+        path: 'licencias',
+        title: 'VOLTS | Licencias',
+        data: {
+          title: 'Licencias',
+          description:
+            'Gestión de licencias asociadas a productos VOLTS.'
+        },
+        loadComponent: () =>
+          import(
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
+          ).then(
+            module => module.BackofficePlaceholder
+          )
+      },
+
+      // =====================================================
+      // PRODUCCIÓN E INVENTARIO
+      // =====================================================
+      {
+        path: 'productos',
+        title: 'VOLTS | Productos',
+        loadComponent: () =>
+          import(
+            './features/backoffice/production-inventory/products/products'
+          ).then(
+            module => module.Products
+          )
+      },
+      {
+        path: 'categorias',
+        title: 'VOLTS | Categorías',
+        loadComponent: () =>
+          import(
+            './features/backoffice/production-inventory/categories/categories'
+          ).then(
+            module => module.Categories
+          )
+      },
+      {
+        path: 'materia-prima',
+        title: 'VOLTS | Materia prima',
+        loadComponent: () =>
+          import(
+            './features/backoffice/production-inventory/raw-materials/raw-materials'
+          ).then(
+            module => module.RawMaterials
+          )
+      },
+      {
+        path: 'proveedores',
+        title: 'VOLTS | Proveedores',
+        loadComponent: () =>
+          import(
+            './features/backoffice/production-inventory/suppliers/suppliers'
+          ).then(
+            module => module.Suppliers
+          )
+      },
+      {
+        path: 'compras',
+        title: 'VOLTS | Compras',
+        loadComponent: () =>
+          import(
+            './features/backoffice/production-inventory/purchases/purchases'
+          ).then(
+            module => module.Purchases
+          )
+      },
+      {
+        path: 'recetas',
+        title: 'VOLTS | Recetas BOM',
+        loadComponent: () =>
+          import(
+            './features/backoffice/production-inventory/recipes/recipes'
+          ).then(
+            module => module.Recipes
+          )
+      },
+      {
+        path: 'produccion',
+        title: 'VOLTS | Producción',
+        loadComponent: () =>
+          import(
+            './features/backoffice/production-inventory/production/production'
+          ).then(
+            module => module.Production
+          )
+      },
+      {
+        path: 'merma',
+        title: 'VOLTS | Merma',
+        loadComponent: () =>
+          import(
+            './features/backoffice/production-inventory/waste/waste'
+          ).then(
+            module => module.WasteManagement
+          )
+      },
+
+      // =====================================================
+      // ATENCIÓN Y CONTENIDO
+      // =====================================================
+      {
+        path: 'soporte',
+        title: 'VOLTS | Centro de soporte',
+        loadComponent: () =>
+          import(
+            './features/backoffice/support-content/support/support'
+          ).then(
+            module => module.Support
+          )
+      },
+      {
+        path: 'contacto',
+        title: 'VOLTS | Mensajes de contacto',
+        loadComponent: () =>
+          import(
+            './features/backoffice/support-content/contact/contact-messages'
+          ).then(
+            module => module.ContactMessages
+          )
+      },
+      {
+        path: 'comentarios',
+        title: 'VOLTS | Comentarios',
+        loadComponent: () =>
+          import(
+            './features/backoffice/support-content/comments/comments'
+          ).then(
+            module => module.Comments
+          )
+      },
+      {
+        path: 'documentacion',
+        title: 'VOLTS | Documentación',
+        loadComponent: () =>
+          import(
+            './features/backoffice/support-content/documentation/documentation'
+          ).then(
+            module =>
+              module.DocumentationManagement
+          )
+      },
+       {
+        path: 'actualizaciones',
+        title: 'VOLTS | Actualizaciones',
+        loadComponent: () =>
+          import(
+            './features/backoffice/support-content/updates/updates'
+          ).then(
+            module => module.Updates
+          )
+       },
+      {
+        path: 'notificaciones',
+        title: 'VOLTS | Notificaciones',
+        data: {
+          title: 'Notificaciones',
+          description:
+            'Administración de avisos dirigidos a clientes, instituciones y personal.'
+        },
+        loadComponent: () =>
+          import(
+            './features/backoffice/shared/placeholder/backoffice-placeholder'
           ).then(
             module => module.BackofficePlaceholder
           )

@@ -20,29 +20,38 @@ import {
 } from '../models/api-response.model';
 
 import {
-  ContactCreateRequest,
-  ContactMessage,
-  ContactMessageStatus,
-  ContactStatusRequest
-} from '../models/contact-message.model';
+  Comment,
+  CommentApprovalRequest,
+  CommentCreateRequest
+} from '../models/comment.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ContactService {
-  private readonly http = inject(HttpClient);
+export class CommentService {
+  private readonly http =
+    inject(HttpClient);
 
   private readonly apiUrl =
-    `${environment.apiUrl}/Contact`;
+    `${environment.apiUrl}/Comments`;
 
   // =========================================================
   // SITIO PÚBLICO
   // =========================================================
-  send(
-    request: ContactCreateRequest
-  ): Observable<ApiResponse<ContactMessage>> {
+  getApproved():
+    Observable<ApiResponse<Comment[]>> {
+    return this.http.get<
+      ApiResponse<Comment[]>
+    >(
+      `${this.apiUrl}/approved`
+    );
+  }
+
+  create(
+    request: CommentCreateRequest
+  ): Observable<ApiResponse<Comment>> {
     return this.http.post<
-      ApiResponse<ContactMessage>
+      ApiResponse<Comment>
     >(
       this.apiUrl,
       request
@@ -53,9 +62,9 @@ export class ContactService {
   // BACKOFFICE
   // =========================================================
   getAll():
-    Observable<ApiResponse<ContactMessage[]>> {
+    Observable<ApiResponse<Comment[]>> {
     return this.http.get<
-      ApiResponse<ContactMessage[]>
+      ApiResponse<Comment[]>
     >(
       this.apiUrl
     );
@@ -63,26 +72,27 @@ export class ContactService {
 
   getById(
     id: string
-  ): Observable<ApiResponse<ContactMessage>> {
+  ): Observable<ApiResponse<Comment>> {
     return this.http.get<
-      ApiResponse<ContactMessage>
+      ApiResponse<Comment>
     >(
       `${this.apiUrl}/${id}`
     );
   }
 
-  updateStatus(
+  updateApproval(
     id: string,
-    status: ContactMessageStatus
-  ): Observable<ApiResponse<ContactMessage>> {
-    const request: ContactStatusRequest = {
-      status
-    };
+    isApproved: boolean
+  ): Observable<ApiResponse<Comment>> {
+    const request:
+      CommentApprovalRequest = {
+        isApproved
+      };
 
     return this.http.put<
-      ApiResponse<ContactMessage>
+      ApiResponse<Comment>
     >(
-      `${this.apiUrl}/${id}/status`,
+      `${this.apiUrl}/${id}/approval`,
       request
     );
   }

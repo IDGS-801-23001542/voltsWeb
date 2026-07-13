@@ -1,0 +1,713 @@
+<section class="documentation-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Atención y contenido
+      </span>
+
+      <h1>
+        Documentación
+      </h1>
+
+      <p>
+        Administra manuales, guías,
+        aplicaciones, firmware, videos y
+        recursos del ecosistema VOLTS.
+      </p>
+    </div>
+
+    <div class="heading-actions">
+      <button
+        type="button"
+        class="refresh-button"
+        [disabled]="loading()"
+        (click)="loadDocuments()"
+      >
+        ↻ Actualizar
+      </button>
+
+      @if (auth.hasRole('Admin')) {
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openCreateForm()"
+        >
+          ＋ Nuevo recurso
+        </button>
+      }
+    </div>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <span class="summary-icon">
+        📚
+      </span>
+
+      <div>
+        <small>Total</small>
+        <strong>{{ summary().total }}</strong>
+        <p>Recursos registrados</p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon public-icon">
+        🌐
+      </span>
+
+      <div>
+        <small>Públicos</small>
+        <strong>{{ summary().public }}</strong>
+        <p>Visibles para usuarios</p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon private-icon">
+        🔒
+      </span>
+
+      <div>
+        <small>Privados</small>
+        <strong>{{ summary().private }}</strong>
+        <p>Uso interno o restringido</p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon active-icon">
+        ✅
+      </span>
+
+      <div>
+        <small>Activos</small>
+        <strong>{{ summary().active }}</strong>
+        <p>Recursos disponibles</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="content-panel">
+    <div class="filters">
+      <label class="search-field">
+        <span>Buscar recurso</span>
+
+        <div class="input-wrapper">
+          <span>🔎</span>
+
+          <input
+            type="search"
+            [formControl]="searchControl"
+            placeholder="Título, descripción, versión o URL..."
+          />
+        </div>
+      </label>
+
+      <label class="filter-field">
+        <span>Tipo</span>
+
+        <select
+          [formControl]="typeControl"
+        >
+          <option value="all">
+            Todos
+          </option>
+
+          @for (
+            type of documentTypes;
+            track type
+          ) {
+            <option [value]="type">
+              {{ typeLabel(type) }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label class="filter-field">
+        <span>Visibilidad</span>
+
+        <select
+          [formControl]="visibilityControl"
+        >
+          <option value="all">
+            Todas
+          </option>
+
+          <option value="public">
+            Públicos
+          </option>
+
+          <option value="private">
+            Privados
+          </option>
+        </select>
+      </label>
+
+      <label class="filter-field">
+        <span>Estado</span>
+
+        <select
+          [formControl]="statusControl"
+        >
+          <option value="all">
+            Todos
+          </option>
+
+          <option value="active">
+            Activos
+          </option>
+
+          <option value="inactive">
+            Inactivos
+          </option>
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="clear-button"
+        (click)="clearFilters()"
+      >
+        Limpiar
+      </button>
+    </div>
+
+    @if (
+      errorMessage() &&
+      !detailOpen() &&
+      !formOpen()
+    ) {
+      <div class="feedback error-feedback">
+        ⚠️ {{ errorMessage() }}
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="state-container">
+        <span class="loader"></span>
+
+        <strong>
+          Cargando documentación...
+        </strong>
+      </div>
+    } @else if (
+      filteredDocuments().length === 0
+    ) {
+      <div class="state-container">
+        <span class="state-icon">📚</span>
+
+        <strong>
+          No se encontraron recursos
+        </strong>
+
+        <p>
+          Ajusta los filtros o registra
+          un nuevo documento.
+        </p>
+      </div>
+    } @else {
+      <div class="results-heading">
+        <strong>
+          {{ filteredDocuments().length }}
+          recursos
+        </strong>
+
+        <span>
+          de {{ summary().total }}
+          registrados
+        </span>
+      </div>
+
+      <div class="documents-grid">
+        @for (
+          documentItem of filteredDocuments();
+          track documentItem.id
+        ) {
+          <article class="document-card">
+            <div class="document-card-heading">
+              <span class="document-icon">
+                {{
+                  typeIcon(
+                    documentItem.documentType
+                  )
+                }}
+              </span>
+
+              <div class="document-badges">
+                <span
+                  class="visibility-chip"
+                  [class.public-chip]="
+                    documentItem.isPublic
+                  "
+                  [class.private-chip]="
+                    !documentItem.isPublic
+                  "
+                >
+                  {{
+                    documentItem.isPublic
+                      ? 'Público'
+                      : 'Privado'
+                  }}
+                </span>
+
+                <span
+                  class="status-chip"
+                  [class.active-chip]="
+                    documentItem.isActive
+                  "
+                  [class.inactive-chip]="
+                    !documentItem.isActive
+                  "
+                >
+                  {{
+                    documentItem.isActive
+                      ? 'Activo'
+                      : 'Inactivo'
+                  }}
+                </span>
+              </div>
+            </div>
+
+            <div class="document-content">
+              <span class="document-type">
+                {{
+                  typeLabel(
+                    documentItem.documentType
+                  )
+                }}
+              </span>
+
+              <h2>
+                {{ documentItem.title }}
+              </h2>
+
+              <p>
+                {{ documentItem.description }}
+              </p>
+            </div>
+
+            <div class="document-meta">
+              <span>
+                Versión
+                <strong>
+                  {{ documentItem.version }}
+                </strong>
+              </span>
+
+              <span>
+                {{
+                  documentItem.createdAt
+                    | date:'dd/MM/yyyy'
+                }}
+              </span>
+            </div>
+
+            <footer class="document-actions">
+              <button
+                type="button"
+                class="view-button"
+                (click)="openDetails(documentItem)"
+              >
+                Ver detalle
+              </button>
+
+              <a
+                class="open-button"
+                [href]="documentItem.fileUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Abrir recurso ↗
+              </a>
+            </footer>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>
+
+@if (
+  detailOpen() &&
+  selectedDocument();
+  as documentItem
+) {
+  <div
+    class="modal-backdrop"
+    (click)="closeDetails()"
+  ></div>
+
+  <aside class="detail-drawer">
+    <header class="drawer-heading">
+      <div>
+        <span class="page-label">
+          Detalle del recurso
+        </span>
+
+        <h2>
+          {{ documentItem.title }}
+        </h2>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        (click)="closeDetails()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="drawer-content">
+      @if (errorMessage()) {
+        <div class="feedback error-feedback">
+          ⚠️ {{ errorMessage() }}
+        </div>
+      }
+
+      <section class="resource-profile">
+        <span class="resource-icon">
+          {{
+            typeIcon(
+              documentItem.documentType
+            )
+          }}
+        </span>
+
+        <div>
+          <strong>
+            {{
+              typeLabel(
+                documentItem.documentType
+              )
+            }}
+          </strong>
+
+          <span>
+            Versión
+            {{ documentItem.version }}
+          </span>
+        </div>
+      </section>
+
+      <section class="detail-section">
+        <h3>Descripción</h3>
+
+        <p class="description-content">
+          {{ documentItem.description }}
+        </p>
+      </section>
+
+      <section class="detail-section">
+        <h3>Información</h3>
+
+        <dl class="detail-grid">
+          <div>
+            <dt>Visibilidad</dt>
+            <dd>
+              {{
+                documentItem.isPublic
+                  ? 'Público'
+                  : 'Privado'
+              }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Estado</dt>
+            <dd>
+              {{
+                documentItem.isActive
+                  ? 'Activo'
+                  : 'Inactivo'
+              }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Creado</dt>
+            <dd>
+              {{
+                documentItem.createdAt
+                  | date:'dd/MM/yyyy HH:mm'
+              }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Actualizado</dt>
+            <dd>
+              @if (documentItem.updatedAt) {
+                {{
+                  documentItem.updatedAt
+                    | date:'dd/MM/yyyy HH:mm'
+                }}
+              } @else {
+                Sin actualizaciones
+              }
+            </dd>
+          </div>
+
+          <div class="full-detail">
+            <dt>URL</dt>
+            <dd class="url-value">
+              {{ documentItem.fileUrl }}
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      @if (auth.hasRole('Admin')) {
+        <section class="detail-section">
+          <h3>Administración</h3>
+
+          <div class="management-actions">
+            <button
+              type="button"
+              (click)="
+                toggleVisibility(
+                  documentItem
+                )
+              "
+              [disabled]="saving()"
+            >
+              {{
+                documentItem.isPublic
+                  ? '🔒 Hacer privado'
+                  : '🌐 Publicar'
+              }}
+            </button>
+
+            <button
+              type="button"
+              (click)="
+                toggleStatus(
+                  documentItem
+                )
+              "
+              [disabled]="saving()"
+            >
+              {{
+                documentItem.isActive
+                  ? '⏸ Desactivar'
+                  : '▶ Activar'
+              }}
+            </button>
+          </div>
+        </section>
+      }
+    </div>
+
+    <footer class="drawer-footer">
+      <a
+        class="primary-link"
+        [href]="documentItem.fileUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Abrir recurso ↗
+      </a>
+
+      @if (auth.hasRole('Admin')) {
+        <button
+          type="button"
+          class="edit-button"
+          (click)="
+            openEditForm(
+              documentItem
+            )
+          "
+        >
+          ✏️ Editar
+        </button>
+
+        <button
+          type="button"
+          class="delete-button"
+          [disabled]="saving()"
+          (click)="
+            deleteDocument(
+              documentItem
+            )
+          "
+        >
+          🗑️ Eliminar
+        </button>
+      }
+    </footer>
+  </aside>
+}
+
+@if (formOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="closeForm()"
+  ></div>
+
+  <section class="form-modal">
+    <header class="drawer-heading">
+      <div>
+        <span class="page-label">
+          {{
+            editingDocument()
+              ? 'Editar recurso'
+              : 'Nuevo recurso'
+          }}
+        </span>
+
+        <h2>
+          {{
+            editingDocument()
+              ? 'Actualizar documentación'
+              : 'Registrar documentación'
+          }}
+        </h2>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        [disabled]="saving()"
+        (click)="closeForm()"
+      >
+        ×
+      </button>
+    </header>
+
+    <form
+      class="document-form"
+      [formGroup]="form"
+      (ngSubmit)="saveDocument()"
+    >
+      @if (errorMessage()) {
+        <div class="feedback error-feedback">
+          ⚠️ {{ errorMessage() }}
+        </div>
+      }
+
+      <div class="form-grid">
+        <label class="full-field">
+          <span>Título</span>
+
+          <input
+            type="text"
+            formControlName="title"
+            placeholder="Ej. Manual de usuario VOLTS"
+          />
+        </label>
+
+        <label>
+          <span>Tipo de recurso</span>
+
+          <select
+            formControlName="documentType"
+          >
+            @for (
+              type of documentTypes;
+              track type
+            ) {
+              <option [value]="type">
+                {{ typeLabel(type) }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Versión</span>
+
+          <input
+            type="text"
+            formControlName="version"
+            placeholder="1.0"
+          />
+        </label>
+
+        <label class="full-field">
+          <span>URL del recurso</span>
+
+          <input
+            type="url"
+            formControlName="fileUrl"
+            placeholder="https://..."
+          />
+
+          <small>
+            Debe comenzar con http://
+            o https://
+          </small>
+        </label>
+
+        <label class="full-field">
+          <span>Descripción</span>
+
+          <textarea
+            rows="6"
+            formControlName="description"
+            placeholder="Describe el contenido y propósito del recurso..."
+          ></textarea>
+        </label>
+      </div>
+
+      <div class="toggle-grid">
+        <label class="toggle-option">
+          <input
+            type="checkbox"
+            formControlName="isPublic"
+          />
+
+          <span>
+            <strong>Recurso público</strong>
+            <small>
+              Visible para clientes y visitantes
+              autorizados.
+            </small>
+          </span>
+        </label>
+
+        @if (editingDocument()) {
+          <label class="toggle-option">
+            <input
+              type="checkbox"
+              formControlName="isActive"
+            />
+
+            <span>
+              <strong>Recurso activo</strong>
+              <small>
+                Disponible dentro del ecosistema.
+              </small>
+            </span>
+          </label>
+        }
+      </div>
+
+      <footer class="form-footer">
+        <button
+          type="button"
+          class="cancel-button"
+          [disabled]="saving()"
+          (click)="closeForm()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="primary-button"
+          [disabled]="saving()"
+        >
+          {{
+            saving()
+              ? 'Guardando...'
+              : editingDocument()
+                ? 'Guardar cambios'
+                : 'Crear recurso'
+          }}
+        </button>
+      </footer>
+    </form>
+  </section>
+}

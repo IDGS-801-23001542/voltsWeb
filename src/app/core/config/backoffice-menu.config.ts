@@ -4,6 +4,18 @@ import {
 
 export const BACKOFFICE_MENU: BackofficeMenuGroup[] = [
   {
+    title: 'Principal',
+    items: [
+      {
+        label: 'Dashboard',
+        icon: '🏠',
+        route: '/backoffice',
+        roles: ['Admin', 'Employee'],
+        exact: true
+      }
+    ]
+  },
+  {
     title: 'Administración',
     items: [
       {
@@ -38,18 +50,7 @@ export const BACKOFFICE_MENU: BackofficeMenuGroup[] = [
       }
     ]
   },
-  {
-    title: 'Principal',
-    items: [
-      {
-        label: 'Dashboard',
-        icon: '🏠',
-        route: '/backoffice',
-        roles: ['Admin', 'Employee'],
-        exact: true
-      }
-    ]
-  },
+
   {
     title: 'Comercial',
     items: [
