@@ -4,33 +4,33 @@ export type ProductCommercialStatus =
   | 'Unavailable'
   | 'Discontinued';
 
+export type ProductStatusFilter =
+  | 'all'
+  | ProductCommercialStatus;
+
 export interface Product {
   id: string;
   name: string;
   slug: string;
   description: string;
   price: number;
-
   categoryId: string;
   categoryName: string;
-  category: string;
-
+  category?: string | null;
   species: string;
   breed: string;
-
   commercialStatus: ProductCommercialStatus;
-
   canBePurchased: boolean;
   canBeProduced: boolean;
-
   imageUrl?: string | null;
 
-  finishedStock: number;
+  physicalStock: number;
+  reservedStock: number;
+  availableStock: number;
   minimumFinishedStock: number;
 
   isActive: boolean;
   isDeleted: boolean;
-
   createdAt: string;
   updatedAt?: string | null;
 }
@@ -40,19 +40,13 @@ export interface ProductCreateRequest {
   slug: string;
   description: string;
   price: number;
-
   categoryId: string;
-
   species: string;
   breed: string;
-
   commercialStatus: ProductCommercialStatus;
-
   canBePurchased: boolean;
   canBeProduced: boolean;
-
   imageUrl?: string | null;
-
   minimumFinishedStock: number;
 }
 
@@ -65,7 +59,3 @@ export interface ProductStockAdjustmentRequest {
   quantity: number;
   reason: string;
 }
-
-export type ProductStatusFilter =
-  | 'all'
-  | ProductCommercialStatus;

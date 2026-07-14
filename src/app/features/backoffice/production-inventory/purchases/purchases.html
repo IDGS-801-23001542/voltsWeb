@@ -1,0 +1,727 @@
+<section class="page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Producción e inventario
+      </span>
+
+      <h1>Compras</h1>
+
+      <p>
+        Registra entradas de materia prima y actualiza
+        automáticamente existencias y costos promedio.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateForm()"
+    >
+      ＋ Nueva compra
+    </button>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  @if (summary(); as data) {
+    <div class="summary-grid">
+      <article class="summary-card">
+        <span>🛒</span>
+        <div>
+          <small>Compras</small>
+          <strong>{{ data.totalPurchases }}</strong>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <span>📅</span>
+        <div>
+          <small>Este mes</small>
+          <strong>{{ data.purchasesThisMonth }}</strong>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <span>💰</span>
+        <div>
+          <small>Total invertido</small>
+          <strong>
+            {{
+              data.totalInvested
+                | currency:'MXN'
+            }}
+          </strong>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <span>🚚</span>
+        <div>
+          <small>Proveedores usados</small>
+          <strong>{{ data.suppliersUsed }}</strong>
+        </div>
+      </article>
+    </div>
+  }
+
+  <section class="panel">
+    <div class="toolbar">
+      <div class="search-control">
+        <span>🔎</span>
+
+        <input
+          type="search"
+          placeholder="Buscar por folio, proveedor o factura..."
+          [value]="searchTerm()"
+          (input)="updateSearch($event)"
+        />
+      </div>
+
+      <select
+        [value]="supplierFilter()"
+        (change)="updateSupplierFilter($event)"
+      >
+        <option value="all">
+          Todos los proveedores
+        </option>
+
+        @for (
+          supplier of suppliers();
+          track supplier.id
+        ) {
+          <option [value]="supplier.id">
+            {{ supplier.name }}
+          </option>
+        }
+      </select>
+    </div>
+
+    @if (loading()) {
+      <div class="state-container">
+        <span class="loader"></span>
+        <p>Cargando compras...</p>
+      </div>
+    } @else if (
+      filteredPurchases().length === 0
+    ) {
+      <div class="state-container">
+        <span class="state-icon">🛒</span>
+        <strong>No se encontraron compras</strong>
+      </div>
+    } @else {
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Folio</th>
+              <th>Proveedor</th>
+              <th>Fecha</th>
+              <th>Materiales</th>
+              <th>Subtotal</th>
+              <th>Total</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              purchase of filteredPurchases();
+              track purchase.id
+            ) {
+              <tr>
+                <td data-label="Folio">
+                  <div class="entity-name">
+                    <strong>{{ purchase.folio }}</strong>
+                    <small>
+                      {{
+                        purchase.invoiceNumber ||
+                        'Sin factura'
+                      }}
+                    </small>
+                  </div>
+                </td>
+
+                <td data-label="Proveedor">
+                  {{ purchase.supplierName }}
+                </td>
+
+                <td data-label="Fecha">
+                  {{
+                    purchase.purchaseDate
+                      | date:'dd/MM/yyyy'
+                  }}
+                </td>
+
+                <td data-label="Materiales">
+                  {{ purchase.details.length }}
+                </td>
+
+                <td data-label="Subtotal">
+                  {{
+                    purchase.subtotal
+                      | currency:'MXN'
+                  }}
+                </td>
+
+                <td data-label="Total">
+                  <strong>
+                    {{
+                      purchase.total
+                        | currency:'MXN'
+                    }}
+                  </strong>
+                </td>
+
+                <td
+                  data-label="Acciones"
+                  class="actions-cell"
+                >
+                  <button
+                    type="button"
+                    title="Ver detalle"
+                    (click)="openDetail(purchase)"
+                  >
+                    👁️
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>
+
+@if (formOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="closeForm()"
+  >
+    <section
+      class="modal-card purchase-modal"
+      role="dialog"
+      aria-modal="true"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            Entrada de inventario
+          </span>
+
+          <h2>Nueva compra</h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeForm()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Proveedor *</label>
+
+            <select formControlName="supplierId">
+              <option value="">
+                Selecciona un proveedor
+              </option>
+
+              @for (
+                supplier of suppliers();
+                track supplier.id
+              ) {
+                <option [value]="supplier.id">
+                  {{ supplier.name }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Fecha de compra *</label>
+
+            <input
+              type="date"
+              formControlName="purchaseDate"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Número de factura</label>
+
+            <input
+              type="text"
+              maxlength="100"
+              formControlName="invoiceNumber"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Costo de envío</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="shippingCost"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Impuesto</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="tax"
+            />
+          </div>
+
+          <div class="form-field full-field">
+            <label>Notas</label>
+
+            <textarea
+              rows="3"
+              maxlength="1000"
+              formControlName="notes"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="details-heading">
+          <div>
+            <h3>Materiales comprados</h3>
+            <p>
+              La unidad se toma directamente de cada
+              materia prima.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="addDetail()"
+          >
+            ＋ Agregar material
+          </button>
+        </div>
+
+        <div formArrayName="details">
+          @for (
+            detail of details.controls;
+            track $index;
+            let index = $index
+          ) {
+            <article
+              class="detail-card"
+              [formGroupName]="index"
+            >
+              <div class="detail-card-header">
+                <strong>
+                  Material {{ index + 1 }}
+                </strong>
+
+                <button
+                  type="button"
+                  class="remove-button"
+                  [disabled]="details.length === 1"
+                  (click)="removeDetail(index)"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div class="detail-grid">
+                <div class="form-field material-field">
+                  <label>Materia prima *</label>
+
+                  <select
+                    formControlName="rawMaterialId"
+                    (change)="materialChanged(index)"
+                  >
+                    <option value="">
+                      Selecciona un material
+                    </option>
+
+                    @for (
+                      material of getAvailableMaterials(index);
+                      track material.id
+                    ) {
+                      <option [value]="material.id">
+                        {{ material.code }}
+                        ·
+                        {{ material.name }}
+                        ·
+                        {{ material.unitSymbol }}
+                      </option>
+                    }
+                  </select>
+                </div>
+
+                @if (getMaterial(index); as material) {
+                  <div class="material-information">
+                    <small>Unidad</small>
+                    <strong>
+                      {{ material.unitName }}
+                      ({{ material.unitSymbol }})
+                    </strong>
+
+                    <span>
+                      Stock actual:
+                      {{
+                        formatMaterialQuantity(
+                          material,
+                          material.currentStock
+                        )
+                      }}
+                      {{ material.unitSymbol }}
+                    </span>
+
+                    @if (material.maximumStock > 0) {
+                      <span>
+                        Máximo:
+                        {{
+                          formatMaterialQuantity(
+                            material,
+                            material.maximumStock
+                          )
+                        }}
+                        {{ material.unitSymbol }}
+                      </span>
+                    }
+                  </div>
+                }
+
+                <div class="form-field">
+                  <label>
+                    Cantidad
+                    @if (getMaterial(index); as material) {
+                      ({{ material.unitSymbol }})
+                    }
+                  </label>
+
+                  <input
+                    type="number"
+                    min="0"
+                    [attr.step]="
+                      quantityStep(
+                        getMaterial(index)
+                      )
+                    "
+                    formControlName="quantity"
+                    (input)="detailChanged()"
+                  />
+
+                  @if (
+                    detail.get('quantity')?.touched &&
+                    detail.get('quantity')?.hasError('integer')
+                  ) {
+                    <small class="field-error">
+                      Esta unidad solo acepta enteros.
+                    </small>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label>
+                    Costo unitario
+                    @if (getMaterial(index); as material) {
+                      por {{ material.unitSymbol }}
+                    }
+                  </label>
+
+                  <input
+                    type="number"
+                    min="0.000001"
+                    step="0.000001"
+                    formControlName="unitCost"
+                    (input)="detailChanged()"
+                  />
+                </div>
+
+                <div class="detail-subtotal">
+                  <small>Subtotal</small>
+                  <strong>
+                    {{
+                      getDetailSubtotal(index)
+                        | currency:'MXN'
+                    }}
+                  </strong>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+
+        <div class="totals-box">
+          <div>
+            <span>Subtotal</span>
+            <strong>
+              {{
+                purchaseSubtotal()
+                  | currency:'MXN'
+              }}
+            </strong>
+          </div>
+
+          <div>
+            <span>Impuesto</span>
+            <strong>
+              {{
+                form.controls.tax.value
+                  | currency:'MXN'
+              }}
+            </strong>
+          </div>
+
+          <div>
+            <span>Envío</span>
+            <strong>
+              {{
+                form.controls.shippingCost.value
+                  | currency:'MXN'
+              }}
+            </strong>
+          </div>
+
+          <div class="grand-total">
+            <span>Total</span>
+            <strong>
+              {{
+                purchaseTotal()
+                  | currency:'MXN'
+              }}
+            </strong>
+          </div>
+        </div>
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="saving()"
+            (click)="closeForm()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            {{
+              saving()
+                ? 'Registrando...'
+                : 'Registrar compra'
+            }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (
+  detailModalOpen() &&
+  selectedPurchase();
+  as purchase
+) {
+  <div
+    class="modal-backdrop"
+    (click)="closeDetail()"
+  >
+    <section
+      class="modal-card detail-modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            Detalle de compra
+          </span>
+
+          <h2>{{ purchase.folio }}</h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeDetail()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <div class="detail-summary">
+        <span>
+          Proveedor:
+          <strong>
+            {{ purchase.supplierName }}
+          </strong>
+        </span>
+
+        <span>
+          Fecha:
+          <strong>
+            {{
+              purchase.purchaseDate
+                | date:'dd/MM/yyyy'
+            }}
+          </strong>
+        </span>
+
+        <span>
+          Factura:
+          <strong>
+            {{
+              purchase.invoiceNumber ||
+              'Sin factura'
+            }}
+          </strong>
+        </span>
+      </div>
+
+      <div class="purchase-detail-list">
+        @for (
+          detail of purchase.details;
+          track detail.rawMaterialId
+        ) {
+          <article class="purchase-detail-item">
+            <div>
+              <strong>
+                {{ detail.rawMaterialName }}
+              </strong>
+
+              <small>
+                {{ detail.rawMaterialCode }}
+              </small>
+            </div>
+
+            <div>
+              <span>
+                {{
+                  formatDetailQuantity(
+                    detail.quantity,
+                    detail.unitAllowsDecimals,
+                    detail.unitDecimalPlaces
+                  )
+                }}
+                {{ detail.unitSymbol }}
+                ×
+                {{
+                  detail.unitCost
+                    | currency:'MXN'
+                }}
+              </span>
+
+              <strong>
+                {{
+                  detail.subtotal
+                    | currency:'MXN'
+                }}
+              </strong>
+            </div>
+
+            <small>
+              Stock:
+              {{
+                formatDetailQuantity(
+                  detail.previousStock,
+                  detail.unitAllowsDecimals,
+                  detail.unitDecimalPlaces
+                )
+              }}
+              →
+              {{
+                formatDetailQuantity(
+                  detail.newStock,
+                  detail.unitAllowsDecimals,
+                  detail.unitDecimalPlaces
+                )
+              }}
+              {{ detail.unitSymbol }}
+            </small>
+
+            <small>
+              Costo promedio:
+              {{
+                detail.previousAverageCost
+                  | currency:'MXN'
+              }}
+              →
+              {{
+                detail.newAverageCost
+                  | currency:'MXN'
+              }}
+              por {{ detail.unitSymbol }}
+            </small>
+          </article>
+        }
+      </div>
+
+      <div class="totals-box detail-totals">
+        <div>
+          <span>Subtotal</span>
+          <strong>
+            {{
+              purchase.subtotal
+                | currency:'MXN'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Impuesto</span>
+          <strong>
+            {{
+              purchase.tax
+                | currency:'MXN'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Envío</span>
+          <strong>
+            {{
+              purchase.shippingCost
+                | currency:'MXN'
+            }}
+          </strong>
+        </div>
+
+        <div class="grand-total">
+          <span>Total</span>
+          <strong>
+            {{
+              purchase.total
+                | currency:'MXN'
+            }}
+          </strong>
+        </div>
+      </div>
+    </section>
+  </div>
+}

@@ -1,0 +1,651 @@
+<section class="contact-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Atención y contenido
+      </span>
+
+      <h1>
+        Mensajes de contacto
+      </h1>
+
+      <p>
+        Consulta y da seguimiento a los mensajes
+        enviados desde el sitio público de VOLTS.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      [disabled]="loading()"
+      (click)="loadMessages()"
+    >
+      <span>↻</span>
+      Actualizar
+    </button>
+  </header>
+
+  <section
+    class="summary-grid"
+    aria-label="Resumen de mensajes"
+  >
+    <article class="summary-card total-card">
+      <span class="summary-icon">
+        ✉️
+      </span>
+
+      <div>
+        <small>Total</small>
+        <strong>
+          {{ summary().total }}
+        </strong>
+        <p>Mensajes recibidos</p>
+      </div>
+    </article>
+
+    <article class="summary-card new-card">
+      <span class="summary-icon">
+        🆕
+      </span>
+
+      <div>
+        <small>Nuevos</small>
+        <strong>
+          {{ summary().new }}
+        </strong>
+        <p>Sin atender</p>
+      </div>
+    </article>
+
+    <article class="summary-card progress-card">
+      <span class="summary-icon">
+        ⏳
+      </span>
+
+      <div>
+        <small>En proceso</small>
+        <strong>
+          {{ summary().inProgress }}
+        </strong>
+        <p>En seguimiento</p>
+      </div>
+    </article>
+
+    <article class="summary-card responded-card">
+      <span class="summary-icon">
+        ✅
+      </span>
+
+      <div>
+        <small>Respondidos</small>
+        <strong>
+          {{ summary().responded }}
+        </strong>
+        <p>Atendidos</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="content-panel">
+    <div class="filters">
+      <label class="search-field">
+        <span>Buscar mensaje</span>
+
+        <div class="input-wrapper">
+          <span aria-hidden="true">
+            🔎
+          </span>
+
+          <input
+            type="search"
+            [formControl]="searchControl"
+            placeholder="Nombre, correo, asunto o contenido..."
+          />
+        </div>
+      </label>
+
+      <label class="status-field">
+        <span>Estado</span>
+
+        <select
+          [formControl]="statusControl"
+        >
+          <option value="all">
+            Todos los estados
+          </option>
+
+          <option value="New">
+            Nuevos
+          </option>
+
+          <option value="InProgress">
+            En proceso
+          </option>
+
+          <option value="Responded">
+            Respondidos
+          </option>
+
+          <option value="Closed">
+            Cerrados
+          </option>
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="clear-button"
+        (click)="clearFilters()"
+      >
+        Limpiar filtros
+      </button>
+    </div>
+
+    @if (errorMessage() && !selectedMessage()) {
+      <div class="feedback error-feedback">
+        <span>⚠️</span>
+
+        <div>
+          <strong>
+            Ocurrió un problema
+          </strong>
+
+          <p>
+            {{ errorMessage() }}
+          </p>
+        </div>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="loading-state">
+        <span class="loader"></span>
+
+        <strong>
+          Cargando mensajes...
+        </strong>
+
+        <p>
+          Estamos consultando la información
+          registrada en VOLTS.
+        </p>
+      </div>
+    } @else if (
+      filteredMessages().length === 0
+    ) {
+      <div class="empty-state">
+        <span>📭</span>
+
+        <strong>
+          No se encontraron mensajes
+        </strong>
+
+        <p>
+          Ajusta los filtros o espera a que
+          lleguen nuevos mensajes desde el sitio.
+        </p>
+
+        <button
+          type="button"
+          (click)="clearFilters()"
+        >
+          Mostrar todos
+        </button>
+      </div>
+    } @else {
+      <div class="results-heading">
+        <div>
+          <strong>
+            {{
+              filteredMessages().length
+            }}
+            mensajes
+          </strong>
+
+          <span>
+            de {{ summary().total }}
+            registrados
+          </span>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Remitente</th>
+              <th>Asunto</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th class="actions-column">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              message of filteredMessages();
+              track message.id
+            ) {
+              <tr>
+                <td>
+                  <div class="sender-cell">
+                    <span class="sender-avatar">
+                      {{
+                        message.fullName
+                          .charAt(0)
+                          .toUpperCase()
+                      }}
+                    </span>
+
+                    <div>
+                      <strong>
+                        {{ message.fullName }}
+                      </strong>
+
+                      <small>
+                        {{ message.email }}
+                      </small>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="subject-cell">
+                    <strong>
+                      {{ message.subject }}
+                    </strong>
+
+                    <p>
+                      {{ message.message }}
+                    </p>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="date-cell">
+                    <strong>
+                      {{
+                        message.createdAt
+                          | date:'dd/MM/yyyy'
+                      }}
+                    </strong>
+
+                    <small>
+                      {{
+                        message.createdAt
+                          | date:'HH:mm'
+                      }}
+                    </small>
+                  </div>
+                </td>
+
+                <td>
+                  <span
+                    class="status-chip"
+                    [class.status-new]="
+                      message.status === 'New'
+                    "
+                    [class.status-progress]="
+                      message.status === 'InProgress'
+                    "
+                    [class.status-responded]="
+                      message.status === 'Responded'
+                    "
+                    [class.status-closed]="
+                      message.status === 'Closed'
+                    "
+                  >
+                    {{
+                      statusLabel(
+                        message.status
+                      )
+                    }}
+                  </span>
+                </td>
+
+                <td class="actions-column">
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="openDetails(message)"
+                  >
+                    Ver mensaje
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-list">
+        @for (
+          message of filteredMessages();
+          track message.id
+        ) {
+          <article class="message-card">
+            <div class="message-card-heading">
+              <div class="sender-cell">
+                <span class="sender-avatar">
+                  {{
+                    message.fullName
+                      .charAt(0)
+                      .toUpperCase()
+                  }}
+                </span>
+
+                <div>
+                  <strong>
+                    {{ message.fullName }}
+                  </strong>
+
+                  <small>
+                    {{ message.email }}
+                  </small>
+                </div>
+              </div>
+
+              <span
+                class="status-chip"
+                [class.status-new]="
+                  message.status === 'New'
+                "
+                [class.status-progress]="
+                  message.status === 'InProgress'
+                "
+                [class.status-responded]="
+                  message.status === 'Responded'
+                "
+                [class.status-closed]="
+                  message.status === 'Closed'
+                "
+              >
+                {{
+                  statusLabel(
+                    message.status
+                  )
+                }}
+              </span>
+            </div>
+
+            <div class="message-card-body">
+              <strong>
+                {{ message.subject }}
+              </strong>
+
+              <p>
+                {{ message.message }}
+              </p>
+            </div>
+
+            <div class="message-card-footer">
+              <span>
+                {{
+                  message.createdAt
+                    | date:'dd/MM/yyyy HH:mm'
+                }}
+              </span>
+
+              <button
+                type="button"
+                class="view-button"
+                (click)="openDetails(message)"
+              >
+                Ver detalle
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>
+
+@if (selectedMessage(); as message) {
+  <div
+    class="drawer-backdrop"
+    role="presentation"
+    (click)="closeDetails()"
+  ></div>
+
+  <aside
+    class="message-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="message-drawer-title"
+  >
+    <header class="drawer-heading">
+      <div>
+        <span class="page-label">
+          Detalle del mensaje
+        </span>
+
+        <h2 id="message-drawer-title">
+          {{ message.subject }}
+        </h2>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Cerrar detalle"
+        title="Cerrar"
+        (click)="closeDetails()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="drawer-content">
+      @if (successMessage()) {
+        <div class="feedback success-feedback">
+          <span>✅</span>
+
+          <p>
+            {{ successMessage() }}
+          </p>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="feedback error-feedback">
+          <span>⚠️</span>
+
+          <p>
+            {{ errorMessage() }}
+          </p>
+        </div>
+      }
+
+      <section class="sender-profile">
+        <span class="profile-avatar">
+          {{
+            message.fullName
+              .charAt(0)
+              .toUpperCase()
+          }}
+        </span>
+
+        <div>
+          <strong>
+            {{ message.fullName }}
+          </strong>
+
+          <a
+            [href]="'mailto:' + message.email"
+          >
+            {{ message.email }}
+          </a>
+
+          @if (message.phone) {
+            <a
+              [href]="'tel:' + message.phone"
+            >
+              {{ message.phone }}
+            </a>
+          }
+        </div>
+      </section>
+
+      <section class="detail-section">
+        <div class="detail-heading">
+          <h3>Información</h3>
+
+          <span
+            class="status-chip"
+            [class.status-new]="
+              message.status === 'New'
+            "
+            [class.status-progress]="
+              message.status === 'InProgress'
+            "
+            [class.status-responded]="
+              message.status === 'Responded'
+            "
+            [class.status-closed]="
+              message.status === 'Closed'
+            "
+          >
+            {{
+              statusLabel(
+                message.status
+              )
+            }}
+          </span>
+        </div>
+
+        <dl class="detail-grid">
+          <div>
+            <dt>Fecha de envío</dt>
+            <dd>
+              {{
+                message.createdAt
+                  | date:'dd/MM/yyyy HH:mm'
+              }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Última actualización</dt>
+            <dd>
+              @if (message.updatedAt) {
+                {{
+                  message.updatedAt
+                    | date:'dd/MM/yyyy HH:mm'
+                }}
+              } @else {
+                Sin actualizaciones
+              }
+            </dd>
+          </div>
+
+          <div class="full-detail">
+            <dt>Asunto</dt>
+            <dd>
+              {{ message.subject }}
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="detail-section">
+        <h3>Mensaje recibido</h3>
+
+        <div class="message-content">
+          {{ message.message }}
+        </div>
+      </section>
+
+      <section class="detail-section">
+        <h3>Seguimiento</h3>
+
+        <p class="section-description">
+          Selecciona el estado actual de atención
+          del mensaje.
+        </p>
+
+        <div class="status-actions">
+          <button
+            type="button"
+            class="status-action new-action"
+            [class.selected]="
+              message.status === 'New'
+            "
+            [disabled]="saving()"
+            (click)="updateStatus('New')"
+          >
+            <span>🆕</span>
+            Nuevo
+          </button>
+
+          <button
+            type="button"
+            class="status-action progress-action"
+            [class.selected]="
+              message.status === 'InProgress'
+            "
+            [disabled]="saving()"
+            (click)="updateStatus('InProgress')"
+          >
+            <span>⏳</span>
+            En proceso
+          </button>
+
+          <button
+            type="button"
+            class="status-action responded-action"
+            [class.selected]="
+              message.status === 'Responded'
+            "
+            [disabled]="saving()"
+            (click)="updateStatus('Responded')"
+          >
+            <span>✅</span>
+            Respondido
+          </button>
+
+          <button
+            type="button"
+            class="status-action closed-action"
+            [class.selected]="
+              message.status === 'Closed'
+            "
+            [disabled]="saving()"
+            (click)="updateStatus('Closed')"
+          >
+            <span>🔒</span>
+            Cerrado
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <footer class="drawer-footer">
+      <a
+        class="reply-button"
+        [href]="
+          'mailto:' +
+          message.email +
+          '?subject=Re: ' +
+          message.subject
+        "
+      >
+        ✉️ Responder por correo
+      </a>
+
+      @if (auth.hasRole('Admin')) {
+        <button
+          type="button"
+          class="delete-button"
+          [disabled]="saving()"
+          (click)="deleteMessage()"
+        >
+          🗑️ Eliminar
+        </button>
+      }
+    </footer>
+  </aside>
+}

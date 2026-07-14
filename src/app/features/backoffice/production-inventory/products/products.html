@@ -1,0 +1,588 @@
+<section class="products-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Producción e inventario
+      </span>
+
+      <h1>Productos</h1>
+
+      <p>
+        Administra modelos, razas, disponibilidad
+        comercial e inventario terminado.
+      </p>
+    </div>
+
+    @if (isAdmin()) {
+      <button
+        type="button"
+        class="primary-button"
+        (click)="openCreateForm()"
+      >
+        ＋ Nuevo producto
+      </button>
+    }
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="summary-grid">
+    <article class="summary-card">
+      <span>🐕</span>
+
+      <div>
+        <small>Total de productos</small>
+        <strong>{{ products().length }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>✅</span>
+
+      <div>
+        <small>Disponibles</small>
+        <strong>{{ availableCount() }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>🛠️</span>
+
+      <div>
+        <small>Próximamente</small>
+        <strong>{{ comingSoonCount() }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card warning-card">
+      <span>📦</span>
+
+      <div>
+        <small>Stock bajo</small>
+        <strong>{{ lowStockCount() }}</strong>
+      </div>
+    </article>
+  </div>
+
+  <section class="products-panel">
+    <div class="panel-toolbar">
+      <div class="search-control">
+        <span>🔎</span>
+
+        <input
+          type="search"
+          placeholder="Buscar producto, raza o categoría..."
+          [value]="searchTerm()"
+          (input)="updateSearch($event)"
+        />
+      </div>
+
+      <select
+        [value]="statusFilter()"
+        (change)="updateStatusFilter($event)"
+      >
+        <option value="all">
+          Todos los estados
+        </option>
+
+        <option value="Available">
+          Disponible
+        </option>
+
+        <option value="ComingSoon">
+          Próximamente
+        </option>
+
+        <option value="Unavailable">
+          No disponible
+        </option>
+
+        <option value="Discontinued">
+          Descontinuado
+        </option>
+      </select>
+    </div>
+
+    @if (loading()) {
+      <div class="state-container">
+        <span class="loader"></span>
+        <p>Cargando productos...</p>
+      </div>
+    } @else if (
+      filteredProducts().length === 0
+    ) {
+      <div class="state-container">
+        <span class="state-icon">🐕</span>
+        <strong>No se encontraron productos</strong>
+        <p>
+          Ajusta los filtros o registra un producto.
+        </p>
+      </div>
+    } @else {
+      <div class="product-grid">
+        @for (
+          product of filteredProducts();
+          track product.id
+        ) {
+          <article class="product-card">
+            <div class="product-image">
+              @if (product.imageUrl) {
+                <img
+                  [src]="product.imageUrl"
+                  [alt]="product.name"
+                />
+              } @else {
+                <span>🐕</span>
+              }
+
+              <span
+                class="commercial-badge"
+                [class.coming-soon]="
+                  product.commercialStatus ===
+                  'ComingSoon'
+                "
+                [class.unavailable]="
+                  product.commercialStatus ===
+                    'Unavailable' ||
+                  product.commercialStatus ===
+                    'Discontinued'
+                "
+              >
+                {{
+                  getCommercialStatusLabel(
+                    product.commercialStatus
+                  )
+                }}
+              </span>
+            </div>
+
+            <div class="product-content">
+              <div class="product-heading">
+                <div>
+                  <small>
+                    {{ product.categoryName }}
+                  </small>
+
+                  <h2>{{ product.name }}</h2>
+                </div>
+
+                <span
+                  class="active-badge"
+                  [class.inactive]="
+                    !product.isActive
+                  "
+                >
+                  {{
+                    product.isActive
+                      ? 'Activo'
+                      : 'Inactivo'
+                  }}
+                </span>
+              </div>
+
+              <p>{{ product.description }}</p>
+
+              <div class="product-data">
+                <div>
+                  <small>Especie</small>
+                  <strong>{{ product.species }}</strong>
+                </div>
+
+                <div>
+                  <small>Raza o variante</small>
+                  <strong>{{ product.breed }}</strong>
+                </div>
+
+                <div>
+                  <small>Precio</small>
+                  <strong>
+                    {{
+                      product.price
+                        | currency:'MXN'
+                    }}
+                  </strong>
+                </div>
+
+                <div>
+                  <small>Stock físico</small>
+                  <strong>
+                    {{ product.physicalStock }}
+                  </strong>
+                </div>
+
+                <div>
+                  <small>Stock reservado</small>
+                  <strong>
+                    {{ product.reservedStock }}
+                  </strong>
+                </div>
+
+                <div>
+                  <small>Stock disponible</small>
+
+                  <strong
+                    [class.low-stock]="
+                      product.availableStock <=
+                      product.minimumFinishedStock
+                    "
+                  >
+                    {{ product.availableStock }}
+                  </strong>
+                </div>
+              </div>
+
+              <div class="availability-row">
+                <span>
+                  {{
+                    product.canBeProduced
+                      ? '⚙️ Se puede producir'
+                      : '⛔ Producción bloqueada'
+                  }}
+                </span>
+
+                <span>
+                  {{
+                    product.canBePurchased
+                      ? '🛒 Adquirible'
+                      : '🔒 No adquirible'
+                  }}
+                </span>
+              </div>
+
+              @if (isAdmin()) {
+                <div class="product-actions">
+                  <button
+                    type="button"
+                    class="edit-button"
+                    (click)="openEditForm(product)"
+                  >
+                    ✏️ Editar
+                  </button>
+
+                  <button
+                    type="button"
+                    class="status-button"
+                    (click)="toggleStatus(product)"
+                  >
+                    {{
+                      product.isActive
+                        ? '⏸️ Desactivar'
+                        : '▶️ Activar'
+                    }}
+                  </button>
+
+                  <button
+                    type="button"
+                    class="delete-button"
+                    (click)="requestDelete(product)"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>
+
+@if (formOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="closeForm()"
+  >
+    <section
+      class="modal-card"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            Catálogo VOLTS
+          </span>
+
+          <h2>
+            {{
+              editingProduct()
+                ? 'Editar producto'
+                : 'Nuevo producto'
+            }}
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeForm()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Nombre *</label>
+
+            <input
+              type="text"
+              formControlName="name"
+              placeholder="VOLTS Husky"
+              (blur)="generateSlug()"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Identificador URL *</label>
+
+            <input
+              type="text"
+              formControlName="slug"
+              placeholder="volts-husky"
+            />
+          </div>
+
+          <div class="form-field full-field">
+            <label>Descripción *</label>
+
+            <textarea
+              rows="4"
+              formControlName="description"
+              placeholder="Descripción comercial y educativa."
+            ></textarea>
+          </div>
+
+          <div class="form-field">
+            <label>Categoría *</label>
+
+            <select formControlName="categoryId">
+              <option value="">
+                Selecciona una categoría
+              </option>
+
+              @for (
+                category of categories();
+                track category.id
+              ) {
+                <option [value]="category.id">
+                  {{ category.name }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Precio</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="price"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Especie *</label>
+
+            <input
+              type="text"
+              formControlName="species"
+              placeholder="Perro"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Raza o variante *</label>
+
+            <input
+              type="text"
+              formControlName="breed"
+              placeholder="Husky"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Estado comercial *</label>
+
+            <select
+              formControlName="commercialStatus"
+              (change)="commercialStatusChanged()"
+            >
+              <option value="Available">
+                Disponible
+              </option>
+
+              <option value="ComingSoon">
+                Próximamente
+              </option>
+
+              <option value="Unavailable">
+                No disponible
+              </option>
+
+              <option value="Discontinued">
+                Descontinuado
+              </option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Stock mínimo terminado</label>
+
+            <input
+              type="number"
+              min="0"
+              formControlName="minimumFinishedStock"
+            />
+          </div>
+
+          <div class="form-field full-field">
+            <label>URL de imagen</label>
+
+            <input
+              type="url"
+              formControlName="imageUrl"
+              placeholder="https://..."
+            />
+          </div>
+        </div>
+
+        <div class="switch-list">
+          <label>
+            <input
+              type="checkbox"
+              formControlName="canBeProduced"
+            />
+
+            <span>
+              Puede fabricarse en Producción
+            </span>
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              formControlName="canBePurchased"
+              [disabled]="
+                form.controls
+                  .commercialStatus.value !==
+                'Available'
+              "
+            />
+
+            <span>
+              Disponible para compra
+            </span>
+          </label>
+
+          @if (editingProduct()) {
+            <label>
+              <input
+                type="checkbox"
+                formControlName="isActive"
+              />
+
+              <span>
+                Producto activo
+              </span>
+            </label>
+          }
+        </div>
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="closeForm()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            {{
+              saving()
+                ? 'Guardando...'
+                : 'Guardar producto'
+            }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (deleteCandidate(); as product) {
+  <div
+    class="modal-backdrop"
+    (click)="cancelDelete()"
+  >
+    <section
+      class="confirmation-card"
+      (click)="$event.stopPropagation()"
+    >
+      <span>🗑️</span>
+
+      <h2>Eliminar producto</h2>
+
+      <p>
+        ¿Deseas eliminar
+        <strong>{{ product.name }}</strong>?
+      </p>
+
+      @if (
+        product.physicalStock > 0 ||
+        product.reservedStock > 0
+      ) {
+        <small class="warning-text">
+          Este producto tiene
+          {{ product.physicalStock }} unidades físicas y
+          {{ product.reservedStock }} reservadas y el backend impedirá
+          eliminarlo.
+        </small>
+      }
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="cancelDelete()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="danger-button"
+          [disabled]="deleting()"
+          (click)="confirmDelete()"
+        >
+          {{
+            deleting()
+              ? 'Eliminando...'
+              : 'Eliminar'
+          }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

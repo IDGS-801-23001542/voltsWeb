@@ -11,29 +11,50 @@ export type RawMaterialCategory =
 
 export type StockMovementType =
   | 'Entry'
-  | 'Exit'
-  | 'Adjustment';
+  | 'Exit';
 
 export interface RawMaterial {
   id: string;
+
   code: string;
   name: string;
   description: string;
+
   category: RawMaterialCategory;
+
+  unitOfMeasureId: string;
+
+  unitCode: string;
+  unitName: string;
+  unitSymbol: string;
+
+  unitAllowsDecimals: boolean;
+  unitDecimalPlaces: number;
+
+  /*
+   * Compatibilidad temporal con otros módulos.
+   */
   unit: string;
+
   currentStock: number;
   minimumStock: number;
   maximumStock: number;
+
   averageCost: number;
   lastPurchaseCost: number;
+
   isRecycled: boolean;
   isReusable: boolean;
   requiresPurchase: boolean;
+
   storageLocation: string;
+
   preferredSupplierId?: string | null;
   preferredSupplierName?: string | null;
+
   isActive: boolean;
   isDeleted: boolean;
+
   createdAt: string;
   updatedAt?: string | null;
 }
@@ -42,19 +63,25 @@ export interface RawMaterialRequest {
   code: string;
   name: string;
   description: string;
+
   category: RawMaterialCategory;
-  unit: string;
+
+  unitOfMeasureId: string;
+
   currentStock: number;
   minimumStock: number;
   maximumStock: number;
+
   averageCost: number;
   lastPurchaseCost: number;
+
   isRecycled: boolean;
   isReusable: boolean;
   requiresPurchase: boolean;
+
   storageLocation: string;
+
   preferredSupplierId?: string | null;
-  preferredSupplierName?: string | null;
 }
 
 export interface RawMaterialUpdateRequest
@@ -74,27 +101,48 @@ export interface RawMaterialSummary {
 
 export interface RawMaterialStockAdjustment {
   movementType: StockMovementType;
+
   quantity: number;
+
   reason: string;
+
   unitCost?: number | null;
+
   referenceType: string;
   referenceId?: string | null;
 }
 
 export interface RawMaterialMovement {
   id: string;
+
   rawMaterialId: string;
   rawMaterialCode: string;
   rawMaterialName: string;
+
   movementType: string;
+
   quantity: number;
   previousStock: number;
   newStock: number;
+
+  unitOfMeasureId: string;
+
+  unitCode: string;
+  unitName: string;
+  unitSymbol: string;
+
+  unitAllowsDecimals: boolean;
+  unitDecimalPlaces: number;
+
   unit: string;
+
   reason: string;
+
   referenceType: string;
   referenceId?: string | null;
+
   unitCost: number;
   totalCost: number;
+
   movementDate: string;
 }

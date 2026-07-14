@@ -1,0 +1,635 @@
+<section class="comments-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Atención y contenido
+      </span>
+
+      <h1>
+        Comentarios y valoraciones
+      </h1>
+
+      <p>
+        Revisa, aprueba y administra los comentarios
+        enviados por clientes del ecosistema VOLTS.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      [disabled]="loading()"
+      (click)="loadComments()"
+    >
+      <span>↻</span>
+      Actualizar
+    </button>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <span class="summary-icon">
+        💬
+      </span>
+
+      <div>
+        <small>Total</small>
+
+        <strong>
+          {{ summary().total }}
+        </strong>
+
+        <p>
+          Comentarios recibidos
+        </p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon approved-icon">
+        ✅
+      </span>
+
+      <div>
+        <small>Aprobados</small>
+
+        <strong>
+          {{ summary().approved }}
+        </strong>
+
+        <p>
+          Visibles públicamente
+        </p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon pending-icon">
+        ⏳
+      </span>
+
+      <div>
+        <small>Pendientes</small>
+
+        <strong>
+          {{ summary().pending }}
+        </strong>
+
+        <p>
+          Requieren revisión
+        </p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon rating-icon">
+        ⭐
+      </span>
+
+      <div>
+        <small>Promedio</small>
+
+        <strong>
+          {{
+            summary().averageRating
+              | number:'1.1-1'
+          }}
+        </strong>
+
+        <p>
+          Calificación general
+        </p>
+      </div>
+    </article>
+  </section>
+
+  <section class="content-panel">
+    <div class="filters">
+      <label class="search-field">
+        <span>Buscar comentario</span>
+
+        <div class="input-wrapper">
+          <span>🔎</span>
+
+          <input
+            type="search"
+            [formControl]="searchControl"
+            placeholder="Nombre, correo o contenido..."
+          />
+        </div>
+      </label>
+
+      <label class="filter-field">
+        <span>Estado</span>
+
+        <select
+          [formControl]="approvalControl"
+        >
+          <option value="all">
+            Todos
+          </option>
+
+          <option value="approved">
+            Aprobados
+          </option>
+
+          <option value="pending">
+            Pendientes
+          </option>
+        </select>
+      </label>
+
+      <label class="filter-field">
+        <span>Calificación</span>
+
+        <select
+          [formControl]="ratingControl"
+        >
+          <option value="all">
+            Todas
+          </option>
+
+          <option [ngValue]="5">
+            5 estrellas
+          </option>
+
+          <option [ngValue]="4">
+            4 estrellas
+          </option>
+
+          <option [ngValue]="3">
+            3 estrellas
+          </option>
+
+          <option [ngValue]="2">
+            2 estrellas
+          </option>
+
+          <option [ngValue]="1">
+            1 estrella
+          </option>
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="clear-button"
+        (click)="clearFilters()"
+      >
+        Limpiar
+      </button>
+    </div>
+
+    @if (
+      errorMessage() &&
+      !selectedComment()
+    ) {
+      <div class="feedback error-feedback">
+        <span>⚠️</span>
+
+        <p>
+          {{ errorMessage() }}
+        </p>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="loading-state">
+        <span class="loader"></span>
+
+        <strong>
+          Cargando comentarios...
+        </strong>
+
+        <p>
+          Consultando valoraciones registradas
+          en VOLTS.
+        </p>
+      </div>
+    } @else if (
+      filteredComments().length === 0
+    ) {
+      <div class="empty-state">
+        <span>💭</span>
+
+        <strong>
+          No se encontraron comentarios
+        </strong>
+
+        <p>
+          Ajusta los filtros o espera nuevas
+          valoraciones.
+        </p>
+
+        <button
+          type="button"
+          (click)="clearFilters()"
+        >
+          Mostrar todos
+        </button>
+      </div>
+    } @else {
+      <div class="results-heading">
+        <strong>
+          {{ filteredComments().length }}
+          comentarios
+        </strong>
+
+        <span>
+          de {{ summary().total }}
+          registrados
+        </span>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Calificación</th>
+              <th>Comentario</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th class="actions-column">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              comment of filteredComments();
+              track comment.id
+            ) {
+              <tr>
+                <td>
+                  <div class="person-cell">
+                    <span class="avatar">
+                      {{
+                        comment.fullName
+                          .charAt(0)
+                          .toUpperCase()
+                      }}
+                    </span>
+
+                    <div>
+                      <strong>
+                        {{ comment.fullName }}
+                      </strong>
+
+                      <small>
+                        {{ comment.email }}
+                      </small>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <span
+                    class="stars"
+                    [attr.aria-label]="
+                      comment.rating +
+                      ' de 5 estrellas'
+                    "
+                  >
+                    {{
+                      stars(comment.rating)
+                    }}
+                  </span>
+                </td>
+
+                <td>
+                  <p class="comment-preview">
+                    {{ comment.message }}
+                  </p>
+                </td>
+
+                <td>
+                  <div class="date-cell">
+                    <strong>
+                      {{
+                        comment.createdAt
+                          | date:'dd/MM/yyyy'
+                      }}
+                    </strong>
+
+                    <small>
+                      {{
+                        comment.createdAt
+                          | date:'HH:mm'
+                      }}
+                    </small>
+                  </div>
+                </td>
+
+                <td>
+                  <span
+                    class="status-chip"
+                    [class.status-approved]="
+                      comment.isApproved
+                    "
+                    [class.status-pending]="
+                      !comment.isApproved
+                    "
+                  >
+                    {{
+                      comment.isApproved
+                        ? 'Aprobado'
+                        : 'Pendiente'
+                    }}
+                  </span>
+                </td>
+
+                <td class="actions-column">
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="openDetails(comment)"
+                  >
+                    Ver detalle
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-list">
+        @for (
+          comment of filteredComments();
+          track comment.id
+        ) {
+          <article class="comment-card">
+            <div class="card-heading">
+              <div class="person-cell">
+                <span class="avatar">
+                  {{
+                    comment.fullName
+                      .charAt(0)
+                      .toUpperCase()
+                  }}
+                </span>
+
+                <div>
+                  <strong>
+                    {{ comment.fullName }}
+                  </strong>
+
+                  <small>
+                    {{ comment.email }}
+                  </small>
+                </div>
+              </div>
+
+              <span
+                class="status-chip"
+                [class.status-approved]="
+                  comment.isApproved
+                "
+                [class.status-pending]="
+                  !comment.isApproved
+                "
+              >
+                {{
+                  comment.isApproved
+                    ? 'Aprobado'
+                    : 'Pendiente'
+                }}
+              </span>
+            </div>
+
+            <span class="stars">
+              {{ stars(comment.rating) }}
+            </span>
+
+            <p>
+              {{ comment.message }}
+            </p>
+
+            <footer>
+              <small>
+                {{
+                  comment.createdAt
+                    | date:'dd/MM/yyyy HH:mm'
+                }}
+              </small>
+
+              <button
+                type="button"
+                class="view-button"
+                (click)="openDetails(comment)"
+              >
+                Ver detalle
+              </button>
+            </footer>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>
+
+@if (selectedComment(); as comment) {
+  <div
+    class="drawer-backdrop"
+    (click)="closeDetails()"
+  ></div>
+
+  <aside
+    class="comment-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="comment-title"
+  >
+    <header class="drawer-heading">
+      <div>
+        <span class="page-label">
+          Detalle del comentario
+        </span>
+
+        <h2 id="comment-title">
+          Valoración de
+          {{ comment.fullName }}
+        </h2>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Cerrar"
+        (click)="closeDetails()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="drawer-content">
+      @if (successMessage()) {
+        <div class="feedback success-feedback">
+          <span>✅</span>
+
+          <p>
+            {{ successMessage() }}
+          </p>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="feedback error-feedback">
+          <span>⚠️</span>
+
+          <p>
+            {{ errorMessage() }}
+          </p>
+        </div>
+      }
+
+      <section class="profile-card">
+        <span class="profile-avatar">
+          {{
+            comment.fullName
+              .charAt(0)
+              .toUpperCase()
+          }}
+        </span>
+
+        <div>
+          <strong>
+            {{ comment.fullName }}
+          </strong>
+
+          <a
+            [href]="'mailto:' + comment.email"
+          >
+            {{ comment.email }}
+          </a>
+        </div>
+      </section>
+
+      <section class="detail-section rating-section">
+        <div>
+          <span class="large-stars">
+            {{ stars(comment.rating) }}
+          </span>
+
+          <strong>
+            {{ comment.rating }} de 5
+          </strong>
+        </div>
+
+        <span
+          class="status-chip"
+          [class.status-approved]="
+            comment.isApproved
+          "
+          [class.status-pending]="
+            !comment.isApproved
+          "
+        >
+          {{
+            comment.isApproved
+              ? 'Publicado'
+              : 'Pendiente de revisión'
+          }}
+        </span>
+      </section>
+
+      <section class="detail-section">
+        <h3>Comentario</h3>
+
+        <div class="message-content">
+          {{ comment.message }}
+        </div>
+      </section>
+
+      <section class="detail-section">
+        <h3>Información</h3>
+
+        <dl class="detail-grid">
+          <div>
+            <dt>Fecha de envío</dt>
+
+            <dd>
+              {{
+                comment.createdAt
+                  | date:'dd/MM/yyyy HH:mm'
+              }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Última actualización</dt>
+
+            <dd>
+              @if (comment.updatedAt) {
+                {{
+                  comment.updatedAt
+                    | date:'dd/MM/yyyy HH:mm'
+                }}
+              } @else {
+                Sin actualizaciones
+              }
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="detail-section">
+        <h3>Moderación</h3>
+
+        <p class="section-description">
+          Los comentarios aprobados podrán
+          mostrarse como testimonios en el
+          sitio público.
+        </p>
+
+        <div class="moderation-actions">
+          <button
+            type="button"
+            class="approve-button"
+            [class.selected]="
+              comment.isApproved
+            "
+            [disabled]="saving()"
+            (click)="updateApproval(true)"
+          >
+            ✅ Aprobar y publicar
+          </button>
+
+          <button
+            type="button"
+            class="hide-button"
+            [class.selected]="
+              !comment.isApproved
+            "
+            [disabled]="saving()"
+            (click)="updateApproval(false)"
+          >
+            🚫 Ocultar comentario
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <footer class="drawer-footer">
+      <a
+        class="email-button"
+        [href]="'mailto:' + comment.email"
+      >
+        ✉️ Contactar cliente
+      </a>
+
+      @if (auth.hasRole('Admin')) {
+        <button
+          type="button"
+          class="delete-button"
+          [disabled]="saving()"
+          (click)="deleteComment()"
+        >
+          🗑️ Eliminar
+        </button>
+      }
+    </footer>
+  </aside>
+}

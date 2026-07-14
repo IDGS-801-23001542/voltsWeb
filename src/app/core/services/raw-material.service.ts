@@ -37,8 +37,11 @@ export class RawMaterialService {
   private readonly apiUrl =
     `${environment.apiUrl}/RawMaterials`;
 
-  getAll(): Observable<ApiResponse<RawMaterial[]>> {
-    return this.http.get<ApiResponse<RawMaterial[]>>(
+  getAll():
+    Observable<ApiResponse<RawMaterial[]>> {
+    return this.http.get<
+      ApiResponse<RawMaterial[]>
+    >(
       this.apiUrl
     );
   }
@@ -54,7 +57,9 @@ export class RawMaterialService {
 
   getLowStock():
     Observable<ApiResponse<RawMaterial[]>> {
-    return this.http.get<ApiResponse<RawMaterial[]>>(
+    return this.http.get<
+      ApiResponse<RawMaterial[]>
+    >(
       `${this.apiUrl}/low-stock`
     );
   }
@@ -62,14 +67,18 @@ export class RawMaterialService {
   getById(
     id: string
   ): Observable<ApiResponse<RawMaterial>> {
-    return this.http.get<ApiResponse<RawMaterial>>(
+    return this.http.get<
+      ApiResponse<RawMaterial>
+    >(
       `${this.apiUrl}/${id}`
     );
   }
 
   getMovements(
     id: string
-  ): Observable<ApiResponse<RawMaterialMovement[]>> {
+  ): Observable<
+    ApiResponse<RawMaterialMovement[]>
+  > {
     return this.http.get<
       ApiResponse<RawMaterialMovement[]>
     >(
@@ -80,7 +89,9 @@ export class RawMaterialService {
   create(
     request: RawMaterialRequest
   ): Observable<ApiResponse<RawMaterial>> {
-    return this.http.post<ApiResponse<RawMaterial>>(
+    return this.http.post<
+      ApiResponse<RawMaterial>
+    >(
       this.apiUrl,
       request
     );
@@ -90,7 +101,9 @@ export class RawMaterialService {
     id: string,
     request: RawMaterialUpdateRequest
   ): Observable<ApiResponse<RawMaterial>> {
-    return this.http.put<ApiResponse<RawMaterial>>(
+    return this.http.put<
+      ApiResponse<RawMaterial>
+    >(
       `${this.apiUrl}/${id}`,
       request
     );
@@ -100,7 +113,9 @@ export class RawMaterialService {
     id: string,
     request: RawMaterialStockAdjustment
   ): Observable<ApiResponse<RawMaterial>> {
-    return this.http.post<ApiResponse<RawMaterial>>(
+    return this.http.post<
+      ApiResponse<RawMaterial>
+    >(
       `${this.apiUrl}/${id}/adjust-stock`,
       request
     );
@@ -109,7 +124,9 @@ export class RawMaterialService {
   delete(
     id: string
   ): Observable<ApiResponse<string>> {
-    return this.http.delete<ApiResponse<string>>(
+    return this.http.delete<
+      ApiResponse<string>
+    >(
       `${this.apiUrl}/${id}`
     );
   }
