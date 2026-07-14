@@ -13,13 +13,6 @@ export type WasteDestination =
   | 'Repair'
   | 'Discard';
 
-export type WasteAction =
-  | 'Reuse'
-  | 'Sell'
-  | 'Recycle'
-  | 'Repair'
-  | 'Discard';
-
 export type WasteStatus =
   | 'Available'
   | 'PartiallyUsed'
@@ -29,47 +22,49 @@ export type WasteStatus =
   | 'Reworked'
   | 'Discarded';
 
+export type WasteAction =
+  | 'Reuse'
+  | 'Sell'
+  | 'Recycle'
+  | 'Repair'
+  | 'Discard';
+
 export interface Waste {
   id: string;
+  productionOrderId?: string | null;
+  productionFolio?: string | null;
+  productId?: string | null;
+  productName?: string | null;
 
   rawMaterialId: string;
   rawMaterialCode: string;
   rawMaterialName: string;
-  unit: string;
 
-  productionOrderId?: string | null;
-  productionFolio?: string | null;
+  unitOfMeasureId: string;
+  unitCode: string;
+  unitName: string;
+  unitSymbol: string;
+  unitAllowsDecimals: boolean;
+  unitDecimalPlaces: number;
 
   quantityGenerated: number;
   availableQuantity: number;
-
   classification: WasteClassification;
   destination: WasteDestination;
   status: WasteStatus;
-
-  unitCost: number;
   estimatedCost: number;
   estimatedRecoveryValue: number;
   recoveredValue: number;
-
   reason: string;
   notes: string;
-
   wasteDate: string;
-
-  createdAt: string;
-  updatedAt?: string | null;
-  isDeleted: boolean;
 }
 
 export interface WasteSummary {
   totalRecords: number;
   availableRecords: number;
   estimatedWasteCost: number;
-  estimatedRecoveryValue: number;
   recoveredValue: number;
-  reusableQuantity: number;
-  sellableQuantity: number;
 }
 
 export interface WasteCreateRequest {

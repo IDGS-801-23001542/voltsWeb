@@ -201,13 +201,24 @@
                         isLowStock(material)
                       "
                     >
-                      {{ material.currentStock }}
-                      {{ material.unit }}
+                      {{
+                        formatQuantity(
+                          material.currentStock,
+                          material
+                        )
+                      }}
+                      {{ material.unitSymbol }}
                     </strong>
 
                     <small>
                       Mínimo:
-                      {{ material.minimumStock }}
+                      {{
+                        formatQuantity(
+                          material.minimumStock,
+                          material
+                        )
+                      }}
+                      {{ material.unitSymbol }}
                     </small>
                   </div>
                 </td>
@@ -728,7 +739,7 @@
                       : 'Entrada'
                   }}
                   de {{ movement.quantity }}
-                  {{ movement.unit }}
+                  {{ movement.unitSymbol || movement.unit }}
                 </strong>
 
                 <p>{{ movement.reason }}</p>
@@ -774,8 +785,13 @@
 
       @if (material.currentStock > 0) {
         <small class="warning-text">
-          Tiene {{ material.currentStock }}
-          {{ material.unit }} disponibles y el backend
+          Tiene {{
+            formatQuantity(
+              material.currentStock,
+              material
+            )
+          }}
+          {{ material.unitSymbol }} disponibles y el backend
           impedirá su eliminación.
         </small>
       }
@@ -805,3 +821,4 @@
     </section>
   </div>
 }
+

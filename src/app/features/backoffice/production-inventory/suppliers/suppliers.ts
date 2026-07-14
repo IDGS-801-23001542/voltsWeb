@@ -13,18 +13,18 @@ import {
 } from '@angular/forms';
 
 import {
+  Supplier,
+  SupplierMaterialCategory,
+  SupplierType
+} from '../../../../core/models/supplier.model';
+
+import {
   AuthService
 } from '../../../../core/services/auth.service';
 
 import {
   SupplierService
 } from '../../../../core/services/supplier.service';
-
-import {
-  Supplier,
-  SupplierMaterialCategory,
-  SupplierType
-} from '../../../../core/models/supplier.model';
 
 @Component({
   selector: 'app-suppliers',
@@ -35,7 +35,6 @@ import {
   templateUrl: './suppliers.html',
   styleUrl: './suppliers.css'
 })
-
 export class Suppliers implements OnInit {
   private readonly fb = inject(FormBuilder);
 
@@ -54,7 +53,6 @@ export class Suppliers implements OnInit {
   readonly successMessage = signal('');
 
   readonly searchTerm = signal('');
-  readonly typeFilter = signal('all');
   readonly statusFilter = signal('all');
 
   readonly formOpen = signal(false);
@@ -81,132 +79,21 @@ export class Suppliers implements OnInit {
     ).length
   );
 
-  readonly averageLeadTime = computed(() => {
-    const suppliers = this.suppliers();
-
-    if (suppliers.length === 0) {
-      return 0;
-    }
-
-    const total = suppliers.reduce(
-      (sum, supplier) =>
-        sum + supplier.leadTimeDays,
-      0
-    );
-
-    return Math.round(total / suppliers.length);
-  });
-
-  readonly supplierTypes: Array<{
-    value: SupplierType;
-    label: string;
-  }> = [
-    {
-      value: 'Electronics',
-      label: 'Electrónica'
-    },
-    {
-      value: 'Cardboard',
-      label: 'Cartón'
-    },
-    {
-      value: 'Textiles',
-      label: 'Textiles'
-    },
-    {
-      value: 'Adhesives',
-      label: 'Adhesivos'
-    },
-    {
-      value: 'Mechanical',
-      label: 'Mecánica'
-    },
-    {
-      value: 'Soldering',
-      label: 'Soldadura'
-    },
-    {
-      value: 'Packaging',
-      label: 'Empaque'
-    },
-    {
-      value: 'General',
-      label: 'General'
-    }
-  ];
-
-  readonly materialCategories: Array<{
-    value: SupplierMaterialCategory;
-    label: string;
-  }> = [
-    {
-      value: 'Cardboard',
-      label: 'Cartón'
-    },
-    {
-      value: 'Electronics',
-      label: 'Electrónica'
-    },
-    {
-      value: 'Mechanical',
-      label: 'Mecánica'
-    },
-    {
-      value: 'Textiles',
-      label: 'Textiles'
-    },
-    {
-      value: 'Adhesives',
-      label: 'Adhesivos'
-    },
-    {
-      value: 'Consumables',
-      label: 'Consumibles'
-    },
-    {
-      value: 'Soldering',
-      label: 'Soldadura'
-    },
-    {
-      value: 'Packaging',
-      label: 'Empaque'
-    },
-    {
-      value: 'Other',
-      label: 'Otros'
-    }
-  ];
-
   readonly filteredSuppliers = computed(() => {
     const search = this.searchTerm()
       .trim()
       .toLowerCase();
 
-    const type = this.typeFilter();
     const status = this.statusFilter();
 
     return this.suppliers().filter(supplier => {
       const matchesSearch =
         !search ||
-        supplier.name
-          .toLowerCase()
-          .includes(search) ||
-        supplier.code
-          .toLowerCase()
-          .includes(search) ||
-        supplier.contactName
-          .toLowerCase()
-          .includes(search) ||
-        supplier.email
-          .toLowerCase()
-          .includes(search) ||
-        supplier.taxId
-          .toLowerCase()
-          .includes(search);
-
-      const matchesType =
-        type === 'all' ||
-        supplier.supplierType === type;
+        supplier.name.toLowerCase().includes(search) ||
+        supplier.code.toLowerCase().includes(search) ||
+        supplier.email.toLowerCase().includes(search) ||
+        supplier.contactName.toLowerCase().includes(search) ||
+        supplier.taxId.toLowerCase().includes(search);
 
       const matchesStatus =
         status === 'all' ||
@@ -219,13 +106,38 @@ export class Suppliers implements OnInit {
           !supplier.isActive
         );
 
-      return (
-        matchesSearch &&
-        matchesType &&
-        matchesStatus
-      );
+      return matchesSearch && matchesStatus;
     });
   });
+
+  readonly supplierTypes: Array<{
+    value: SupplierType;
+    label: string;
+  }> = [
+    { value: 'Electronics', label: 'Electrónica' },
+    { value: 'Cardboard', label: 'Cartón' },
+    { value: 'Textiles', label: 'Textiles' },
+    { value: 'Adhesives', label: 'Adhesivos' },
+    { value: 'Mechanical', label: 'Mecánica' },
+    { value: 'Soldering', label: 'Soldadura' },
+    { value: 'Packaging', label: 'Empaque' },
+    { value: 'General', label: 'General' }
+  ];
+
+  readonly materialCategories: Array<{
+    value: SupplierMaterialCategory;
+    label: string;
+  }> = [
+    { value: 'Cardboard', label: 'Cartón' },
+    { value: 'Electronics', label: 'Electrónica' },
+    { value: 'Mechanical', label: 'Mecánica' },
+    { value: 'Textiles', label: 'Textiles' },
+    { value: 'Adhesives', label: 'Adhesivos' },
+    { value: 'Consumables', label: 'Consumibles' },
+    { value: 'Soldering', label: 'Soldadura' },
+    { value: 'Packaging', label: 'Empaque' },
+    { value: 'Other', label: 'Otros' }
+  ];
 
   readonly form = this.fb.nonNullable.group({
     code: [
@@ -273,32 +185,16 @@ export class Suppliers implements OnInit {
 
     phone: [
       '',
-      Validators.maxLength(30)
-    ],
-
-    address: [
-      '',
-      Validators.maxLength(300)
-    ],
-
-    city: [
-      '',
-      Validators.maxLength(100)
-    ],
-
-    state: [
-      '',
-      Validators.maxLength(100)
-    ],
-
-    postalCode: [
-      '',
-      Validators.maxLength(10)
+      Validators.pattern(/^[0-9+\-\s()]{7,25}$/)
     ],
 
     supplierType: [
       'General' as SupplierType,
       Validators.required
+    ],
+
+    materialCategories: [
+      [] as SupplierMaterialCategory[]
     ],
 
     leadTimeDays: [
@@ -312,7 +208,7 @@ export class Suppliers implements OnInit {
 
     paymentTerms: [
       '',
-      Validators.maxLength(200)
+      Validators.maxLength(300)
     ],
 
     notes: [
@@ -320,11 +216,74 @@ export class Suppliers implements OnInit {
       Validators.maxLength(1000)
     ],
 
+    street: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(150)
+      ]
+    ],
+
+    exteriorNumber: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(20)
+      ]
+    ],
+
+    interiorNumber: [
+      '',
+      Validators.maxLength(20)
+    ],
+
+    neighborhood: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(120)
+      ]
+    ],
+
+    postalCode: [
+      '',
+      [
+        Validators.required,
+        Validators.pattern(/^\d{5}$/)
+      ]
+    ],
+
+    city: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(100)
+      ]
+    ],
+
+    state: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(100)
+      ]
+    ],
+
+    country: [
+      'México',
+      [
+        Validators.required,
+        Validators.maxLength(100)
+      ]
+    ],
+
+    references: [
+      '',
+      Validators.maxLength(500)
+    ],
+
     isActive: [true]
   });
-
-  readonly selectedCategories =
-    signal<SupplierMaterialCategory[]>([]);
 
   ngOnInit(): void {
     this.loadSuppliers();
@@ -336,9 +295,13 @@ export class Suppliers implements OnInit {
 
     this.supplierService.getAll().subscribe({
       next: response => {
-        this.suppliers.set(response.data ?? []);
+        this.suppliers.set(
+          response.data ?? []
+        );
+
         this.loading.set(false);
       },
+
       error: error => {
         this.loading.set(false);
 
@@ -357,13 +320,6 @@ export class Suppliers implements OnInit {
     this.searchTerm.set(input.value);
   }
 
-  updateTypeFilter(event: Event): void {
-    const select =
-      event.target as HTMLSelectElement;
-
-    this.typeFilter.set(select.value);
-  }
-
   updateStatusFilter(event: Event): void {
     const select =
       event.target as HTMLSelectElement;
@@ -373,7 +329,6 @@ export class Suppliers implements OnInit {
 
   openCreateForm(): void {
     this.editingSupplier.set(null);
-    this.selectedCategories.set([]);
 
     this.form.reset({
       code: '',
@@ -383,26 +338,32 @@ export class Suppliers implements OnInit {
       contactName: '',
       email: '',
       phone: '',
-      address: '',
-      city: '',
-      state: '',
-      postalCode: '',
       supplierType: 'General',
+      materialCategories: [],
       leadTimeDays: 0,
       paymentTerms: '',
       notes: '',
+      street: '',
+      exteriorNumber: '',
+      interiorNumber: '',
+      neighborhood: '',
+      postalCode: '',
+      city: '',
+      state: '',
+      country: 'México',
+      references: '',
       isActive: true
     });
 
+    this.errorMessage.set('');
+    this.successMessage.set('');
     this.formOpen.set(true);
   }
 
-  openEditForm(supplier: Supplier): void {
+  openEditForm(
+    supplier: Supplier
+  ): void {
     this.editingSupplier.set(supplier);
-
-    this.selectedCategories.set(
-      supplier.materialCategories ?? []
-    );
 
     this.form.reset({
       code: supplier.code,
@@ -412,17 +373,34 @@ export class Suppliers implements OnInit {
       contactName: supplier.contactName,
       email: supplier.email,
       phone: supplier.phone ?? '',
-      address: supplier.address ?? '',
-      city: supplier.city ?? '',
-      state: supplier.state ?? '',
-      postalCode: supplier.postalCode ?? '',
       supplierType: supplier.supplierType,
+      materialCategories:
+        supplier.materialCategories ?? [],
       leadTimeDays: supplier.leadTimeDays,
       paymentTerms: supplier.paymentTerms,
       notes: supplier.notes,
+      street: supplier.address?.street ?? '',
+      exteriorNumber:
+        supplier.address?.exteriorNumber ?? '',
+      interiorNumber:
+        supplier.address?.interiorNumber ?? '',
+      neighborhood:
+        supplier.address?.neighborhood ?? '',
+      postalCode:
+        supplier.address?.postalCode ?? '',
+      city:
+        supplier.address?.city ?? '',
+      state:
+        supplier.address?.state ?? '',
+      country:
+        supplier.address?.country ?? 'México',
+      references:
+        supplier.address?.references ?? '',
       isActive: supplier.isActive
     });
 
+    this.errorMessage.set('');
+    this.successMessage.set('');
     this.formOpen.set(true);
   }
 
@@ -433,26 +411,37 @@ export class Suppliers implements OnInit {
 
     this.formOpen.set(false);
     this.editingSupplier.set(null);
-    this.selectedCategories.set([]);
   }
 
-  toggleCategory(
+  toggleMaterialCategory(
     category: SupplierMaterialCategory
   ): void {
-    this.selectedCategories.update(
-      selected =>
-        selected.includes(category)
-          ? selected.filter(
+    const current =
+      this.form.controls
+        .materialCategories.value;
+
+    const exists =
+      current.includes(category);
+
+    this.form.controls
+      .materialCategories
+      .setValue(
+        exists
+          ? current.filter(
               item => item !== category
             )
-          : [...selected, category]
-    );
+          : [
+              ...current,
+              category
+            ]
+      );
   }
 
-  categorySelected(
+  hasMaterialCategory(
     category: SupplierMaterialCategory
   ): boolean {
-    return this.selectedCategories()
+    return this.form.controls
+      .materialCategories.value
       .includes(category);
   }
 
@@ -465,66 +454,79 @@ export class Suppliers implements OnInit {
       return;
     }
 
-    const values = this.form.getRawValue();
+    const raw =
+      this.form.getRawValue();
 
     this.saving.set(true);
     this.errorMessage.set('');
     this.successMessage.set('');
 
     const request = {
-      code: values.code.trim(),
-      name: values.name.trim(),
-      legalName: values.legalName.trim(),
-      taxId: values.taxId
-        .trim()
-        .toUpperCase(),
-      contactName:
-        values.contactName.trim(),
-      email: values.email
-        .trim()
-        .toLowerCase(),
-      phone:
-        values.phone.trim() || null,
-      address:
-        values.address.trim() || null,
-      city:
-        values.city.trim() || null,
-      state:
-        values.state.trim() || null,
-      postalCode:
-        values.postalCode.trim() || null,
+      code: raw.code.trim(),
+      name: raw.name.trim(),
+      legalName: raw.legalName.trim(),
+      taxId: raw.taxId.trim(),
+      contactName: raw.contactName.trim(),
+      email: raw.email.trim().toLowerCase(),
+      phone: raw.phone.trim() || null,
+
+      address: {
+        street: raw.street.trim(),
+        exteriorNumber:
+          raw.exteriorNumber.trim(),
+        interiorNumber:
+          raw.interiorNumber.trim() || null,
+        neighborhood:
+          raw.neighborhood.trim(),
+        postalCode:
+          raw.postalCode.trim(),
+        city:
+          raw.city.trim(),
+        state:
+          raw.state.trim(),
+        country:
+          raw.country.trim(),
+        references:
+          raw.references.trim() || null
+      },
+
       supplierType:
-        values.supplierType,
+        raw.supplierType,
+
       materialCategories:
-        this.selectedCategories(),
+        raw.materialCategories,
+
       leadTimeDays:
-        values.leadTimeDays,
+        Number(raw.leadTimeDays),
+
       paymentTerms:
-        values.paymentTerms.trim(),
+        raw.paymentTerms.trim(),
+
       notes:
-        values.notes.trim()
+        raw.notes.trim()
     };
 
-    const editing = this.editingSupplier();
+    const editing =
+      this.editingSupplier();
 
-    const operation = editing
-      ? this.supplierService.update(
-          editing.id,
-          {
-            ...request,
-            isActive: values.isActive
-          }
-        )
-      : this.supplierService.create(
-          request
-        );
+    const operation =
+      editing
+        ? this.supplierService.update(
+            editing.id,
+            {
+              ...request,
+              isActive: raw.isActive
+            }
+          )
+        : this.supplierService.create(
+            request
+          );
 
     operation.subscribe({
       next: response => {
         this.saving.set(false);
         this.formOpen.set(false);
         this.editingSupplier.set(null);
-        this.selectedCategories.set([]);
 
         this.successMessage.set(
           response.message
@@ -533,6 +535,7 @@ export class Suppliers implements OnInit {
         this.loadSuppliers();
         this.clearSuccessMessageLater();
       },
+
       error: error => {
         this.saving.set(false);
 
@@ -544,9 +547,9 @@ export class Suppliers implements OnInit {
     });
   }
 
-  toggleStatus(supplier: Supplier): void {
-    this.errorMessage.set('');
-
+  toggleStatus(
+    supplier: Supplier
+  ): void {
     this.supplierService
       .updateStatus(
         supplier.id,
@@ -561,6 +564,7 @@ export class Suppliers implements OnInit {
           this.loadSuppliers();
           this.clearSuccessMessageLater();
         },
+
         error: error => {
           this.errorMessage.set(
             error?.error?.message ??
@@ -570,12 +574,16 @@ export class Suppliers implements OnInit {
       });
   }
 
-  requestDelete(supplier: Supplier): void {
+  requestDelete(
+    supplier: Supplier
+  ): void {
     if (!this.isAdmin()) {
       return;
     }
 
-    this.deleteCandidate.set(supplier);
+    this.deleteCandidate.set(
+      supplier
+    );
   }
 
   cancelDelete(): void {
@@ -585,7 +593,8 @@ export class Suppliers implements OnInit {
   }
 
   confirmDelete(): void {
-    const supplier = this.deleteCandidate();
+    const supplier =
+      this.deleteCandidate();
 
     if (
       !supplier ||
@@ -596,7 +605,6 @@ export class Suppliers implements OnInit {
     }
 
     this.deleting.set(true);
-    this.errorMessage.set('');
 
     this.supplierService
       .delete(supplier.id)
@@ -612,6 +620,7 @@ export class Suppliers implements OnInit {
           this.loadSuppliers();
           this.clearSuccessMessageLater();
         },
+
         error: error => {
           this.deleting.set(false);
 
@@ -623,18 +632,37 @@ export class Suppliers implements OnInit {
       });
   }
 
-  getTypeLabel(type: SupplierType): string {
+  getSupplierTypeLabel(
+    value: SupplierType
+  ): string {
     return this.supplierTypes.find(
-      item => item.value === type
-    )?.label ?? type;
+      item => item.value === value
+    )?.label ?? value;
   }
 
-  getCategoryLabel(
-    category: SupplierMaterialCategory
+  formatAddress(
+    supplier: Supplier
   ): string {
-    return this.materialCategories.find(
-      item => item.value === category
-    )?.label ?? category;
+    const address = supplier.address;
+
+    if (!address) {
+      return 'Sin dirección';
+    }
+
+    const number =
+      address.interiorNumber
+        ? `${address.exteriorNumber} Int. ${address.interiorNumber}`
+        : address.exteriorNumber;
+
+    return [
+      `${address.street} ${number}`,
+      address.neighborhood,
+      `${address.city}, ${address.state}`,
+      `CP ${address.postalCode}`,
+      address.country
+    ]
+      .filter(Boolean)
+      .join(', ');
   }
 
   private clearSuccessMessageLater(): void {

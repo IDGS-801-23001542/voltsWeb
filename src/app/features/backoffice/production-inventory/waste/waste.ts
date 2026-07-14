@@ -497,7 +497,7 @@ export class WasteManagement implements OnInit {
       waste.availableQuantity
     ) {
       this.errorMessage.set(
-        `Solo hay ${waste.availableQuantity} ${waste.unit} disponibles.`
+        `Solo hay ${waste.availableQuantity} ${waste.unitSymbol} disponibles.`
       );
 
       return;
@@ -607,4 +607,100 @@ export class WasteManagement implements OnInit {
       this.successMessage.set('');
     }, 4000);
   }
+
+  getSelectedCreateMaterial(): RawMaterial | null {
+    const materialId =
+      this.createForm.controls
+        .rawMaterialId.value;
+
+    return this.materials().find(
+      material => material.id === materialId
+    ) ?? null;
+  }
+
+  quantityStepFor(
+    item: {
+      unitAllowsDecimals: boolean;
+      unitDecimalPlaces: number;
+    } | null
+  ): string {
+    if (
+      !item ||
+      !item.unitAllowsDecimals
+    ) {
+      return '1';
+    }
+
+    return (
+      1 /
+      10 ** item.unitDecimalPlaces
+    ).toString();
+  }
+
+  formatUnitQuantity(
+    value: number,
+    item: {
+      unitAllowsDecimals: boolean;
+      unitDecimalPlaces: number;
+    }
+  ): string {
+    return Number(value).toLocaleString(
+      'es-MX',
+      {
+        minimumFractionDigits: 0,
+        maximumFractionDigits:
+          item.unitAllowsDecimals
+            ? item.unitDecimalPlaces
+            : 0
+      }
+    );
+  }
+
+  private isValidUnitQuantity(
+    value: number,
+    item: {
+      unitAllowsDecimals: boolean;
+      unitDecimalPlaces: number;
+    }
+  ): boolean {
+    if (
+      !Number.isFinite(value) ||
+      value <= 0
+    ) {
+      return false;
+    }
+
+    if (
+      !item.unitAllowsDecimals &&
+      !Number.isInteger(value)
+    ) {
+      return false;
+    }
+
+    const text = value.toString();
+
+    const decimalPlaces =
+      text.includes('.')
+        ? text.split('.')[1].length
+        : 0;
+
+    return (
+      decimalPlaces <=
+      item.unitDecimalPlaces
+    );
+  }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

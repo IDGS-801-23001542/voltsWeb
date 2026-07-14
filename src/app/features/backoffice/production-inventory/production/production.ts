@@ -12,9 +12,12 @@ import {
 } from '@angular/common';
 
 import {
+  AbstractControl,
   FormArray,
   FormBuilder,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators
 } from '@angular/forms';
 
@@ -211,7 +214,8 @@ export class Production implements OnInit {
         1,
         [
           Validators.required,
-          Validators.min(1)
+          Validators.min(1),
+          this.integerValidator()
         ]
       ],
 
@@ -227,7 +231,8 @@ export class Production implements OnInit {
         0,
         [
           Validators.required,
-          Validators.min(0)
+          Validators.min(0),
+          this.integerValidator()
         ]
       ],
 
@@ -235,7 +240,8 @@ export class Production implements OnInit {
         0,
         [
           Validators.required,
-          Validators.min(0)
+          Validators.min(0),
+          this.integerValidator()
         ]
       ],
 
@@ -591,6 +597,40 @@ export class Production implements OnInit {
       this.wastes.getRawValue()
     ) as ProductionWasteFormValue[];
 
+    for (
+      let index = 0;
+      index < wasteValues.length;
+      index++
+    ) {
+      const waste = wasteValues[index];
+
+      const material =
+        order.materials.find(
+          item =>
+            item.rawMaterialId ===
+            waste.rawMaterialId
+        );
+
+      if (!material) {
+        this.errorMessage.set(
+          `Selecciona una materia prima válida en la merma ${index + 1}.`
+        );
+        return;
+      }
+
+      if (
+        !this.isValidUnitQuantity(
+          Number(waste.quantity),
+          material
+        )
+      ) {
+        this.errorMessage.set(
+          `La cantidad de ${material.rawMaterialName} no es válida para ${material.unitSymbol}.`
+        );
+        return;
+      }
+    }
+
     const wastes = wasteValues.map(
       (
         waste: ProductionWasteFormValue
@@ -783,4 +823,119 @@ export class Production implements OnInit {
       this.successMessage.set('');
     }, 4000);
   }
+
+  getSelectedWasteMaterial(
+    wasteIndex: number
+  ) {
+    const order = this.selectedOrder();
+
+    if (!order) {
+      return null;
+    }
+
+    const materialId =
+      this.wastes.at(wasteIndex)
+        .get('rawMaterialId')?.value;
+
+    return order.materials.find(
+      material =>
+        material.rawMaterialId === materialId
+    ) ?? null;
+  }
+
+  quantityStepForMaterial(
+    material: {
+      unitAllowsDecimals: boolean;
+      unitDecimalPlaces: number;
+    } | null
+  ): string {
+    if (
+      !material ||
+      !material.unitAllowsDecimals
+    ) {
+      return '1';
+    }
+
+    return (
+      1 /
+      10 ** material.unitDecimalPlaces
+    ).toString();
+  }
+
+  formatMaterialQuantity(
+    value: number,
+    material: {
+      unitAllowsDecimals: boolean;
+      unitDecimalPlaces: number;
+    }
+  ): string {
+    return Number(value).toLocaleString(
+      'es-MX',
+      {
+        minimumFractionDigits: 0,
+        maximumFractionDigits:
+          material.unitAllowsDecimals
+            ? material.unitDecimalPlaces
+            : 0
+      }
+    );
+  }
+
+  private isValidUnitQuantity(
+    value: number,
+    material: {
+      unitAllowsDecimals: boolean;
+      unitDecimalPlaces: number;
+    }
+  ): boolean {
+    if (
+      !Number.isFinite(value) ||
+      value <= 0
+    ) {
+      return false;
+    }
+
+    if (
+      !material.unitAllowsDecimals &&
+      !Number.isInteger(value)
+    ) {
+      return false;
+    }
+
+    return (
+      this.decimalPlaces(value) <=
+      material.unitDecimalPlaces
+    );
+  }
+
+  private integerValidator(): ValidatorFn {
+    return (
+      control: AbstractControl
+    ): ValidationErrors | null => {
+      const value = Number(control.value);
+
+      return Number.isInteger(value)
+        ? null
+        : { integer: true };
+    };
+  }
+
+  private decimalPlaces(
+    value: number
+  ): number {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    const text = value.toString();
+
+    if (text.includes('e-')) {
+      return Number(
+        text.split('e-')[1] ?? 0
+      );
+    }
+
+    return text.split('.')[1]?.length ?? 0;
+  }
+
 }

@@ -84,9 +84,7 @@ export class SupplierService {
     return this.http.patch<ApiResponse<string>>(
       `${this.apiUrl}/${id}/status`,
       null,
-      {
-        params
-      }
+      { params }
     );
   }
 

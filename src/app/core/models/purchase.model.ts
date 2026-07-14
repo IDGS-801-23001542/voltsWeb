@@ -14,19 +14,28 @@ export interface Purchase {
   shippingCost: number;
   total: number;
 
-  status: string;
+  status: 'Completed';
   notes: string;
 
   details: PurchaseDetail[];
 
+  isDeleted: boolean;
   createdAt: string;
-  createdBy?: string | null;
+  updatedAt?: string | null;
 }
 
 export interface PurchaseDetail {
   rawMaterialId: string;
   rawMaterialCode: string;
   rawMaterialName: string;
+
+  unitOfMeasureId: string;
+  unitCode: string;
+  unitName: string;
+  unitSymbol: string;
+  unitAllowsDecimals: boolean;
+  unitDecimalPlaces: number;
+
   unit: string;
 
   quantity: number;

@@ -432,12 +432,30 @@ export class RawMaterials implements OnInit {
     this.errorMessage.set('');
     this.successMessage.set('');
 
+    const selectedUnitOfMeasureId =
+      this.resolveUnitOfMeasureId(
+        raw.unit,
+        this.editingMaterial()
+      );
+
+    if (!selectedUnitOfMeasureId) {
+      this.saving.set(false);
+
+      this.errorMessage.set(
+        'Selecciona una unidad de medida válida.'
+      );
+
+      return;
+    }
+
     const request = {
       code: raw.code.trim(),
       name: raw.name.trim(),
       description:
         raw.description.trim(),
       category: raw.category,
+      unitOfMeasureId:
+        selectedUnitOfMeasureId,
       unit: raw.unit.trim(),
       currentStock: raw.currentStock,
       minimumStock: raw.minimumStock,
@@ -686,4 +704,85 @@ export class RawMaterials implements OnInit {
       this.successMessage.set('');
     }, 3500);
   }
+
+  formatQuantity(
+    value: number,
+    material: RawMaterial
+  ): string {
+    return Number(value).toLocaleString(
+      'es-MX',
+      {
+        minimumFractionDigits: 0,
+        maximumFractionDigits:
+          material.unitAllowsDecimals
+            ? material.unitDecimalPlaces
+            : 0
+      }
+    );
+  }
+
+  quantityStep(
+    material: RawMaterial | null
+  ): string {
+    if (
+      !material ||
+      !material.unitAllowsDecimals
+    ) {
+      return '1';
+    }
+
+    return (
+      1 /
+      10 ** material.unitDecimalPlaces
+    ).toString();
+  }
+
+  selectedStockMaterial(): RawMaterial | null {
+    return this.selectedMaterial();
+  }
+
+
+  private resolveUnitOfMeasureId(
+    unitValue: string,
+    editingMaterial: RawMaterial | null
+  ): string {
+    if (
+      editingMaterial &&
+      editingMaterial.unitOfMeasureId
+    ) {
+      const unitWasNotChanged =
+        unitValue.trim() ===
+          editingMaterial.unit.trim() ||
+        unitValue.trim() ===
+          editingMaterial.unitName.trim() ||
+        unitValue.trim() ===
+          editingMaterial.unitSymbol.trim();
+
+      if (unitWasNotChanged) {
+        return editingMaterial.unitOfMeasureId;
+      }
+    }
+
+    const normalized =
+      unitValue.trim().toLowerCase();
+
+    const matchingMaterial =
+      this.materials().find(material =>
+        material.unitOfMeasureId &&
+        (
+          material.unit.trim().toLowerCase() ===
+            normalized ||
+          material.unitName.trim().toLowerCase() ===
+            normalized ||
+          material.unitSymbol.trim().toLowerCase() ===
+            normalized ||
+          material.unitCode.trim().toLowerCase() ===
+            normalized
+        )
+      );
+
+    return matchingMaterial?.unitOfMeasureId ?? '';
+  }
+
 }
+

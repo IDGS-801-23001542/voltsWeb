@@ -22,51 +22,44 @@ export type WasteDestination =
 export interface ProductionOrder {
   id: string;
   folio: string;
-
   productId: string;
   productName: string;
-
   recipeId: string;
   recipeCode: string;
   recipeVersion: number;
-
+  status: ProductionStatus;
   quantityPlanned: number;
   quantityCompleted: number;
   quantityDefective: number;
-
-  status: ProductionStatus;
-
   estimatedMaterialCost: number;
   actualMaterialCost: number;
-
+  hasShortages: boolean;
   materials: ProductionMaterial[];
-
   notes: string;
-
+  createdAt: string;
   startedAt?: string | null;
   completedAt?: string | null;
   cancelledAt?: string | null;
-
-  createdAt: string;
-  updatedAt?: string | null;
-  createdBy?: string | null;
-  updatedBy?: string | null;
-
-  isDeleted: boolean;
 }
 
 export interface ProductionMaterial {
   rawMaterialId: string;
   rawMaterialCode: string;
   rawMaterialName: string;
-  unit: string;
+
+  unitOfMeasureId: string;
+  unitCode: string;
+  unitName: string;
+  unitSymbol: string;
+  unitAllowsDecimals: boolean;
+  unitDecimalPlaces: number;
 
   quantityPerUnit: number;
   wastePercentage: number;
-
   requiredQuantity: number;
   issuedQuantity: number;
-
+  availableStock: number;
+  shortageQuantity: number;
   unitCost: number;
   totalCost: number;
 }
@@ -77,20 +70,20 @@ export interface ProductionCreateRequest {
   notes: string;
 }
 
-export interface ProductionCompleteRequest {
-  quantityCompleted: number;
-  quantityDefective: number;
-  notes: string;
-  wastes: ProductionWasteRequest[];
-}
-
-export interface ProductionWasteRequest {
+export interface ProductionCompleteWasteRequest {
   rawMaterialId: string;
   quantity: number;
   classification: WasteClassification;
   destination: WasteDestination;
   estimatedRecoveryValue: number;
   notes: string;
+}
+
+export interface ProductionCompleteRequest {
+  quantityCompleted: number;
+  quantityDefective: number;
+  notes: string;
+  wastes: ProductionCompleteWasteRequest[];
 }
 
 export interface ProductionCancelRequest {

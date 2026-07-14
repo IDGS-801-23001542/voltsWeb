@@ -49,7 +49,8 @@ import {
   styleUrl: './products.css'
 })
 export class Products implements OnInit {
-  private readonly fb = inject(FormBuilder);
+  private readonly fb =
+    inject(FormBuilder);
 
   private readonly productService =
     inject(ProductService);
@@ -57,23 +58,38 @@ export class Products implements OnInit {
   private readonly categoryService =
     inject(CategoryService);
 
-  readonly auth = inject(AuthService);
+  readonly auth =
+    inject(AuthService);
 
-  readonly products = signal<Product[]>([]);
-  readonly categories = signal<Category[]>([]);
+  readonly products =
+    signal<Product[]>([]);
 
-  readonly loading = signal(true);
-  readonly saving = signal(false);
-  readonly deleting = signal(false);
+  readonly categories =
+    signal<Category[]>([]);
 
-  readonly errorMessage = signal('');
-  readonly successMessage = signal('');
+  readonly loading =
+    signal(true);
 
-  readonly searchTerm = signal('');
+  readonly saving =
+    signal(false);
+
+  readonly deleting =
+    signal(false);
+
+  readonly errorMessage =
+    signal('');
+
+  readonly successMessage =
+    signal('');
+
+  readonly searchTerm =
+    signal('');
+
   readonly statusFilter =
     signal<ProductStatusFilter>('all');
 
-  readonly formOpen = signal(false);
+  readonly formOpen =
+    signal(false);
 
   readonly editingProduct =
     signal<Product | null>(null);
@@ -81,124 +97,157 @@ export class Products implements OnInit {
   readonly deleteCandidate =
     signal<Product | null>(null);
 
-  readonly isAdmin = computed(() =>
-    this.auth.hasRole('Admin')
-  );
+  readonly isAdmin =
+    computed(() =>
+      this.auth.hasRole('Admin')
+    );
 
-  readonly availableCount = computed(() =>
-    this.products().filter(product =>
-      product.commercialStatus === 'Available'
-    ).length
-  );
+  readonly availableCount =
+    computed(() =>
+      this.products().filter(
+        product =>
+          product.commercialStatus ===
+          'Available'
+      ).length
+    );
 
-  readonly comingSoonCount = computed(() =>
-    this.products().filter(product =>
-      product.commercialStatus === 'ComingSoon'
-    ).length
-  );
+  readonly comingSoonCount =
+    computed(() =>
+      this.products().filter(
+        product =>
+          product.commercialStatus ===
+          'ComingSoon'
+      ).length
+    );
 
-  readonly lowStockCount = computed(() =>
-    this.products().filter(product =>
-      product.finishedStock <=
-      product.minimumFinishedStock
-    ).length
-  );
+  readonly lowStockCount =
+    computed(() =>
+      this.products().filter(
+        product =>
+          product.availableStock <=
+          product.minimumFinishedStock
+      ).length
+    );
 
-  readonly filteredProducts = computed(() => {
-    const search = this.searchTerm()
-      .trim()
-      .toLowerCase();
+  readonly filteredProducts =
+    computed(() => {
+      const search =
+        this.searchTerm()
+          .trim()
+          .toLowerCase();
 
-    const status = this.statusFilter();
+      const status =
+        this.statusFilter();
 
-    return this.products().filter(product => {
-      const matchesSearch =
-        !search ||
-        product.name.toLowerCase().includes(search) ||
-        product.breed.toLowerCase().includes(search) ||
-        product.species.toLowerCase().includes(search) ||
-        product.categoryName
-          .toLowerCase()
-          .includes(search);
+      return this.products().filter(
+        product => {
+          const matchesSearch =
+            !search ||
+            product.name
+              .toLowerCase()
+              .includes(search) ||
+            product.breed
+              .toLowerCase()
+              .includes(search) ||
+            product.species
+              .toLowerCase()
+              .includes(search) ||
+            product.categoryName
+              .toLowerCase()
+              .includes(search);
 
-      const matchesStatus =
-        status === 'all' ||
-        product.commercialStatus === status;
+          const matchesStatus =
+            status === 'all' ||
+            product.commercialStatus ===
+              status;
 
-      return matchesSearch && matchesStatus;
+          return (
+            matchesSearch &&
+            matchesStatus
+          );
+        }
+      );
     });
-  });
 
-  readonly form = this.fb.nonNullable.group({
-    name: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(120)
+  readonly form =
+    this.fb.nonNullable.group({
+      name: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(120)
+        ]
+      ],
+
+      slug: [
+        '',
+        [
+          Validators.required,
+          Validators.maxLength(140)
+        ]
+      ],
+
+      description: [
+        '',
+        [
+          Validators.required,
+          Validators.maxLength(800)
+        ]
+      ],
+
+      price: [
+        0,
+        [
+          Validators.required,
+          Validators.min(0)
+        ]
+      ],
+
+      categoryId: [
+        '',
+        Validators.required
+      ],
+
+      species: [
+        'Perro',
+        Validators.required
+      ],
+
+      breed: [
+        '',
+        Validators.required
+      ],
+
+      commercialStatus: [
+        'ComingSoon' as ProductCommercialStatus,
+        Validators.required
+      ],
+
+      canBePurchased: [
+        false
+      ],
+
+      canBeProduced: [
+        true
+      ],
+
+      imageUrl: [
+        ''
+      ],
+
+      minimumFinishedStock: [
+        0,
+        [
+          Validators.required,
+          Validators.min(0)
+        ]
+      ],
+
+      isActive: [
+        true
       ]
-    ],
-
-    slug: [
-      '',
-      [
-        Validators.required,
-        Validators.maxLength(140)
-      ]
-    ],
-
-    description: [
-      '',
-      [
-        Validators.required,
-        Validators.maxLength(800)
-      ]
-    ],
-
-    price: [
-      0,
-      [
-        Validators.required,
-        Validators.min(0)
-      ]
-    ],
-
-    categoryId: [
-      '',
-      Validators.required
-    ],
-
-    species: [
-      'Perro',
-      Validators.required
-    ],
-
-    breed: [
-      '',
-      Validators.required
-    ],
-
-    commercialStatus: [
-      'ComingSoon' as ProductCommercialStatus,
-      Validators.required
-    ],
-
-    canBePurchased: [false],
-
-    canBeProduced: [true],
-
-    imageUrl: [''],
-
-    minimumFinishedStock: [
-      0,
-      [
-        Validators.required,
-        Validators.min(0)
-      ]
-    ],
-
-    isActive: [true]
-  });
+    });
 
   ngOnInit(): void {
     this.loadInitialData();
@@ -208,52 +257,71 @@ export class Products implements OnInit {
     this.loading.set(true);
     this.errorMessage.set('');
 
-    this.categoryService.getAll().subscribe({
-      next: categoryResponse => {
-        this.categories.set(
-          categoryResponse.data.filter(
-            category => category.isActive
-          )
-        );
+    this.categoryService
+      .getAll()
+      .subscribe({
+        next: categoryResponse => {
+          this.categories.set(
+            (
+              categoryResponse.data ??
+              []
+            ).filter(
+              category =>
+                category.isActive
+            )
+          );
 
-        this.loadProducts();
-      },
-      error: error => {
-        this.loading.set(false);
+          this.loadProducts();
+        },
 
-        this.errorMessage.set(
-          error?.error?.message ??
-          'No fue posible cargar las categorías.'
-        );
-      }
-    });
+        error: error => {
+          this.loading.set(false);
+
+          this.errorMessage.set(
+            error?.error?.message ??
+            'No fue posible cargar las categorías.'
+          );
+        }
+      });
   }
 
   loadProducts(): void {
-    this.productService.getAll().subscribe({
-      next: response => {
-        this.products.set(response.data ?? []);
-        this.loading.set(false);
-      },
-      error: error => {
-        this.loading.set(false);
+    this.productService
+      .getAll()
+      .subscribe({
+        next: response => {
+          this.products.set(
+            response.data ?? []
+          );
 
-        this.errorMessage.set(
-          error?.error?.message ??
-          'No fue posible cargar los productos.'
-        );
-      }
-    });
+          this.loading.set(false);
+        },
+
+        error: error => {
+          this.loading.set(false);
+
+          this.errorMessage.set(
+            error?.error?.message ??
+            'No fue posible cargar los productos.'
+          );
+        }
+      });
   }
 
-  updateSearch(event: Event): void {
+  updateSearch(
+    event: Event
+  ): void {
     const input =
       event.target as HTMLInputElement;
 
-    this.searchTerm.set(input.value);
+    this.searchTerm.set(
+      input.value
+    );
   }
 
-  updateStatusFilter(event: Event): void {
+  updateStatusFilter(
+    event: Event
+  ): void {
     const select =
       event.target as HTMLSelectElement;
 
@@ -277,42 +345,77 @@ export class Products implements OnInit {
       categoryId: '',
       species: 'Perro',
       breed: '',
-      commercialStatus: 'ComingSoon',
-      canBePurchased: false,
-      canBeProduced: true,
-      imageUrl: '',
-      minimumFinishedStock: 0,
-      isActive: true
+
+      commercialStatus:
+        'ComingSoon' as ProductCommercialStatus,
+
+      canBePurchased:
+        false,
+
+      canBeProduced:
+        true,
+
+      imageUrl:
+        '',
+
+      minimumFinishedStock:
+        0,
+
+      isActive:
+        true
     });
 
     this.formOpen.set(true);
   }
 
-  openEditForm(product: Product): void {
+  openEditForm(
+    product: Product
+  ): void {
     if (!this.isAdmin()) {
       return;
     }
 
-    this.editingProduct.set(product);
+    this.editingProduct.set(
+      product
+    );
 
     this.form.reset({
-      name: product.name,
-      slug: product.slug,
-      description: product.description,
-      price: product.price,
-      categoryId: product.categoryId,
-      species: product.species,
-      breed: product.breed,
+      name:
+        product.name,
+
+      slug:
+        product.slug,
+
+      description:
+        product.description,
+
+      price:
+        product.price,
+
+      categoryId:
+        product.categoryId,
+
+      species:
+        product.species,
+
+      breed:
+        product.breed,
+
       commercialStatus:
         product.commercialStatus,
+
       canBePurchased:
         product.canBePurchased,
+
       canBeProduced:
         product.canBeProduced,
+
       imageUrl:
         product.imageUrl ?? '',
+
       minimumFinishedStock:
         product.minimumFinishedStock,
+
       isActive:
         product.isActive
     });
@@ -330,17 +433,31 @@ export class Products implements OnInit {
   }
 
   generateSlug(): void {
-    const name = this.form.controls.name.value;
+    const name =
+      this.form.controls
+        .name.value;
 
-    const slug = name
-      .trim()
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+    const slug =
+      name
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(
+          /[\u0300-\u036f]/g,
+          ''
+        )
+        .replace(
+          /[^a-z0-9]+/g,
+          '-'
+        )
+        .replace(
+          /^-+|-+$/g,
+          ''
+        );
 
-    this.form.controls.slug.setValue(slug);
+    this.form.controls
+      .slug
+      .setValue(slug);
   }
 
   commercialStatusChanged(): void {
@@ -348,7 +465,9 @@ export class Products implements OnInit {
       this.form.controls
         .commercialStatus.value;
 
-    if (status !== 'Available') {
+    if (
+      status !== 'Available'
+    ) {
       this.form.controls
         .canBePurchased
         .setValue(false);
@@ -369,39 +488,64 @@ export class Products implements OnInit {
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    const values = this.form.getRawValue();
-    const editing = this.editingProduct();
+    const values =
+      this.form.getRawValue();
+
+    const editing =
+      this.editingProduct();
 
     const request = {
-      name: values.name.trim(),
-      slug: values.slug.trim(),
+      name:
+        values.name.trim(),
+
+      slug:
+        values.slug.trim(),
+
       description:
         values.description.trim(),
-      price: values.price,
-      categoryId: values.categoryId,
-      species: values.species.trim(),
-      breed: values.breed.trim(),
+
+      price:
+        values.price,
+
+      categoryId:
+        values.categoryId,
+
+      species:
+        values.species.trim(),
+
+      breed:
+        values.breed.trim(),
+
       commercialStatus:
         values.commercialStatus,
+
       canBePurchased:
         values.canBePurchased,
+
       canBeProduced:
         values.canBeProduced,
+
       imageUrl:
-        values.imageUrl.trim() || null,
+        values.imageUrl.trim() ||
+        null,
+
       minimumFinishedStock:
         values.minimumFinishedStock
     };
 
-    const operation = editing
-      ? this.productService.update(
-          editing.id,
-          {
-            ...request,
-            isActive: values.isActive
-          }
-        )
-      : this.productService.create(request);
+    const operation =
+      editing
+        ? this.productService
+            .update(
+              editing.id,
+              {
+                ...request,
+                isActive:
+                  values.isActive
+              }
+            )
+        : this.productService
+            .create(request);
 
     operation.subscribe({
       next: response => {
@@ -416,6 +560,7 @@ export class Products implements OnInit {
         this.loadProducts();
         this.clearSuccessMessageLater();
       },
+
       error: error => {
         this.saving.set(false);
 
@@ -427,7 +572,9 @@ export class Products implements OnInit {
     });
   }
 
-  toggleStatus(product: Product): void {
+  toggleStatus(
+    product: Product
+  ): void {
     if (!this.isAdmin()) {
       return;
     }
@@ -446,6 +593,7 @@ export class Products implements OnInit {
           this.loadProducts();
           this.clearSuccessMessageLater();
         },
+
         error: error => {
           this.errorMessage.set(
             error?.error?.message ??
@@ -455,12 +603,16 @@ export class Products implements OnInit {
       });
   }
 
-  requestDelete(product: Product): void {
+  requestDelete(
+    product: Product
+  ): void {
     if (!this.isAdmin()) {
       return;
     }
 
-    this.deleteCandidate.set(product);
+    this.deleteCandidate.set(
+      product
+    );
   }
 
   cancelDelete(): void {
@@ -470,7 +622,8 @@ export class Products implements OnInit {
   }
 
   confirmDelete(): void {
-    const product = this.deleteCandidate();
+    const product =
+      this.deleteCandidate();
 
     if (
       !product ||
@@ -496,6 +649,7 @@ export class Products implements OnInit {
           this.loadProducts();
           this.clearSuccessMessageLater();
         },
+
         error: error => {
           this.deleting.set(false);
 
@@ -508,7 +662,8 @@ export class Products implements OnInit {
   }
 
   getCommercialStatusLabel(
-    status: ProductCommercialStatus
+    status:
+      ProductCommercialStatus
   ): string {
     switch (status) {
       case 'Available':
@@ -522,12 +677,18 @@ export class Products implements OnInit {
 
       case 'Discontinued':
         return 'Descontinuado';
+
+      default:
+        return status;
     }
   }
 
   private clearSuccessMessageLater(): void {
-    window.setTimeout(() => {
-      this.successMessage.set('');
-    }, 3500);
+    window.setTimeout(
+      () => {
+        this.successMessage.set('');
+      },
+      3500
+    );
   }
 }
