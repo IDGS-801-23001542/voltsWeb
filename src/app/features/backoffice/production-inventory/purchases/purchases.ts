@@ -12,9 +12,12 @@ import {
 } from '@angular/common';
 
 import {
+  AbstractControl,
   FormArray,
   FormBuilder,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators
 } from '@angular/forms';
 
@@ -122,10 +125,7 @@ export class Purchases implements OnInit {
         supplierId === 'all' ||
         purchase.supplierId === supplierId;
 
-      return (
-        matchesSearch &&
-        matchesSupplier
-      );
+      return matchesSearch && matchesSupplier;
     });
   });
 
@@ -135,17 +135,22 @@ export class Purchases implements OnInit {
       Validators.required
     ],
 
-    invoiceNumber: [''],
+    invoiceNumber: [
+      '',
+      Validators.maxLength(100)
+    ],
 
     purchaseDate: [
-      this.getCurrentDate()
+      this.getCurrentDate(),
+      Validators.required
     ],
 
     tax: [
       0,
       [
         Validators.required,
-        Validators.min(0)
+        Validators.min(0),
+        this.maximumDecimalPlacesValidator(2)
       ]
     ],
 
@@ -153,7 +158,8 @@ export class Purchases implements OnInit {
       0,
       [
         Validators.required,
-        Validators.min(0)
+        Validators.min(0),
+        this.maximumDecimalPlacesValidator(2)
       ]
     ],
 
@@ -171,33 +177,17 @@ export class Purchases implements OnInit {
     return this.form.controls.details;
   }
 
-  readonly purchaseSubtotal = computed(() => {
-    return this.details.controls.reduce(
-      (total, control) => {
-        const value = control.getRawValue();
-
-        return total +
-          (
-            Number(value.quantity) *
-            Number(value.unitCost)
-          );
-      },
-      0
-    );
-  });
-
-  readonly purchaseTotal = computed(() => {
-    return (
-      this.purchaseSubtotal() +
-      Number(this.form.controls.tax.value) +
-      Number(
-        this.form.controls.shippingCost.value
-      )
-    );
-  });
+  readonly purchaseSubtotal = signal(0);
+  readonly purchaseTotal = signal(0);
 
   ngOnInit(): void {
     this.loadData();
+
+    this.form.controls.tax.valueChanges
+      .subscribe(() => this.recalculateTotals());
+
+    this.form.controls.shippingCost.valueChanges
+      .subscribe(() => this.recalculateTotals());
   }
 
   loadData(): void {
@@ -239,6 +229,7 @@ export class Purchases implements OnInit {
 
         this.loading.set(false);
       },
+
       error: error => {
         this.loading.set(false);
 
@@ -280,9 +271,10 @@ export class Purchases implements OnInit {
       this.createDetailGroup()
     );
 
+    this.recalculateTotals();
+
     this.errorMessage.set('');
     this.successMessage.set('');
-
     this.formOpen.set(true);
   }
 
@@ -306,46 +298,49 @@ export class Purchases implements OnInit {
     }
 
     this.details.removeAt(index);
+    this.recalculateTotals();
   }
 
   materialChanged(index: number): void {
-    const control = this.details.at(index);
+    const control =
+      this.details.at(index);
 
     const materialId =
       control.get('rawMaterialId')?.value;
 
-    const material = this.materials()
-      .find(item => item.id === materialId);
+    const material =
+      this.materials().find(
+        item => item.id === materialId
+      );
 
     if (!material) {
       return;
     }
 
-    control.patchValue({
-      unitCost:
-        material.lastPurchaseCost > 0
-          ? material.lastPurchaseCost
-          : material.averageCost
-    });
-  }
-
-  getMaterial(
-    materialId: string
-  ): RawMaterial | undefined {
-    return this.materials()
-      .find(material =>
-        material.id === materialId
-      );
-  }
-
-  getDetailSubtotal(index: number): number {
-    const detail =
-      this.details.at(index).getRawValue();
-
-    return (
-      Number(detail.quantity) *
-      Number(detail.unitCost)
+    control.get('unitCost')?.setValue(
+      material.lastPurchaseCost > 0
+        ? material.lastPurchaseCost
+        : material.averageCost
     );
+
+    control.get('quantity')?.setValue(
+      material.unitAllowsDecimals
+        ? this.minimumQuantity(
+            material.unitDecimalPlaces
+          )
+        : 1
+    );
+
+    this.applyQuantityValidator(
+      index,
+      material
+    );
+
+    this.recalculateTotals();
+  }
+
+  detailChanged(): void {
+    this.recalculateTotals();
   }
 
   submit(): void {
@@ -357,62 +352,143 @@ export class Purchases implements OnInit {
       return;
     }
 
-    const values = this.form.getRawValue();
+    const raw =
+      this.form.getRawValue();
 
-    const repeatedMaterials =
-      values.details
-        .map(detail =>
-          detail.rawMaterialId
-        )
+    const repeatedIds =
+      raw.details
+        .map(detail => detail.rawMaterialId)
         .filter(
-          (
-            materialId,
-            index,
-            collection
-          ) =>
-            collection.indexOf(
-              materialId
-            ) !== index
+          (id, index, array) =>
+            array.indexOf(id) !== index
         );
 
-    if (repeatedMaterials.length > 0) {
+    if (repeatedIds.length > 0) {
       this.errorMessage.set(
-        'No puedes agregar dos veces la misma materia prima.'
+        'Una materia prima no puede repetirse en la misma compra.'
       );
-
       return;
+    }
+
+    for (
+      let index = 0;
+      index < raw.details.length;
+      index++
+    ) {
+      const detail = raw.details[index];
+
+      const material =
+        this.materials().find(
+          item =>
+            item.id === detail.rawMaterialId
+        );
+
+      if (!material) {
+        this.errorMessage.set(
+          `Selecciona una materia prima válida en el detalle ${index + 1}.`
+        );
+        return;
+      }
+
+      const quantity =
+        Number(detail.quantity);
+
+      if (!Number.isFinite(quantity) ||
+          quantity <= 0) {
+        this.errorMessage.set(
+          `La cantidad del detalle ${index + 1} debe ser mayor a cero.`
+        );
+        return;
+      }
+
+      if (
+        !material.unitAllowsDecimals &&
+        !Number.isInteger(quantity)
+      ) {
+        this.errorMessage.set(
+          `${material.name} solo acepta cantidades enteras.`
+        );
+        return;
+      }
+
+      if (
+        material.unitAllowsDecimals &&
+        this.decimalPlaces(quantity) >
+          material.unitDecimalPlaces
+      ) {
+        this.errorMessage.set(
+          `${material.name} permite máximo ${material.unitDecimalPlaces} decimales.`
+        );
+        return;
+      }
+
+      const newStock =
+        material.currentStock +
+        quantity;
+
+      if (
+        material.maximumStock > 0 &&
+        newStock >
+          material.maximumStock
+      ) {
+        this.errorMessage.set(
+          `La compra de ${material.name} superaría el stock máximo de ` +
+          `${this.formatMaterialQuantity(
+            material,
+            material.maximumStock
+          )} ${material.unitSymbol}.`
+        );
+        return;
+      }
+
+      const unitCost =
+        Number(detail.unitCost);
+
+      if (
+        !Number.isFinite(unitCost) ||
+        unitCost <= 0
+      ) {
+        this.errorMessage.set(
+          `El costo unitario de ${material.name} debe ser mayor a cero.`
+        );
+        return;
+      }
     }
 
     this.saving.set(true);
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    const request = {
+    this.purchaseService.create({
       supplierId:
-        values.supplierId,
+        raw.supplierId,
 
       invoiceNumber:
-        values.invoiceNumber.trim() ||
+        raw.invoiceNumber.trim() ||
         null,
 
       purchaseDate:
-        values.purchaseDate
+        raw.purchaseDate
           ? new Date(
-              `${values.purchaseDate}T12:00:00`
+              `${raw.purchaseDate}T12:00:00`
             ).toISOString()
           : null,
 
       tax:
-        Number(values.tax),
+        this.roundMoney(
+          Number(raw.tax)
+        ),
 
       shippingCost:
-        Number(values.shippingCost),
+        this.roundMoney(
+          Number(raw.shippingCost)
+        ),
 
       notes:
-        values.notes.trim(),
+        raw.notes.trim(),
 
       details:
-        values.details.map(detail => ({
+        raw.details.map(detail => ({
           rawMaterialId:
             detail.rawMaterialId,
 
@@ -420,87 +496,358 @@ export class Purchases implements OnInit {
             Number(detail.quantity),
 
           unitCost:
-            Number(detail.unitCost)
+            this.roundNumber(
+              Number(detail.unitCost),
+              6
+            )
         }))
-    };
+    })
+    .subscribe({
+      next: response => {
+        this.saving.set(false);
+        this.formOpen.set(false);
 
-    this.purchaseService
-      .create(request)
-      .subscribe({
-        next: response => {
-          this.saving.set(false);
-          this.formOpen.set(false);
+        this.successMessage.set(
+          response.message
+        );
 
-          this.successMessage.set(
-            response.message
-          );
+        this.loadData();
+        this.clearSuccessMessageLater();
+      },
 
-          this.loadData();
-          this.clearSuccessMessageLater();
-        },
-        error: error => {
-          this.saving.set(false);
+      error: error => {
+        this.saving.set(false);
 
-          this.errorMessage.set(
-            error?.error?.message ??
-            'No fue posible registrar la compra.'
-          );
-        }
-      });
+        this.errorMessage.set(
+          error?.error?.message ??
+          'No fue posible registrar la compra.'
+        );
+      }
+    });
   }
 
-  openDetails(purchase: Purchase): void {
-    this.selectedPurchase.set(purchase);
+  openDetail(
+    purchase: Purchase
+  ): void {
+    this.selectedPurchase.set(
+      purchase
+    );
+
     this.detailModalOpen.set(true);
   }
 
-  closeDetails(): void {
+  closeDetail(): void {
     this.detailModalOpen.set(false);
     this.selectedPurchase.set(null);
   }
 
+  getMaterial(
+    index: number
+  ): RawMaterial | null {
+    const materialId =
+      this.details.at(index)
+        .get('rawMaterialId')?.value;
+
+    return this.materials().find(
+      item => item.id === materialId
+    ) ?? null;
+  }
+
+  getAvailableMaterials(
+    currentIndex: number
+  ): RawMaterial[] {
+    const selectedIds =
+      this.details.controls
+        .map(
+          (control, index) =>
+            index === currentIndex
+              ? null
+              : control.get(
+                  'rawMaterialId'
+                )?.value
+        )
+        .filter(Boolean);
+
+    return this.materials().filter(
+      material =>
+        !selectedIds.includes(
+          material.id
+        )
+    );
+  }
+
+  getDetailSubtotal(
+    index: number
+  ): number {
+    const raw =
+      this.details.at(index)
+        .getRawValue();
+
+    return this.roundMoney(
+      Number(raw.quantity || 0) *
+      Number(raw.unitCost || 0)
+    );
+  }
+
+  quantityStep(
+    material: RawMaterial | null
+  ): string {
+    if (!material ||
+        !material.unitAllowsDecimals) {
+      return '1';
+    }
+
+    return this.minimumQuantity(
+      material.unitDecimalPlaces
+    ).toString();
+  }
+
+  formatMaterialQuantity(
+    material: RawMaterial,
+    value: number
+  ): string {
+    return value.toLocaleString(
+      'es-MX',
+      {
+        minimumFractionDigits: 0,
+        maximumFractionDigits:
+          material.unitAllowsDecimals
+            ? material.unitDecimalPlaces
+            : 0
+      }
+    );
+  }
+
+  formatDetailQuantity(
+    value: number,
+    allowsDecimals: boolean,
+    decimalPlaces: number
+  ): string {
+    return value.toLocaleString(
+      'es-MX',
+      {
+        minimumFractionDigits: 0,
+        maximumFractionDigits:
+          allowsDecimals
+            ? decimalPlaces
+            : 0
+      }
+    );
+  }
+
   private createDetailGroup() {
-    return this.fb.nonNullable.group({
-      rawMaterialId: [
-        '',
-        Validators.required
-      ],
+    const group =
+      this.fb.nonNullable.group({
+        rawMaterialId: [
+          '',
+          Validators.required
+        ],
 
-      quantity: [
-        1,
-        [
-          Validators.required,
-          Validators.min(0.01)
-        ]
-      ],
+        quantity: [
+          1,
+          [
+            Validators.required,
+            Validators.min(0.0001)
+          ]
+        ],
 
-      unitCost: [
-        0,
-        [
-          Validators.required,
-          Validators.min(0)
+        unitCost: [
+          0,
+          [
+            Validators.required,
+            Validators.min(0.000001),
+            this.maximumDecimalPlacesValidator(6)
+          ]
         ]
-      ]
+      });
+
+    group.valueChanges.subscribe(() => {
+      this.recalculateTotals();
+    });
+
+    return group;
+  }
+
+  private applyQuantityValidator(
+    index: number,
+    material: RawMaterial
+  ): void {
+    const quantityControl =
+      this.details.at(index)
+        .get('quantity');
+
+    if (!quantityControl) {
+      return;
+    }
+
+    const validators: ValidatorFn[] = [
+      Validators.required,
+      Validators.min(
+        material.unitAllowsDecimals
+          ? this.minimumQuantity(
+              material.unitDecimalPlaces
+            )
+          : 1
+      )
+    ];
+
+    if (!material.unitAllowsDecimals) {
+      validators.push(
+        this.integerValidator()
+      );
+    } else {
+      validators.push(
+        this.maximumDecimalPlacesValidator(
+          material.unitDecimalPlaces
+        )
+      );
+    }
+
+    quantityControl.setValidators(
+      validators
+    );
+
+    quantityControl.updateValueAndValidity({
+      emitEvent: false
     });
   }
 
+  private recalculateTotals(): void {
+    const subtotal =
+      this.details.controls.reduce(
+        (total, control) => {
+          const value =
+            control.getRawValue();
+
+          return total +
+            (
+              Number(value.quantity || 0) *
+              Number(value.unitCost || 0)
+            );
+        },
+        0
+      );
+
+    this.purchaseSubtotal.set(
+      this.roundMoney(subtotal)
+    );
+
+    this.purchaseTotal.set(
+      this.roundMoney(
+        subtotal +
+        Number(
+          this.form.controls.tax.value || 0
+        ) +
+        Number(
+          this.form.controls
+            .shippingCost.value || 0
+        )
+      )
+    );
+  }
+
+  private integerValidator(): ValidatorFn {
+    return (
+      control: AbstractControl
+    ): ValidationErrors | null => {
+      const value =
+        Number(control.value);
+
+      return Number.isInteger(value)
+        ? null
+        : { integer: true };
+    };
+  }
+
+  private maximumDecimalPlacesValidator(
+    maximumPlaces: number
+  ): ValidatorFn {
+    return (
+      control: AbstractControl
+    ): ValidationErrors | null => {
+      const value =
+        Number(control.value);
+
+      if (!Number.isFinite(value)) {
+        return {
+          invalidNumber: true
+        };
+      }
+
+      return this.decimalPlaces(value) <=
+        maximumPlaces
+        ? null
+        : {
+            decimalPlaces: {
+              maximumPlaces
+            }
+          };
+    };
+  }
+
+  private decimalPlaces(
+    value: number
+  ): number {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    const text = value.toString();
+
+    if (text.includes('e-')) {
+      return Number(
+        text.split('e-')[1] ?? 0
+      );
+    }
+
+    return text.split('.')[1]?.length ?? 0;
+  }
+
+  private minimumQuantity(
+    decimalPlaces: number
+  ): number {
+    return 1 / (
+      10 ** decimalPlaces
+    );
+  }
+
+  private roundMoney(
+    value: number
+  ): number {
+    return this.roundNumber(
+      value,
+      2
+    );
+  }
+
+  private roundNumber(
+    value: number,
+    decimalPlaces: number
+  ): number {
+    const factor =
+      10 ** decimalPlaces;
+
+    return Math.round(
+      (value + Number.EPSILON) *
+      factor
+    ) / factor;
+  }
+
   private getCurrentDate(): string {
-    const date = new Date();
+    const now = new Date();
 
-    const year =
-      date.getFullYear();
+    const offset =
+      now.getTimezoneOffset();
 
-    const month =
-      String(
-        date.getMonth() + 1
-      ).padStart(2, '0');
+    const local =
+      new Date(
+        now.getTime() -
+        offset * 60_000
+      );
 
-    const day =
-      String(
-        date.getDate()
-      ).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
+    return local
+      .toISOString()
+      .slice(0, 10);
   }
 
   private clearSuccessMessageLater(): void {

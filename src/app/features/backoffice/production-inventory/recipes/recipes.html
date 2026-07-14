@@ -8,8 +8,8 @@
       <h1>Recetas BOM</h1>
 
       <p>
-        Define los materiales y cantidades requeridos
-        para fabricar cada producto VOLTS.
+        Define materiales, cantidades y unidades
+        necesarias por producto.
       </p>
     </div>
 
@@ -39,7 +39,7 @@
       <span>📋</span>
 
       <div>
-        <small>Total de recetas</small>
+        <small>Total</small>
         <strong>{{ recipes().length }}</strong>
       </div>
     </article>
@@ -48,16 +48,16 @@
       <span>✅</span>
 
       <div>
-        <small>Recetas activas</small>
+        <small>Activas</small>
         <strong>{{ activeRecipes() }}</strong>
       </div>
     </article>
 
     <article class="summary-card">
-      <span>⏸️</span>
+      <span>📦</span>
 
       <div>
-        <small>Recetas inactivas</small>
+        <small>No activas</small>
         <strong>{{ inactiveRecipes() }}</strong>
       </div>
     </article>
@@ -96,15 +96,19 @@
         (change)="updateStatusFilter($event)"
       >
         <option value="all">
-          Todas las recetas
+          Todos
         </option>
 
-        <option value="active">
-          Activas
+        <option value="Draft">
+          Borrador
         </option>
 
-        <option value="inactive">
-          Inactivas
+        <option value="Active">
+          Activa
+        </option>
+
+        <option value="Archived">
+          Archivada
         </option>
       </select>
     </div>
@@ -119,15 +123,9 @@
     ) {
       <div class="state-container">
         <span class="state-icon">📋</span>
-
         <strong>
           No se encontraron recetas
         </strong>
-
-        <p>
-          Registra la receta de un producto para
-          comenzar a producirlo.
-        </p>
       </div>
     } @else {
       <div class="recipe-grid">
@@ -142,20 +140,30 @@
               </div>
 
               <div>
-                <small>{{ recipe.code }}</small>
-                <h2>{{ recipe.productName }}</h2>
+                <small>
+                  {{ recipe.code }}
+                </small>
+
+                <h2>
+                  {{ recipe.productName }}
+                </h2>
               </div>
 
               <span
                 class="status-badge"
-                [class.inactive-status]="
-                  !recipe.isActive
+                [class.active-status]="
+                  recipe.status === 'Active'
+                "
+                [class.archived-status]="
+                  recipe.status === 'Archived'
                 "
               >
                 {{
-                  recipe.isActive
+                  recipe.status === 'Active'
                     ? 'Activa'
-                    : 'Inactiva'
+                    : recipe.status === 'Draft'
+                      ? 'Borrador'
+                      : 'Archivada'
                 }}
               </span>
             </header>
@@ -163,7 +171,9 @@
             <div class="recipe-data">
               <div>
                 <small>Versión</small>
-                <strong>V{{ recipe.version }}</strong>
+                <strong>
+                  V{{ recipe.version }}
+                </strong>
               </div>
 
               <div>
@@ -185,12 +195,6 @@
               </div>
             </div>
 
-            @if (recipe.notes) {
-              <p class="recipe-notes">
-                {{ recipe.notes }}
-              </p>
-            }
-
             <div class="recipe-actions">
               <button
                 type="button"
@@ -204,17 +208,6 @@
                 (click)="openEditForm(recipe)"
               >
                 ✏️ Editar
-              </button>
-
-              <button
-                type="button"
-                (click)="toggleStatus(recipe)"
-              >
-                {{
-                  recipe.isActive
-                    ? '⏸️ Desactivar'
-                    : '▶️ Activar'
-                }}
               </button>
 
               @if (isAdmin()) {
@@ -241,6 +234,8 @@
   >
     <section
       class="modal-card recipe-modal"
+      role="dialog"
+      aria-modal="true"
       (click)="$event.stopPropagation()"
     >
       <header class="modal-header">
@@ -297,20 +292,38 @@
             <input
               type="number"
               min="1"
+              step="1"
               formControlName="version"
             />
+
+            @if (
+              form.controls.version.touched &&
+              form.controls.version.invalid
+            ) {
+              <small class="field-error">
+                La versión debe ser un entero mayor
+                a cero.
+              </small>
+            }
           </div>
 
-          <label class="active-control">
-            <input
-              type="checkbox"
-              formControlName="isActive"
-            />
+          <div class="form-field">
+            <label>Estado *</label>
 
-            <span>
-              Receta activa para producción
-            </span>
-          </label>
+            <select formControlName="status">
+              <option value="Draft">
+                Borrador
+              </option>
+
+              <option value="Active">
+                Activa
+              </option>
+
+              <option value="Archived">
+                Archivada
+              </option>
+            </select>
+          </div>
         </section>
 
         <section class="materials-section">
@@ -319,8 +332,8 @@
               <strong>Componentes</strong>
 
               <small>
-                Cantidades necesarias para fabricar
-                una unidad.
+                La unidad y precisión se obtienen
+                directamente de cada materia prima.
               </small>
             </div>
 
@@ -351,56 +364,116 @@
                 </span>
 
                 <div class="form-field material-field">
-                  <label>Materia prima *</label>
+                  <label>
+                    Materia prima *
+                  </label>
 
                   <select
                     formControlName="rawMaterialId"
+                    (change)="materialChanged(index)"
                   >
                     <option value="">
                       Selecciona un material
                     </option>
 
                     @for (
-                      material of materials();
+                      material of
+                        getAvailableMaterials(index);
                       track material.id
                     ) {
                       <option [value]="material.id">
-                        {{ material.code }} -
+                        {{ material.code }}
+                        ·
                         {{ material.name }}
+                        ·
+                        {{ material.unitName }}
+                        ({{ material.unitSymbol }})
                       </option>
                     }
                   </select>
 
                   @if (
                     getMaterial(
-                      detail.get('rawMaterialId')?.value
+                      detail.get(
+                        'rawMaterialId'
+                      )?.value
                     );
                     as material
                   ) {
                     <small>
-                      {{ material.unit }}
-                      · Costo promedio:
+                      Unidad:
+                      {{ material.unitName }}
+                      ({{ material.unitSymbol }})
+
+                      · Costo:
                       {{
                         material.averageCost
                           | currency:'MXN'
                       }}
+
+                      por {{ material.unitSymbol }}
+
+                      · Stock:
+                      {{
+                        formatMaterialQuantity(
+                          material.currentStock,
+                          material
+                        )
+                      }}
+
+                      {{ material.unitSymbol }}
                     </small>
                   }
                 </div>
 
                 <div class="form-field">
-                  <label>Cantidad por unidad *</label>
+                  <label>
+                    Cantidad por unidad
+
+                    @if (
+                      getMaterial(
+                        detail.get(
+                          'rawMaterialId'
+                        )?.value
+                      );
+                      as material
+                    ) {
+                      ({{ material.unitSymbol }})
+                    }
+                  </label>
 
                   <input
                     type="number"
-                    min="0.0001"
-                    step="0.0001"
+                    min="0"
+                    [attr.step]="
+                      quantityStepFor(
+                        getMaterial(
+                          detail.get(
+                            'rawMaterialId'
+                          )?.value
+                        )
+                      )
+                    "
                     formControlName="quantityRequired"
                   />
+
+                  @if (
+                    detail.get(
+                      'quantityRequired'
+                    )?.invalid &&
+                    detail.get(
+                      'quantityRequired'
+                    )?.touched
+                  ) {
+                    <small class="field-error">
+                      Cantidad inválida para esta
+                      unidad de medida.
+                    </small>
+                  }
                 </div>
 
                 <div class="form-field">
-                  <label>Merma estimada %</label>
+                  <label>Merma esperada %</label>
 
                   <input
                     type="number"
@@ -409,21 +482,37 @@
                     step="0.01"
                     formControlName="wastePercentage"
                   />
+
+                  @if (
+                    detail.get(
+                      'wastePercentage'
+                    )?.invalid &&
+                    detail.get(
+                      'wastePercentage'
+                    )?.touched
+                  ) {
+                    <small class="field-error">
+                      La merma debe estar entre
+                      0 y 100.
+                    </small>
+                  }
                 </div>
 
                 <label class="recovered-control">
                   <input
                     type="checkbox"
-                    formControlName="acceptsRecoveredWaste"
+                    formControlName="
+                      acceptsRecoveredWaste
+                    "
                   />
 
-                  <span>
-                    Acepta material recuperado
-                  </span>
+                  Acepta material recuperado
                 </label>
 
                 <div class="detail-cost">
-                  <small>Costo estimado</small>
+                  <small>
+                    Costo estimado
+                  </small>
 
                   <strong>
                     {{
@@ -436,7 +525,9 @@
                 <button
                   type="button"
                   class="remove-button"
-                  [disabled]="details.length === 1"
+                  [disabled]="
+                    details.length === 1
+                  "
                   (click)="removeDetail(index)"
                 >
                   🗑️
@@ -452,8 +543,8 @@
 
             <textarea
               rows="4"
+              maxlength="1000"
               formControlName="notes"
-              placeholder="Indicaciones de ensamblaje o consideraciones de fabricación."
             ></textarea>
           </div>
 
@@ -468,11 +559,6 @@
                   | currency:'MXN'
               }}
             </strong>
-
-            <p>
-              Calculado con el costo promedio actual
-              de las materias primas.
-            </p>
           </div>
         </section>
 
@@ -480,6 +566,7 @@
           <button
             type="button"
             class="secondary-button"
+            [disabled]="saving()"
             (click)="closeForm()"
           >
             Cancelar
@@ -502,13 +589,19 @@
   </div>
 }
 
-@if (detailOpen() && selectedRecipe(); as recipe) {
+@if (
+  detailOpen() &&
+  selectedRecipe();
+  as recipe
+) {
   <div
     class="modal-backdrop"
     (click)="closeDetail()"
   >
     <section
       class="modal-card detail-modal"
+      role="dialog"
+      aria-modal="true"
       (click)="$event.stopPropagation()"
     >
       <header class="modal-header">
@@ -517,7 +610,21 @@
             {{ recipe.code }}
           </span>
 
-          <h2>{{ recipe.productName }}</h2>
+          <h2>
+            {{ recipe.productName }}
+          </h2>
+
+          <small>
+            Versión {{ recipe.version }}
+            ·
+            {{
+              recipe.status === 'Active'
+                ? 'Activa'
+                : recipe.status === 'Draft'
+                  ? 'Borrador'
+                  : 'Archivada'
+            }}
+          </small>
         </div>
 
         <button
@@ -528,29 +635,6 @@
           ✕
         </button>
       </header>
-
-      <div class="detail-summary">
-        <div>
-          <small>Versión</small>
-          <strong>V{{ recipe.version }}</strong>
-        </div>
-
-        <div>
-          <small>Componentes</small>
-          <strong>{{ recipe.details.length }}</strong>
-        </div>
-
-        <div>
-          <small>Costo unitario</small>
-
-          <strong>
-            {{
-              recipe.estimatedUnitCost
-                | currency:'MXN'
-            }}
-          </strong>
-        </div>
-      </div>
 
       <div class="component-list">
         @for (
@@ -566,27 +650,80 @@
               <strong>
                 {{ detail.rawMaterialName }}
               </strong>
+
+              <small>
+                {{ detail.unitName }}
+                ({{ detail.unitSymbol }})
+              </small>
             </div>
 
             <div>
               <small>Cantidad neta</small>
 
               <strong>
-                {{ detail.quantityRequired }}
-                {{ detail.unit }}
+                {{
+                  detail.quantityRequired
+                    | number:
+                      '1.0-' +
+                      (
+                        detail.unitAllowsDecimals
+                          ? detail.unitDecimalPlaces
+                          : 0
+                      )
+                }}
+
+                {{ detail.unitSymbol }}
               </strong>
             </div>
 
             <div>
-              <small>Merma estimada</small>
+              <small>Merma esperada</small>
 
               <strong>
-                {{ detail.wastePercentage }}%
+                {{
+                  detail.wastePercentage
+                    | number:'1.0-2'
+                }}%
               </strong>
             </div>
 
             <div>
-              <small>Costo</small>
+              <small>
+                Cantidad con merma
+              </small>
+
+              <strong>
+                {{
+                  detail.totalQuantityPerUnit
+                    | number:
+                      '1.0-' +
+                      (
+                        detail.unitAllowsDecimals
+                          ? detail.unitDecimalPlaces
+                          : 0
+                      )
+                }}
+
+                {{ detail.unitSymbol }}
+              </strong>
+            </div>
+
+            <div>
+              <small>
+                Costo por
+                {{ detail.unitSymbol }}
+              </small>
+
+              <strong>
+                {{
+                  detail.estimatedUnitCost
+                    | currency:'MXN'
+                }}
+              </strong>
+            </div>
+
+            <div>
+              <small>Subtotal estimado</small>
 
               <strong>
                 {{
@@ -595,71 +732,22 @@
                 }}
               </strong>
             </div>
-
-            @if (detail.acceptsRecoveredWaste) {
-              <span class="recovered-badge">
-                ♻️ Acepta recuperado
-              </span>
-            }
           </article>
         }
       </div>
 
-      @if (recipe.notes) {
-        <div class="notes-box">
-          <small>Observaciones</small>
-          <p>{{ recipe.notes }}</p>
-        </div>
-      }
-    </section>
-  </div>
-}
+      <section class="cost-summary detail-cost-summary">
+        <small>
+          Costo estimado total por producto
+        </small>
 
-@if (deleteCandidate(); as recipe) {
-  <div
-    class="modal-backdrop"
-    (click)="cancelDelete()"
-  >
-    <section
-      class="confirmation-card"
-      (click)="$event.stopPropagation()"
-    >
-      <span>🗑️</span>
-
-      <h2>Eliminar receta</h2>
-
-      <p>
-        ¿Deseas eliminar
-        <strong>{{ recipe.code }}</strong>?
-      </p>
-
-      <small>
-        Si ya fue utilizada en una producción,
-        el backend impedirá eliminarla.
-      </small>
-
-      <div class="form-actions">
-        <button
-          type="button"
-          class="secondary-button"
-          (click)="cancelDelete()"
-        >
-          Cancelar
-        </button>
-
-        <button
-          type="button"
-          class="danger-button"
-          [disabled]="deleting()"
-          (click)="confirmDelete()"
-        >
+        <strong>
           {{
-            deleting()
-              ? 'Eliminando...'
-              : 'Eliminar'
+            recipe.estimatedUnitCost
+              | currency:'MXN'
           }}
-        </button>
-      </div>
+        </strong>
+      </section>
     </section>
   </div>
 }

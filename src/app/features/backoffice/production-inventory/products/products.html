@@ -214,15 +214,29 @@
                 </div>
 
                 <div>
-                  <small>Stock terminado</small>
+                  <small>Stock físico</small>
+                  <strong>
+                    {{ product.physicalStock }}
+                  </strong>
+                </div>
+
+                <div>
+                  <small>Stock reservado</small>
+                  <strong>
+                    {{ product.reservedStock }}
+                  </strong>
+                </div>
+
+                <div>
+                  <small>Stock disponible</small>
 
                   <strong
                     [class.low-stock]="
-                      product.finishedStock <=
+                      product.availableStock <=
                       product.minimumFinishedStock
                     "
                   >
-                    {{ product.finishedStock }}
+                    {{ product.availableStock }}
                   </strong>
                 </div>
               </div>
@@ -535,11 +549,14 @@
         <strong>{{ product.name }}</strong>?
       </p>
 
-      @if (product.finishedStock > 0) {
+      @if (
+        product.physicalStock > 0 ||
+        product.reservedStock > 0
+      ) {
         <small class="warning-text">
           Este producto tiene
-          {{ product.finishedStock }}
-          unidades terminadas y el backend impedirá
+          {{ product.physicalStock }} unidades físicas y
+          {{ product.reservedStock }} reservadas y el backend impedirá
           eliminarlo.
         </small>
       }

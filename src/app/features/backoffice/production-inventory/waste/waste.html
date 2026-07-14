@@ -204,7 +204,7 @@
 
                 <strong>
                   {{ waste.quantityGenerated }}
-                  {{ waste.unit }}
+                  {{ waste.unitSymbol }}
                 </strong>
               </div>
 
@@ -213,7 +213,7 @@
 
                 <strong>
                   {{ waste.availableQuantity }}
-                  {{ waste.unit }}
+                  {{ waste.unitSymbol }}
                 </strong>
               </div>
 
@@ -326,20 +326,32 @@
                   {{ material.code }} -
                   {{ material.name }}
                   · {{ material.currentStock }}
-                  {{ material.unit }}
+                  {{ material.unitSymbol }}
                 </option>
               }
             </select>
           </div>
 
           <div class="form-field">
-            <label>Cantidad *</label>
+            <label>
+              Cantidad *
+              @if (
+                getSelectedCreateMaterial();
+                as material
+              ) {
+                ({{ material.unitSymbol }})
+              }
+            </label>
 
             <input
               type="number"
               min="0.0001"
-              step="0.0001"
-              formControlName="quantity"
+              [attr.step]="
+                quantityStepFor(
+                  getSelectedCreateMaterial()
+                )
+              "
+              formControlName="quantity" 
             />
           </div>
 
@@ -474,7 +486,7 @@
           Disponible:
           <strong>
             {{ waste.availableQuantity }}
-            {{ waste.unit }}
+            {{ waste.unitSymbol }}
           </strong>
         </div>
 
@@ -500,8 +512,12 @@
             type="number"
             min="0.0001"
             [max]="waste.availableQuantity"
-            step="0.0001"
-            formControlName="quantity"
+            [attr.step]="
+              quantityStepFor(
+                selectedWaste()
+              )
+            "
+            formControlName="quantity" 
           />
         </div>
 
@@ -588,7 +604,7 @@
             <small>Cantidad generada</small>
             <strong>
               {{ waste.quantityGenerated }}
-              {{ waste.unit }}
+              {{ waste.unitSymbol }}
             </strong>
           </div>
 
@@ -596,7 +612,7 @@
             <small>Cantidad disponible</small>
             <strong>
               {{ waste.availableQuantity }}
-              {{ waste.unit }}
+              {{ waste.unitSymbol }}
             </strong>
           </div>
 
@@ -660,3 +676,4 @@
     </section>
   </div>
 }
+

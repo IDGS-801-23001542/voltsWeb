@@ -336,7 +336,7 @@
               <option [value]="product.id">
                 {{ product.name }}
                 · Stock terminado:
-                {{ product.finishedStock }}
+                {{ product.availableStock }}
               </option>
             }
           </select>
@@ -490,7 +490,7 @@
 
               <strong>
                 {{ material.quantityPerUnit }}
-                {{ material.unit }}
+                {{ material.unitSymbol }}
               </strong>
             </div>
 
@@ -507,7 +507,7 @@
 
               <strong>
                 {{ material.requiredQuantity }}
-                {{ material.unit }}
+                {{ material.unitSymbol }}
               </strong>
             </div>
 
@@ -516,7 +516,7 @@
 
               <strong>
                 {{ material.issuedQuantity }}
-                {{ material.unit }}
+                {{ material.unitSymbol }}
               </strong>
             </div>
 
@@ -674,13 +674,25 @@
                 </div>
 
                 <div class="form-field">
-                  <label>Cantidad *</label>
+                  <label>
+                    Cantidad *
+                    @if (
+                      getSelectedWasteMaterial(index);
+                      as material
+                    ) {
+                      ({{ material.unitSymbol }})
+                    }
+                  </label>
 
                   <input
                     type="number"
                     min="0.0001"
-                    step="0.0001"
-                    formControlName="quantity"
+                    [attr.step]="
+                      quantityStepForMaterial(
+                        getSelectedWasteMaterial(index)
+                      )
+                    "
+                    formControlName="quantity" 
                   />
                 </div>
 
@@ -871,3 +883,4 @@
     </section>
   </div>
 }
+

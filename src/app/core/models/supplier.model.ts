@@ -19,6 +19,18 @@ export type SupplierMaterialCategory =
   | 'Packaging'
   | 'Other';
 
+export interface SupplierAddress {
+  street: string;
+  exteriorNumber: string;
+  interiorNumber?: string | null;
+  neighborhood: string;
+  postalCode: string;
+  city: string;
+  state: string;
+  country: string;
+  references?: string | null;
+}
+
 export interface Supplier {
   id: string;
   code: string;
@@ -28,10 +40,7 @@ export interface Supplier {
   contactName: string;
   email: string;
   phone?: string | null;
-  address?: string | null;
-  city?: string | null;
-  state?: string | null;
-  postalCode?: string | null;
+  address: SupplierAddress;
   supplierType: SupplierType;
   materialCategories: SupplierMaterialCategory[];
   leadTimeDays: number;
@@ -51,10 +60,7 @@ export interface SupplierRequest {
   contactName: string;
   email: string;
   phone?: string | null;
-  address?: string | null;
-  city?: string | null;
-  state?: string | null;
-  postalCode?: string | null;
+  address: SupplierAddress;
   supplierType: SupplierType;
   materialCategories: SupplierMaterialCategory[];
   leadTimeDays: number;

@@ -7,24 +7,22 @@ import {
 } from '@angular/core';
 
 import {
-  CurrencyPipe
+  CurrencyPipe,
+  DecimalPipe
 } from '@angular/common';
 
 import {
+  AbstractControl,
   FormArray,
   FormBuilder,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators
 } from '@angular/forms';
 
 import {
-  toSignal
-} from '@angular/core/rxjs-interop';
-
-import {
-  forkJoin,
-  map,
-  startWith
+  forkJoin
 } from 'rxjs';
 
 import {
@@ -36,7 +34,8 @@ import {
 } from '../../../../core/models/raw-material.model';
 
 import {
-  Recipe
+  Recipe,
+  RecipeStatus
 } from '../../../../core/models/recipe.model';
 
 import {
@@ -55,25 +54,29 @@ import {
   RecipeService
 } from '../../../../core/services/recipe.service';
 
+import {
+  formatQuantity,
+  isValidQuantity,
+  quantityStep
+} from '../../../../shared/utils/unit-format.util';
+
 @Component({
   selector: 'app-recipes',
   standalone: true,
   imports: [
-    CurrencyPipe,
-    ReactiveFormsModule
-  ],
+  CurrencyPipe,
+  DecimalPipe,
+  ReactiveFormsModule
+],
   templateUrl: './recipes.html',
   styleUrl: './recipes.css'
 })
 export class Recipes implements OnInit {
   private readonly fb = inject(FormBuilder);
-
   private readonly recipeService =
     inject(RecipeService);
-
   private readonly productService =
     inject(ProductService);
-
   private readonly rawMaterialService =
     inject(RawMaterialService);
 
@@ -89,19 +92,15 @@ export class Recipes implements OnInit {
 
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
-
   readonly searchTerm = signal('');
   readonly statusFilter = signal('all');
 
   readonly formOpen = signal(false);
   readonly detailOpen = signal(false);
-
   readonly editingRecipe =
     signal<Recipe | null>(null);
-
   readonly selectedRecipe =
     signal<Recipe | null>(null);
-
   readonly deleteCandidate =
     signal<Recipe | null>(null);
 
@@ -111,83 +110,68 @@ export class Recipes implements OnInit {
 
   readonly activeRecipes = computed(() =>
     this.recipes().filter(
-      recipe => recipe.isActive
+      recipe => recipe.status === 'Active'
     ).length
   );
 
   readonly inactiveRecipes = computed(() =>
     this.recipes().filter(
-      recipe => !recipe.isActive
+      recipe => recipe.status !== 'Active'
     ).length
   );
 
   readonly averageRecipeCost = computed(() => {
-    const recipes = this.recipes();
+    const values = this.recipes();
 
-    if (recipes.length === 0) {
-      return 0;
-    }
-
-    return recipes.reduce(
-      (total, recipe) =>
-        total + recipe.estimatedUnitCost,
-      0
-    ) / recipes.length;
+    return values.length === 0
+      ? 0
+      : values.reduce(
+          (sum, recipe) =>
+            sum + recipe.estimatedUnitCost,
+          0
+        ) / values.length;
   });
 
   readonly filteredRecipes = computed(() => {
-    const search = this.searchTerm()
-      .trim()
-      .toLowerCase();
-
-    const status = this.statusFilter();
+    const search =
+      this.searchTerm().trim().toLowerCase();
 
     return this.recipes().filter(recipe => {
       const matchesSearch =
         !search ||
-        recipe.code
-          .toLowerCase()
-          .includes(search) ||
+        recipe.code.toLowerCase().includes(search) ||
         recipe.productName
           .toLowerCase()
           .includes(search);
 
+      const filter = this.statusFilter();
+
       const matchesStatus =
-        status === 'all' ||
-        (
-          status === 'active' &&
-          recipe.isActive
-        ) ||
-        (
-          status === 'inactive' &&
-          !recipe.isActive
-        );
+        filter === 'all' ||
+        recipe.status === filter;
 
       return matchesSearch && matchesStatus;
     });
   });
 
   readonly form = this.fb.nonNullable.group({
-    productId: [
-      '',
-      Validators.required
-    ],
-
+    productId: ['', Validators.required],
     version: [
       1,
       [
         Validators.required,
-        Validators.min(1)
+        Validators.min(1),
+        this.integerValidator()
       ]
     ],
-
+    status: [
+      'Draft' as RecipeStatus,
+      Validators.required
+    ],
     notes: [
       '',
       Validators.maxLength(1000)
     ],
-
-    isActive: [true],
-
     details: this.fb.array([
       this.createDetailGroup()
     ])
@@ -197,79 +181,17 @@ export class Recipes implements OnInit {
     return this.form.controls.details;
   }
 
-  /*
-   * Reactive Forms no son signals.
-   * Esta conversión permite recalcular el costo
-   * mientras el usuario modifica el formulario.
-   */
-  readonly estimatedTotal = toSignal(
-    this.form.valueChanges.pipe(
-      startWith(this.form.getRawValue()),
-
-      map(() => {
-        return this.details.controls.reduce(
-          (total, control) => {
-            const values =
-              control.getRawValue();
-
-            const material =
-              this.getMaterial(
-                values.rawMaterialId
-              );
-
-            if (!material) {
-              return total;
-            }
-
-            const quantityRequired =
-              Number(
-                values.quantityRequired
-              ) || 0;
-
-            const wastePercentage =
-              Number(
-                values.wastePercentage
-              ) || 0;
-
-            const quantityWithWaste =
-              quantityRequired *
-              (
-                1 +
-                wastePercentage / 100
-              );
-
-            return total +
-              (
-                quantityWithWaste *
-                material.averageCost
-              );
-          },
-          0
-        );
-      })
-    ),
-    {
-      initialValue: 0
-    }
-  );
-
   ngOnInit(): void {
     this.loadData();
   }
 
   loadData(): void {
     this.loading.set(true);
-    this.errorMessage.set('');
 
     forkJoin({
-      recipes:
-        this.recipeService.getAll(),
-
-      products:
-        this.productService.getAll(),
-
-      materials:
-        this.rawMaterialService.getAll()
+      recipes: this.recipeService.getAll(),
+      products: this.productService.getAll(),
+      materials: this.rawMaterialService.getAll()
     }).subscribe({
       next: response => {
         this.recipes.set(
@@ -286,17 +208,13 @@ export class Recipes implements OnInit {
 
         this.materials.set(
           (response.materials.data ?? [])
-            .filter(material =>
-              material.isActive
-            )
+            .filter(material => material.isActive)
         );
 
         this.loading.set(false);
       },
-
       error: error => {
         this.loading.set(false);
-
         this.errorMessage.set(
           error?.error?.message ??
           'No fue posible cargar las recetas.'
@@ -306,80 +224,56 @@ export class Recipes implements OnInit {
   }
 
   updateSearch(event: Event): void {
-    const input =
-      event.target as HTMLInputElement;
-
-    this.searchTerm.set(input.value);
+    this.searchTerm.set(
+      (event.target as HTMLInputElement).value
+    );
   }
 
   updateStatusFilter(event: Event): void {
-    const select =
-      event.target as HTMLSelectElement;
-
-    this.statusFilter.set(select.value);
+    this.statusFilter.set(
+      (event.target as HTMLSelectElement).value
+    );
   }
 
   openCreateForm(): void {
     this.editingRecipe.set(null);
-
     this.form.reset({
       productId: '',
       version: 1,
-      notes: '',
-      isActive: true
+      status: 'Draft',
+      notes: ''
     });
-
     this.details.clear();
-
-    this.details.push(
-      this.createDetailGroup()
-    );
-
-    this.errorMessage.set('');
+    this.details.push(this.createDetailGroup());
     this.formOpen.set(true);
   }
 
   openEditForm(recipe: Recipe): void {
     this.editingRecipe.set(recipe);
-
     this.form.reset({
       productId: recipe.productId,
       version: recipe.version,
-      notes: recipe.notes,
-      isActive: recipe.isActive
+      status: recipe.status,
+      notes: recipe.notes
     });
-
     this.details.clear();
 
     for (const detail of recipe.details) {
-      this.details.push(
-        this.fb.nonNullable.group({
-          rawMaterialId: [
-            detail.rawMaterialId,
-            Validators.required
-          ],
+      const group = this.createDetailGroup();
 
-          quantityRequired: [
-            detail.quantityRequired,
-            [
-              Validators.required,
-              Validators.min(0.0001)
-            ]
-          ],
+      group.patchValue({
+        rawMaterialId: detail.rawMaterialId,
+        quantityRequired:
+          detail.quantityRequired,
+        wastePercentage:
+          detail.wastePercentage,
+        acceptsRecoveredWaste:
+          detail.acceptsRecoveredWaste
+      });
 
-          wastePercentage: [
-            detail.wastePercentage,
-            [
-              Validators.required,
-              Validators.min(0),
-              Validators.max(100)
-            ]
-          ],
-
-          acceptsRecoveredWaste: [
-            detail.acceptsRecoveredWaste
-          ]
-        })
+      this.details.push(group);
+      this.applyQuantityValidators(
+        this.details.length - 1
       );
     }
 
@@ -387,122 +281,159 @@ export class Recipes implements OnInit {
   }
 
   closeForm(): void {
-    if (this.saving()) {
-      return;
+    if (!this.saving()) {
+      this.formOpen.set(false);
+      this.editingRecipe.set(null);
     }
-
-    this.formOpen.set(false);
-    this.editingRecipe.set(null);
   }
 
   addDetail(): void {
-    this.details.push(
-      this.createDetailGroup()
-    );
+    this.details.push(this.createDetailGroup());
   }
 
   removeDetail(index: number): void {
-    if (this.details.length === 1) {
-      return;
+    if (this.details.length > 1) {
+      this.details.removeAt(index);
     }
+  }
 
-    this.details.removeAt(index);
+  materialChanged(index: number): void {
+    this.applyQuantityValidators(index);
   }
 
   getMaterial(
     materialId: string
   ): RawMaterial | undefined {
     return this.materials().find(
-      material =>
-        material.id === materialId
+      material => material.id === materialId
     );
   }
 
-  getDetailEstimatedCost(
+  getAvailableMaterials(
     index: number
-  ): number {
-    const values =
+  ): RawMaterial[] {
+    const selected = this.details.controls
+      .map((control, currentIndex) =>
+        currentIndex === index
+          ? null
+          : control.get('rawMaterialId')?.value
+      )
+      .filter(Boolean);
+
+    return this.materials().filter(
+      material => !selected.includes(material.id)
+    );
+  }
+
+  quantityStepFor(
+    material?: RawMaterial
+  ): string {
+    return quantityStep(material);
+  }
+
+  formatMaterialQuantity(
+    value: number,
+    material: RawMaterial
+  ): string {
+    return formatQuantity(value, material);
+  }
+
+  getDetailEstimatedCost(index: number): number {
+    const value =
       this.details.at(index).getRawValue();
 
     const material =
-      this.getMaterial(
-        values.rawMaterialId
-      );
+      this.getMaterial(value.rawMaterialId);
 
     if (!material) {
       return 0;
     }
 
     const quantityWithWaste =
-      Number(values.quantityRequired) *
+      Number(value.quantityRequired) *
       (
         1 +
-        Number(values.wastePercentage) /
-        100
+        Number(value.wastePercentage) / 100
       );
 
-    return quantityWithWaste *
-      material.averageCost;
+    return (
+      quantityWithWaste *
+      material.averageCost
+    );
+  }
+
+  estimatedTotal(): number {
+    return this.details.controls.reduce(
+      (sum, _, index) =>
+        sum + this.getDetailEstimatedCost(index),
+      0
+    );
   }
 
   submit(): void {
-    if (
-      this.form.invalid ||
-      this.saving()
-    ) {
+    if (this.form.invalid || this.saving()) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const values = this.form.getRawValue();
+    const value = this.form.getRawValue();
 
-    const materialIds =
-      values.details.map(
+    const ids =
+      value.details.map(
         detail => detail.rawMaterialId
       );
 
-    const hasDuplicates =
-      new Set(materialIds).size !==
-      materialIds.length;
-
-    if (hasDuplicates) {
+    if (new Set(ids).size !== ids.length) {
       this.errorMessage.set(
-        'Una materia prima no puede repetirse en la receta.'
+        'Una materia prima no puede repetirse.'
       );
-
       return;
     }
 
-    this.saving.set(true);
-    this.errorMessage.set('');
-    this.successMessage.set('');
+    for (
+      let index = 0;
+      index < value.details.length;
+      index++
+    ) {
+      const detail = value.details[index];
+
+      const material =
+        this.getMaterial(detail.rawMaterialId);
+
+      if (
+        !material ||
+        !isValidQuantity(
+          Number(detail.quantityRequired),
+          material
+        )
+      ) {
+        this.errorMessage.set(
+          `La cantidad del material ${index + 1} ` +
+          'no es válida para su unidad.'
+        );
+        return;
+      }
+    }
 
     const request = {
-      productId: values.productId,
-      version: Number(values.version),
-      notes: values.notes.trim(),
-      isActive: values.isActive,
-
-      details: values.details.map(
-        detail => ({
-          rawMaterialId:
-            detail.rawMaterialId,
-
-          quantityRequired:
-            Number(
-              detail.quantityRequired
-            ),
-
-          wastePercentage:
-            Number(
-              detail.wastePercentage
-            ),
-
-          acceptsRecoveredWaste:
-            detail.acceptsRecoveredWaste
-        })
-      )
+      productId: value.productId,
+      version: Number(value.version),
+      status: value.status,
+      notes: value.notes.trim(),
+      details: value.details.map(detail => ({
+        rawMaterialId:
+          detail.rawMaterialId,
+        quantityRequired:
+          Number(detail.quantityRequired),
+        wastePercentage:
+          Number(detail.wastePercentage),
+        acceptsRecoveredWaste:
+          detail.acceptsRecoveredWaste
+      }))
     };
+
+    this.saving.set(true);
+    this.errorMessage.set('');
 
     const editing = this.editingRecipe();
 
@@ -511,60 +442,23 @@ export class Recipes implements OnInit {
           editing.id,
           request
         )
-      : this.recipeService.create(
-          request
-        );
+      : this.recipeService.create(request);
 
     operation.subscribe({
       next: response => {
         this.saving.set(false);
         this.formOpen.set(false);
-        this.editingRecipe.set(null);
-
-        this.successMessage.set(
-          response.message
-        );
-
+        this.successMessage.set(response.message);
         this.loadData();
-        this.clearSuccessMessageLater();
       },
-
       error: error => {
         this.saving.set(false);
-
         this.errorMessage.set(
           error?.error?.message ??
           'No fue posible guardar la receta.'
         );
       }
     });
-  }
-
-  toggleStatus(recipe: Recipe): void {
-    this.errorMessage.set('');
-
-    this.recipeService
-      .updateStatus(
-        recipe.id,
-        !recipe.isActive
-      )
-      .subscribe({
-        next: response => {
-          this.successMessage.set(
-            response.message
-          );
-
-          this.loadData();
-          this.clearSuccessMessageLater();
-        },
-
-        error: error => {
-          this.errorMessage.set(
-            error?.error?.message ??
-            'No fue posible cambiar el estado.'
-          );
-        }
-      });
   }
 
   openDetail(recipe: Recipe): void {
@@ -578,51 +472,34 @@ export class Recipes implements OnInit {
   }
 
   requestDelete(recipe: Recipe): void {
-    if (!this.isAdmin()) {
-      return;
-    }
-
     this.deleteCandidate.set(recipe);
   }
 
   cancelDelete(): void {
-    if (!this.deleting()) {
-      this.deleteCandidate.set(null);
-    }
+    this.deleteCandidate.set(null);
   }
 
   confirmDelete(): void {
     const recipe = this.deleteCandidate();
 
-    if (
-      !recipe ||
-      this.deleting() ||
-      !this.isAdmin()
-    ) {
+    if (!recipe || !this.isAdmin()) {
       return;
     }
 
     this.deleting.set(true);
-    this.errorMessage.set('');
 
-    this.recipeService
-      .delete(recipe.id)
+    this.recipeService.delete(recipe.id)
       .subscribe({
         next: response => {
           this.deleting.set(false);
           this.deleteCandidate.set(null);
-
           this.successMessage.set(
             response.message
           );
-
           this.loadData();
-          this.clearSuccessMessageLater();
         },
-
         error: error => {
           this.deleting.set(false);
-
           this.errorMessage.set(
             error?.error?.message ??
             'No fue posible eliminar la receta.'
@@ -637,7 +514,6 @@ export class Recipes implements OnInit {
         '',
         Validators.required
       ],
-
       quantityRequired: [
         1,
         [
@@ -645,7 +521,6 @@ export class Recipes implements OnInit {
           Validators.min(0.0001)
         ]
       ],
-
       wastePercentage: [
         0,
         [
@@ -654,14 +529,76 @@ export class Recipes implements OnInit {
           Validators.max(100)
         ]
       ],
-
       acceptsRecoveredWaste: [false]
     });
   }
 
-  private clearSuccessMessageLater(): void {
-    window.setTimeout(() => {
-      this.successMessage.set('');
-    }, 4000);
+  private applyQuantityValidators(
+    index: number
+  ): void {
+    const control =
+      this.details.at(index);
+
+    const material =
+      this.getMaterial(
+        control.get('rawMaterialId')?.value
+      );
+
+    const quantityControl =
+      control.get('quantityRequired');
+
+    if (!material || !quantityControl) {
+      return;
+    }
+
+    const validators: ValidatorFn[] = [
+      Validators.required,
+      Validators.min(
+        material.unitAllowsDecimals
+          ? 1 / 10 ** material.unitDecimalPlaces
+          : 1
+      ),
+      this.decimalPlacesValidator(
+        material.unitAllowsDecimals
+          ? material.unitDecimalPlaces
+          : 0
+      )
+    ];
+
+    quantityControl.setValidators(validators);
+    quantityControl.updateValueAndValidity({
+      emitEvent: false
+    });
+  }
+
+  private integerValidator(): ValidatorFn {
+    return (
+      control: AbstractControl
+    ): ValidationErrors | null =>
+      Number.isInteger(Number(control.value))
+        ? null
+        : { integer: true };
+  }
+
+  private decimalPlacesValidator(
+    maximum: number
+  ): ValidatorFn {
+    return (
+      control: AbstractControl
+    ): ValidationErrors | null => {
+      const value = Number(control.value);
+
+      if (!Number.isFinite(value)) {
+        return { invalidNumber: true };
+      }
+
+      const places = value
+        .toString()
+        .split('.')[1]?.length ?? 0;
+
+      return places <= maximum
+        ? null
+        : { decimalPlaces: true };
+    };
   }
 }
