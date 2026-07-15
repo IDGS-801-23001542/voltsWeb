@@ -1,0 +1,198 @@
+<section class="admin-page">
+  <header class="page-heading">
+    <div>
+      <span>Administración</span>
+      <h1>Logs del sistema</h1>
+      <p>
+        Excepciones no controladas y fallos técnicos
+        registrados por la API.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="danger"
+      (click)="deleteOld()"
+    >
+      Limpiar logs antiguos
+    </button>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  <section class="panel filters">
+    <input
+      [(ngModel)]="search"
+      placeholder="Mensaje, origen, ruta o correlación..."
+      (keyup.enter)="searchLogs()"
+    />
+
+    <select [(ngModel)]="level">
+      <option value="">Todos los niveles</option>
+      <option value="Error">Error</option>
+      <option value="Critical">Critical</option>
+      <option value="Warning">Warning</option>
+    </select>
+
+    <input
+      type="number"
+      [(ngModel)]="statusCode"
+      placeholder="Código HTTP"
+    />
+
+    <input type="date" [(ngModel)]="from" />
+    <input type="date" [(ngModel)]="to" />
+
+    <button
+      type="button"
+      class="primary"
+      (click)="searchLogs()"
+    >
+      Buscar
+    </button>
+
+    <button
+      type="button"
+      (click)="clearFilters()"
+    >
+      Limpiar
+    </button>
+  </section>
+
+  <section class="panel">
+    <div class="result-heading">
+      <strong>{{ total() }} logs</strong>
+      <span>
+        Página {{ page() }} de {{ totalPages() || 1 }}
+      </span>
+    </div>
+
+    @if (loading()) {
+      <div class="state">Cargando logs...</div>
+    } @else if (items().length === 0) {
+      <div class="state">
+        No hay errores registrados. Eso es buena señal.
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Nivel</th>
+              <th>Origen</th>
+              <th>Mensaje</th>
+              <th>Ruta</th>
+              <th>HTTP</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (item of items(); track item.id) {
+              <tr>
+                <td>
+                  {{
+                    item.createdAt
+                      | date:'dd/MM/yyyy HH:mm:ss'
+                  }}
+                </td>
+                <td>
+                  <span class="badge error-badge">
+                    {{ item.level }}
+                  </span>
+                </td>
+                <td>{{ item.source }}</td>
+                <td class="message-cell">
+                  {{ item.message }}
+                </td>
+                <td>
+                  {{ item.httpMethod }} {{ item.path }}
+                </td>
+                <td>{{ item.statusCode }}</td>
+                <td>
+                  <button
+                    type="button"
+                    (click)="openDetail(item)"
+                  >
+                    Ver
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <footer class="pagination">
+      <button
+        type="button"
+        [disabled]="page() <= 1"
+        (click)="previous()"
+      >
+        Anterior
+      </button>
+
+      <button
+        type="button"
+        [disabled]="page() >= totalPages()"
+        (click)="next()"
+      >
+        Siguiente
+      </button>
+    </footer>
+  </section>
+</section>
+
+@if (selected(); as item) {
+  <div class="backdrop" (click)="closeDetail()">
+    <section
+      class="modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header>
+        <div>
+          <small>{{ item.correlationId }}</small>
+          <h2>{{ item.exceptionType || item.level }}</h2>
+        </div>
+        <button type="button" (click)="closeDetail()">✕</button>
+      </header>
+
+      <div class="detail-grid">
+        <article>
+          <small>Mensaje</small>
+          <strong>{{ item.message }}</strong>
+        </article>
+        <article>
+          <small>Ruta</small>
+          <strong>{{ item.httpMethod }} {{ item.path }}</strong>
+        </article>
+        <article>
+          <small>Usuario</small>
+          <strong>{{ item.userName || 'Anónimo' }}</strong>
+        </article>
+        <article>
+          <small>IP</small>
+          <strong>{{ item.ipAddress || 'No disponible' }}</strong>
+        </article>
+      </div>
+
+      <h3>Stack trace</h3>
+      <pre>{{ item.stackTrace || 'Sin stack trace' }}</pre>
+
+      <h3>Datos adicionales</h3>
+      <pre>{{ item.additionalData || 'Sin datos' }}</pre>
+    </section>
+  </div>
+}

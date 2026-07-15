@@ -1,192 +1,91 @@
-<section class="customers-page">
+<section class="management-page">
   <header class="page-heading">
     <div>
-      <span class="page-label">
-        Gestión comercial
-      </span>
-
+      <span class="page-label">Gestión comercial</span>
       <h1>Clientes</h1>
-
-      <p>
-        Administra las personas y organizaciones que
-        forman parte del ecosistema VOLTS.
-      </p>
+      <p>Administra clientes y su acceso al portal.</p>
     </div>
 
-    @if (canManage()) {
-      <button
-        type="button"
-        class="primary-button"
-        (click)="openCreateForm()"
-      >
-        <span>＋</span>
-        Nuevo cliente
-      </button>
-    }
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateForm()"
+    >
+      ＋ Nuevo cliente
+    </button>
   </header>
 
   @if (successMessage()) {
     <div class="message success-message">
-      <span>✓</span>
-      {{ successMessage() }}
+      ✓ {{ successMessage() }}
     </div>
   }
 
   @if (errorMessage()) {
     <div class="message error-message">
-      <span>⚠</span>
-      {{ errorMessage() }}
+      ⚠ {{ errorMessage() }}
     </div>
   }
 
   <div class="summary-grid">
     <article class="summary-card">
-      <span class="summary-icon">👥</span>
-
+      <span>👥</span>
       <div>
-        <small>Total de clientes</small>
+        <small>Total</small>
         <strong>{{ customers().length }}</strong>
       </div>
     </article>
 
-    <article class="summary-card active-card">
-      <span class="summary-icon">✅</span>
-
+    <article class="summary-card">
+      <span>✅</span>
       <div>
-        <small>Clientes activos</small>
+        <small>Activos</small>
         <strong>{{ activeCustomers() }}</strong>
       </div>
     </article>
 
-    <article class="summary-card inactive-card">
-      <span class="summary-icon">⏸️</span>
-
+    <article class="summary-card">
+      <span>⏸️</span>
       <div>
-        <small>Clientes inactivos</small>
+        <small>Inactivos</small>
         <strong>{{ inactiveCustomers() }}</strong>
-      </div>
-    </article>
-
-    <article class="summary-card individual-card">
-      <span class="summary-icon">👤</span>
-
-      <div>
-        <small>Individuales</small>
-        <strong>
-          {{ individualCustomers() }}
-        </strong>
-      </div>
-    </article>
-
-    <article class="summary-card institutional-card">
-      <span class="summary-icon">🏫</span>
-
-      <div>
-        <small>Institucionales</small>
-        <strong>
-          {{ institutionalCustomers() }}
-        </strong>
       </div>
     </article>
   </div>
 
-  <section class="customers-panel">
-    <div class="panel-toolbar">
-      <div class="search-control">
+  <section class="panel">
+    <div class="toolbar">
+      <label class="search-control">
         <span>🔎</span>
-
         <input
           type="search"
-          placeholder="Buscar por nombre, correo, teléfono o institución..."
+          placeholder="Buscar cliente..."
           [value]="searchTerm()"
           (input)="updateSearch($event)"
         />
-      </div>
+      </label>
 
-      <div class="filters-container">
-        <div class="filter-control">
-          <label for="customerType">
-            Tipo
-          </label>
-
-          <select
-            id="customerType"
-            [value]="typeFilter()"
-            (change)="updateTypeFilter($event)"
-          >
-            <option value="all">
-              Todos
-            </option>
-
-            <option value="Individual">
-              Individuales
-            </option>
-
-            <option value="Institutional">
-              Institucionales
-            </option>
-          </select>
-        </div>
-
-        <div class="filter-control">
-          <label for="customerStatus">
-            Estado
-          </label>
-
-          <select
-            id="customerStatus"
-            [value]="statusFilter()"
-            (change)="updateStatusFilter($event)"
-          >
-            <option value="all">
-              Todos
-            </option>
-
-            <option value="active">
-              Activos
-            </option>
-
-            <option value="inactive">
-              Inactivos
-            </option>
-          </select>
-        </div>
-      </div>
+      <select
+        [value]="statusFilter()"
+        (change)="updateStatusFilter($event)"
+      >
+        <option value="all">Todos</option>
+        <option value="active">Activos</option>
+        <option value="inactive">Inactivos</option>
+      </select>
     </div>
 
     @if (loading()) {
-      <div class="loading-state">
-        <span class="loader"></span>
-        <p>Cargando clientes...</p>
-      </div>
-    } @else if (
-      filteredCustomers().length === 0
-    ) {
-      <div class="empty-state">
-        <span>👥</span>
-
-        <strong>
-          No se encontraron clientes
-        </strong>
-
-        <p>
-          Ajusta los filtros o registra un cliente
-          nuevo.
-        </p>
-      </div>
+      <div class="state">Cargando clientes...</div>
     } @else {
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>Cliente</th>
-              <th>Tipo</th>
               <th>Contacto</th>
               <th>Estado</th>
-              <th>Registro</th>
-              <th class="actions-column">
-                Acciones
-              </th>
+              <th>Acciones</th>
             </tr>
           </thead>
 
@@ -196,159 +95,48 @@
               track customer.id
             ) {
               <tr>
-                <td data-label="Cliente">
-                  <div class="customer-name">
-                    <span class="customer-avatar">
-                      {{
-                        customer.customerType ===
-                        'Institutional'
-                          ? '🏫'
-                          : '👤'
-                      }}
-                    </span>
-
-                    <div>
-                      <strong>
-                        {{ customer.fullName }}
-                      </strong>
-
-                      @if (
-                        customer.institutionName
-                      ) {
-                        <small>
-                          {{
-                            customer.institutionName
-                          }}
-                        </small>
-                      }
-                    </div>
-                  </div>
+                <td>
+                  <strong>{{ customer.fullName }}</strong>
+                  <small>{{ addressText(customer) }}</small>
                 </td>
-
-                <td data-label="Tipo">
+                <td>
+                  <strong>{{ customer.email }}</strong>
+                  <small>{{ customer.phone || 'Sin teléfono' }}</small>
+                </td>
+                <td>
                   <span
-                    class="type-badge"
-                    [class.institutional-type]="
-                      customer.customerType ===
-                      'Institutional'
-                    "
+                    class="badge"
+                    [class.inactive]="!customer.isActive"
                   >
-                    {{
-                      customer.customerType ===
-                      'Institutional'
-                        ? 'Institucional'
-                        : 'Individual'
-                    }}
+                    {{ customer.isActive ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
-
-                <td data-label="Contacto">
-                  <div class="contact-information">
-                    <strong>
-                      {{ customer.email }}
-                    </strong>
-
-                    <small>
-                      {{
-                        customer.phone ||
-                        'Sin teléfono'
-                      }}
-                    </small>
-                  </div>
-                </td>
-
-                <td data-label="Estado">
-                  <span
-                    class="status-badge"
-                    [class.inactive-status]="
-                      !customer.isActive
-                    "
-                  >
-                    {{
-                      customer.isActive
-                        ? 'Activo'
-                        : 'Inactivo'
-                    }}
-                  </span>
-                </td>
-
-                <td data-label="Registro">
-                  {{
-                    customer.createdAt
-                      | date:'dd/MM/yyyy'
-                  }}
-                </td>
-
-                <td
-                  data-label="Acciones"
-                  class="actions-cell"
-                >
+                <td class="actions">
                   <button
                     type="button"
-                    class="action-button view-button"
-                    title="Ver información"
-                    aria-label="Ver información"
                     (click)="openDetail(customer)"
                   >
                     👁️
                   </button>
-
-                  @if (canManage()) {
-                    <button
-                      type="button"
-                      class="action-button edit-button"
-                      title="Editar cliente"
-                      aria-label="Editar cliente"
-                      (click)="openEditForm(customer)"
-                    >
-                      ✏️
-                    </button>
-
-                    <button
-                      type="button"
-                      class="action-button status-button"
-                      [disabled]="
-                        changingStatusId() ===
-                        customer.id
-                      "
-                      [title]="
-                        customer.isActive
-                          ? 'Desactivar cliente'
-                          : 'Activar cliente'
-                      "
-                      [attr.aria-label]="
-                        customer.isActive
-                          ? 'Desactivar cliente'
-                          : 'Activar cliente'
-                      "
-                      (click)="toggleStatus(customer)"
-                    >
-                      @if (
-                        changingStatusId() ===
-                        customer.id
-                      ) {
-                        <span
-                          class="small-loader"
-                        ></span>
-                      } @else {
-                        {{
-                          customer.isActive
-                            ? '⏸️'
-                            : '▶️'
-                        }}
-                      }
-                    </button>
-
-                    <button
-                      type="button"
-                      class="action-button delete-button"
-                      title="Eliminar cliente"
-                      aria-label="Eliminar cliente"
-                      (click)="requestDelete(customer)"
-                    >
-                      🗑️
-                    </button>
-                  }
+                  <button
+                    type="button"
+                    (click)="openEditForm(customer)"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    type="button"
+                    (click)="toggleStatus(customer)"
+                  >
+                    {{ customer.isActive ? '⏸️' : '▶️' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="danger"
+                    (click)="requestDelete(customer)"
+                  >
+                    🗑️
+                  </button>
                 </td>
               </tr>
             }
@@ -360,272 +148,134 @@
 </section>
 
 @if (formOpen()) {
-  <div
-    class="modal-backdrop"
-    (click)="closeForm()"
-  >
+  <div class="modal-backdrop" (click)="closeForm()">
     <section
       class="modal-card"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="customerFormTitle"
       (click)="$event.stopPropagation()"
     >
       <header class="modal-header">
-        <div>
-          <span class="modal-label">
-            {{
-              editingCustomer()
-                ? 'Editar registro'
-                : 'Nuevo registro'
-            }}
-          </span>
-
-          <h2 id="customerFormTitle">
-            {{
-              editingCustomer()
-                ? 'Editar cliente'
-                : 'Crear cliente'
-            }}
-          </h2>
-        </div>
-
-        <button
-          type="button"
-          class="close-button"
-          aria-label="Cerrar formulario"
-          (click)="closeForm()"
-        >
-          ✕
-        </button>
+        <h2>
+          {{ editingCustomer() ? 'Editar cliente' : 'Crear cliente' }}
+        </h2>
+        <button type="button" (click)="closeForm()">✕</button>
       </header>
 
-      <form
-        class="customer-form"
-        [formGroup]="form"
-        (ngSubmit)="submit()"
-      >
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="customerFormType">
-              Tipo de cliente
-              <span>*</span>
-            </label>
-
-            <select
-              id="customerFormType"
-              formControlName="customerType"
-              (change)="onCustomerTypeChange()"
-            >
-              <option value="Individual">
-                Individual
-              </option>
-
-              <option value="Institutional">
-                Institucional
-              </option>
-            </select>
-          </div>
-
-          <div class="form-field">
-            <label for="customerName">
-              Nombre completo
-              <span>*</span>
-            </label>
-
-            <input
-              id="customerName"
-              type="text"
-              maxlength="120"
-              formControlName="fullName"
-              placeholder="Ej. Juan Pérez"
-            />
-
-            <div class="field-information">
-              @if (
-                form.controls.fullName.touched &&
-                form.controls.fullName.hasError(
-                  'required'
-                )
-              ) {
-                <small class="field-error">
-                  El nombre es obligatorio.
-                </small>
-              } @else if (
-                form.controls.fullName.touched &&
-                form.controls.fullName.hasError(
-                  'minlength'
-                )
-              ) {
-                <small class="field-error">
-                  Escribe al menos 3 caracteres.
-                </small>
-              } @else {
-                <small>
-                  {{
-                    form.controls
-                      .fullName
-                      .value
-                      .length
-                  }}/120
-                </small>
-              }
-            </div>
-          </div>
-        </div>
-
-        @if (isInstitutionalType()) {
-          <div class="form-field">
-            <label for="institutionName">
-              Nombre de la institución
-              <span>*</span>
-            </label>
-
-            <input
-              id="institutionName"
-              type="text"
-              maxlength="150"
-              formControlName="institutionName"
-              placeholder="Ej. Colegio Axolotl"
-            />
-
-            <div class="field-information">
-              @if (
-                form.controls
-                  .institutionName
-                  .touched &&
-                form.controls
-                  .institutionName
-                  .hasError('required')
-              ) {
-                <small class="field-error">
-                  El nombre de la institución es
-                  obligatorio.
-                </small>
-              } @else {
-                <small>
-                  {{
-                    form.controls
-                      .institutionName
-                      .value
-                      .length
-                  }}/150
-                </small>
-              }
-            </div>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        @if (formErrorMessage()) {
+          <div class="message error-message">
+            ⚠ {{ formErrorMessage() }}
           </div>
         }
 
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="customerEmail">
-              Correo electrónico
-              <span>*</span>
-            </label>
+        <h3>Datos personales</h3>
 
-            <input
-              id="customerEmail"
-              type="email"
-              maxlength="150"
-              formControlName="email"
-              placeholder="cliente@correo.com"
-            />
-
-            <div class="field-information">
-              @if (
-                form.controls.email.touched &&
-                form.controls.email.hasError(
-                  'required'
-                )
-              ) {
-                <small class="field-error">
-                  El correo es obligatorio.
-                </small>
-              } @else if (
-                form.controls.email.touched &&
-                form.controls.email.hasError(
-                  'email'
-                )
-              ) {
-                <small class="field-error">
-                  Escribe un correo válido.
-                </small>
-              }
-            </div>
-          </div>
-
-          <div class="form-field">
-            <label for="customerPhone">
-              Teléfono
-            </label>
-
-            <input
-              id="customerPhone"
-              type="tel"
-              maxlength="25"
-              formControlName="phone"
-              placeholder="477 123 4567"
-            />
-
-            <div class="field-information">
-              @if (
-                form.controls.phone.touched &&
-                form.controls.phone.hasError(
-                  'pattern'
-                )
-              ) {
-                <small class="field-error">
-                  El teléfono contiene caracteres no
-                  permitidos.
-                </small>
-              }
-            </div>
-          </div>
+        <div class="form-grid three">
+          <label>
+            Nombres *
+            <input formControlName="firstNames" />
+          </label>
+          <label>
+            Apellido paterno *
+            <input formControlName="paternalLastName" />
+          </label>
+          <label>
+            Apellido materno
+            <input formControlName="maternalLastName" />
+          </label>
         </div>
 
-        <div class="form-field">
-          <label for="customerAddress">
-            Dirección
+        <div class="form-grid">
+          <label>
+            Correo *
+            <input
+              type="email"
+              formControlName="email"
+            />
+          </label>
+          <label>
+            Teléfono
+            <input
+              type="tel"
+              maxlength="10"
+              formControlName="phone"
+            />
+          </label>
+        </div>
+
+        @if (!editingCustomer()) {
+          <h3>Acceso al portal</h3>
+
+          <label class="checkbox">
+            <input
+              type="checkbox"
+              formControlName="createPortalAccount"
+            />
+            Crear cuenta de acceso al portal
           </label>
 
-          <textarea
-            id="customerAddress"
-            rows="4"
-            maxlength="300"
-            formControlName="address"
-            placeholder="Dirección del cliente..."
-          ></textarea>
+          @if (form.controls.createPortalAccount.value) {
+            <div class="portal-access-box">
+              <p>
+                La cuenta usará el mismo correo del cliente.
+              </p>
 
-          <div class="field-information">
-            <small>
-              {{
-                form.controls
-                  .address
-                  .value
-                  .length
-              }}/300
-            </small>
+              <label class="checkbox">
+                <input
+                  type="checkbox"
+                  formControlName="autoGeneratePassword"
+                />
+                Generar contraseña temporal automáticamente
+              </label>
+
+              @if (!form.controls.autoGeneratePassword.value) {
+                <label>
+                  Contraseña temporal *
+                  <input
+                    type="text"
+                    minlength="8"
+                    formControlName="temporaryPassword"
+                  />
+                </label>
+              }
+            </div>
+          }
+        }
+
+        <label class="checkbox">
+          <input
+            type="checkbox"
+            formControlName="hasAddress"
+          />
+          Capturar dirección
+        </label>
+
+        @if (form.controls.hasAddress.value) {
+          <h3>Dirección</h3>
+
+          <div class="form-grid three">
+            <label>Calle *<input formControlName="street" /></label>
+            <label>Número exterior *<input formControlName="exteriorNumber" /></label>
+            <label>Número interior<input formControlName="interiorNumber" /></label>
+            <label>Colonia *<input formControlName="neighborhood" /></label>
+            <label>Código postal *<input maxlength="5" formControlName="postalCode" /></label>
+            <label>Ciudad *<input formControlName="city" /></label>
+            <label>Estado *<input formControlName="state" /></label>
+            <label>País<input formControlName="country" /></label>
           </div>
-        </div>
+
+          <label>
+            Referencias
+            <textarea rows="3" formControlName="references"></textarea>
+          </label>
+        }
 
         @if (editingCustomer()) {
-          <label class="status-checkbox">
+          <label class="checkbox">
             <input
               type="checkbox"
               formControlName="isActive"
             />
-
-            <span class="checkbox-control"></span>
-
-            <span>
-              <strong>Cliente activo</strong>
-
-              <small>
-                Un cliente inactivo permanece en el
-                historial, pero no debe utilizarse en
-                nuevas operaciones.
-              </small>
-            </span>
+            Cliente activo
           </label>
         }
 
@@ -633,27 +283,16 @@
           <button
             type="button"
             class="secondary-button"
-            [disabled]="saving()"
             (click)="closeForm()"
           >
             Cancelar
           </button>
-
           <button
             type="submit"
             class="primary-button"
             [disabled]="saving()"
           >
-            @if (saving()) {
-              <span class="button-loader"></span>
-              Guardando...
-            } @else {
-              {{
-                editingCustomer()
-                  ? 'Guardar cambios'
-                  : 'Crear cliente'
-              }}
-            }
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
           </button>
         </footer>
       </form>
@@ -661,195 +300,73 @@
   </div>
 }
 
-@if (detailCustomer(); as customer) {
-  <div
-    class="modal-backdrop"
-    (click)="closeDetail()"
-  >
-    <section
-      class="modal-card detail-card"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="customerDetailTitle"
-      (click)="$event.stopPropagation()"
-    >
-      <header class="modal-header">
-        <div>
-          <span class="modal-label">
-            Información comercial
-          </span>
+@if (portalCredentials(); as credentials) {
+  <div class="modal-backdrop">
+    <section class="confirmation-card credentials-card">
+      <span class="credentials-icon">🔑</span>
+      <h2>Cuenta creada correctamente</h2>
+      <p>
+        Esta contraseña temporal se mostrará una sola vez.
+      </p>
 
-          <h2 id="customerDetailTitle">
-            Detalle del cliente
-          </h2>
-        </div>
+      <div class="credential-row">
+        <small>Correo</small>
+        <strong>{{ credentials.email }}</strong>
+      </div>
 
+      <div class="credential-row">
+        <small>Contraseña temporal</small>
+        <strong>{{ credentials.temporaryPassword }}</strong>
+      </div>
+
+      <p class="credential-warning">
+        El usuario deberá cambiarla desde su cuenta.
+      </p>
+
+      <div class="form-actions">
         <button
           type="button"
-          class="close-button"
-          aria-label="Cerrar detalle"
-          (click)="closeDetail()"
+          class="secondary-button"
+          (click)="copyCredentials()"
         >
-          ✕
+          📋 Copiar
         </button>
+        <button
+          type="button"
+          class="primary-button"
+          (click)="closeCredentials()"
+        >
+          Aceptar
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (detailCustomer(); as customer) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <section class="modal-card detail" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>Detalle del cliente</h2>
+        <button type="button" (click)="closeDetail()">✕</button>
       </header>
-
-      <div class="detail-content">
-        <div class="detail-identity">
-          <span>
-            {{
-              customer.customerType ===
-              'Institutional'
-                ? '🏫'
-                : '👤'
-            }}
-          </span>
-
-          <div>
-            <h3>{{ customer.fullName }}</h3>
-
-            <p>
-              {{
-                customer.institutionName ||
-                (
-                  customer.customerType ===
-                  'Institutional'
-                    ? 'Institución sin nombre'
-                    : 'Cliente individual'
-                )
-              }}
-            </p>
-          </div>
-        </div>
-
-        <div class="detail-grid">
-          <article>
-            <small>Tipo de cliente</small>
-            <strong>
-              {{
-                customer.customerType ===
-                'Institutional'
-                  ? 'Institucional'
-                  : 'Individual'
-              }}
-            </strong>
-          </article>
-
-          <article>
-            <small>Estado</small>
-            <strong>
-              {{
-                customer.isActive
-                  ? 'Activo'
-                  : 'Inactivo'
-              }}
-            </strong>
-          </article>
-
-          <article>
-            <small>Correo electrónico</small>
-            <strong>{{ customer.email }}</strong>
-          </article>
-
-          <article>
-            <small>Teléfono</small>
-            <strong>
-              {{
-                customer.phone ||
-                'No registrado'
-              }}
-            </strong>
-          </article>
-
-          <article class="detail-wide">
-            <small>Dirección</small>
-            <strong>
-              {{
-                customer.address ||
-                'No registrada'
-              }}
-            </strong>
-          </article>
-
-          <article>
-            <small>Fecha de registro</small>
-            <strong>
-              {{
-                customer.createdAt
-                  | date:'dd/MM/yyyy HH:mm'
-              }}
-            </strong>
-          </article>
-
-          <article>
-            <small>Última actualización</small>
-            <strong>
-              {{
-                customer.updatedAt
-                  ? (
-                      customer.updatedAt
-                        | date:'dd/MM/yyyy HH:mm'
-                    )
-                  : 'Sin modificaciones'
-              }}
-            </strong>
-          </article>
-        </div>
+      <div class="detail-grid">
+        <article><small>Nombre</small><strong>{{ customer.fullName }}</strong></article>
+        <article><small>Correo</small><strong>{{ customer.email }}</strong></article>
+        <article class="wide"><small>Dirección</small><strong>{{ addressText(customer) }}</strong></article>
       </div>
     </section>
   </div>
 }
 
 @if (deleteCandidate(); as customer) {
-  <div
-    class="modal-backdrop confirmation-backdrop"
-    (click)="cancelDelete()"
-  >
-    <section
-      class="confirmation-card"
-      role="alertdialog"
-      aria-modal="true"
-      (click)="$event.stopPropagation()"
-    >
-      <div class="confirmation-icon">
-        🗑️
-      </div>
-
+  <div class="modal-backdrop" (click)="cancelDelete()">
+    <section class="confirmation-card" (click)="$event.stopPropagation()">
       <h2>Eliminar cliente</h2>
-
-      <p>
-        ¿Seguro que deseas eliminar a
-        <strong>{{ customer.fullName }}</strong>?
-      </p>
-
-      <small>
-        La eliminación será lógica. El cliente dejará de
-        aparecer en el sistema, pero se conservará en la
-        base de datos.
-      </small>
-
-      <div class="confirmation-actions">
-        <button
-          type="button"
-          class="secondary-button"
-          [disabled]="deleting()"
-          (click)="cancelDelete()"
-        >
-          Cancelar
-        </button>
-
-        <button
-          type="button"
-          class="danger-button"
-          [disabled]="deleting()"
-          (click)="confirmDelete()"
-        >
-          {{
-            deleting()
-              ? 'Eliminando...'
-              : 'Sí, eliminar'
-          }}
-        </button>
+      <p>¿Eliminar a <strong>{{ customer.fullName }}</strong>?</p>
+      <div class="form-actions">
+        <button type="button" class="secondary-button" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="danger-button" (click)="confirmDelete()">Eliminar</button>
       </div>
     </section>
   </div>

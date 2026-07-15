@@ -1,0 +1,144 @@
+<section class="plans-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">Gestión comercial</span>
+      <h1>Planes y paquetes</h1>
+      <p>Configura beneficios comerciales y ofertas vendibles asociadas a productos VOLTS.</p>
+    </div>
+
+    @if (isAdmin()) {
+      <button type="button" class="primary-button" (click)="activeTab() === 'plans' ? openCreatePlan() : openCreatePackage()">
+        ＋ {{ activeTab() === 'plans' ? 'Nuevo plan' : 'Nuevo paquete' }}
+      </button>
+    }
+  </header>
+
+  @if (successMessage()) { <div class="message success-message">✓ {{ successMessage() }}</div> }
+  @if (errorMessage()) { <div class="message error-message">⚠ {{ errorMessage() }}</div> }
+
+  <div class="tabs">
+    <button type="button" [class.active]="activeTab() === 'plans'" (click)="setTab('plans')">📋 Planes ({{ plans().length }})</button>
+    <button type="button" [class.active]="activeTab() === 'packages'" (click)="setTab('packages')">🎁 Paquetes ({{ packages().length }})</button>
+  </div>
+
+  @if (loading()) {
+    <div class="state"><span class="loader"></span><p>Cargando información comercial...</p></div>
+  } @else if (activeTab() === 'plans') {
+    <div class="cards-grid">
+      @for (plan of plans(); track plan.id) {
+        <article class="commercial-card" [class.inactive-card]="!plan.isActive">
+          <div class="card-heading">
+            <div><small>{{ plan.code }}</small><h2>{{ plan.name }}</h2></div>
+            <span class="status-badge">{{ plan.isActive ? 'Activo' : 'Inactivo' }}</span>
+          </div>
+          <p>{{ plan.description }}</p>
+          <div class="data-grid">
+            <div><small>Público</small><strong>{{ plan.audience }}</strong></div>
+            <div><small>Garantía</small><strong>{{ plan.warrantyMonths }} meses</strong></div>
+            <div><small>Soporte</small><strong>{{ plan.supportLevel }}</strong></div>
+            <div><small>Orden</small><strong>{{ plan.displayOrder }}</strong></div>
+          </div>
+          <div class="benefits">
+            <span>{{ plan.includesTraining ? '✓' : '—' }} Capacitación</span>
+            <span>{{ plan.includesDocumentation ? '✓' : '—' }} Documentación</span>
+            <span>{{ plan.includesUpdates ? '✓' : '—' }} Actualizaciones</span>
+          </div>
+          @if (isAdmin()) {
+            <footer class="card-actions">
+              <button type="button" (click)="openEditPlan(plan)">✏️ Editar</button>
+              <button type="button" (click)="togglePlan(plan)">{{ plan.isActive ? '⏸️ Desactivar' : '▶️ Activar' }}</button>
+              <button type="button" class="danger-link" (click)="deletePlan(plan)">🗑️</button>
+            </footer>
+          }
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="cards-grid">
+      @for (item of packages(); track item.id) {
+        <article class="commercial-card" [class.inactive-card]="!item.isActive">
+          <div class="card-heading">
+            <div><small>{{ item.commercialPlanName }} · {{ item.code }}</small><h2>{{ item.name }}</h2></div>
+            <span class="status-badge">{{ item.isActive ? 'Activo' : 'Inactivo' }}</span>
+          </div>
+          <p>{{ item.description }}</p>
+          <div class="price-row">
+            <strong>{{ item.price | currency:'MXN' }}</strong>
+            <small>Referencia: {{ item.referencePrice | currency:'MXN' }}</small>
+            @if (item.savings > 0) { <b>Ahorro: {{ item.savings | currency:'MXN' }}</b> }
+          </div>
+          <div class="package-items">
+            @for (detail of item.items; track detail.productId) {
+              <span>{{ detail.quantity }} × {{ detail.productName }}</span>
+            }
+          </div>
+          @if (isAdmin()) {
+            <footer class="card-actions">
+              <button type="button" (click)="openEditPackage(item)">✏️ Editar</button>
+              <button type="button" (click)="togglePackage(item)">{{ item.isActive ? '⏸️ Desactivar' : '▶️ Activar' }}</button>
+              <button type="button" class="danger-link" (click)="deletePackage(item)">🗑️</button>
+            </footer>
+          }
+        </article>
+      }
+    </div>
+  }
+</section>
+
+@if (planFormOpen()) {
+  <div class="modal-backdrop" (click)="closePlanForm()">
+    <section class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header"><div><span class="page-label">Plan comercial</span><h2>{{ editingPlan() ? 'Editar plan' : 'Nuevo plan' }}</h2></div><button type="button" (click)="closePlanForm()">✕</button></header>
+      <form [formGroup]="planForm" (ngSubmit)="submitPlan()">
+        @if (formErrorMessage()) { <div class="message error-message">⚠ {{ formErrorMessage() }}</div> }
+        <div class="form-grid">
+          <label>Nombre *<input type="text" formControlName="name"></label>
+          <label>Código *<input type="text" formControlName="code"></label>
+          <label class="wide">Descripción *<textarea rows="4" formControlName="description"></textarea></label>
+          <label class="wide">Público objetivo *<input type="text" formControlName="audience"></label>
+          <label>Garantía en meses *<input type="number" min="0" max="120" formControlName="warrantyMonths"></label>
+          <label>Nivel de soporte *<select formControlName="supportLevel"><option value="Basic">Básico</option><option value="Standard">Estándar</option><option value="Priority">Prioritario</option><option value="Premium">Premium</option></select></label>
+          <label>Orden<input type="number" min="0" formControlName="displayOrder"></label>
+        </div>
+        <div class="switches">
+          <label><input type="checkbox" formControlName="includesTraining"> Incluye capacitación</label>
+          <label><input type="checkbox" formControlName="includesDocumentation"> Incluye documentación</label>
+          <label><input type="checkbox" formControlName="includesUpdates"> Incluye actualizaciones</label>
+          @if (editingPlan()) { <label><input type="checkbox" formControlName="isActive"> Plan activo</label> }
+        </div>
+        <footer class="form-actions"><button type="button" class="secondary-button" (click)="closePlanForm()">Cancelar</button><button type="submit" class="primary-button" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar plan' }}</button></footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (packageFormOpen()) {
+  <div class="modal-backdrop" (click)="closePackageForm()">
+    <section class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header"><div><span class="page-label">Paquete comercial</span><h2>{{ editingPackage() ? 'Editar paquete' : 'Nuevo paquete' }}</h2></div><button type="button" (click)="closePackageForm()">✕</button></header>
+      <form [formGroup]="packageForm" (ngSubmit)="submitPackage()">
+        @if (formErrorMessage()) { <div class="message error-message">⚠ {{ formErrorMessage() }}</div> }
+        <div class="form-grid">
+          <label>Plan *<select formControlName="commercialPlanId"><option value="">Selecciona un plan</option>@for (plan of plans(); track plan.id) {<option [value]="plan.id">{{ plan.name }}</option>}</select></label>
+          <label>Nombre *<input type="text" formControlName="name"></label>
+          <label>Código *<input type="text" formControlName="code"></label>
+          <label>Precio comercial *<input type="number" min="0" step="0.01" formControlName="price"></label>
+          <label>Orden<input type="number" min="0" formControlName="displayOrder"></label>
+          <label class="wide">Descripción *<textarea rows="4" formControlName="description"></textarea></label>
+        </div>
+        <section class="items-section" formArrayName="items">
+          <div class="items-heading"><h3>Productos incluidos</h3><button type="button" (click)="addPackageItem()">＋ Agregar producto</button></div>
+          @for (group of packageItems.controls; track $index; let index = $index) {
+            <div class="item-row" [formGroupName]="index">
+              <select formControlName="productId"><option value="">Selecciona producto</option>@for (product of purchasableProducts(); track product.id) {<option [value]="product.id">{{ product.name }} — {{ product.price | currency:'MXN' }}</option>}</select>
+              <input type="number" min="1" step="1" formControlName="quantity">
+              <button type="button" (click)="removePackageItem(index)">🗑️</button>
+            </div>
+          }
+        </section>
+        @if (editingPackage()) { <label class="single-switch"><input type="checkbox" formControlName="isActive"> Paquete activo</label> }
+        <footer class="form-actions"><button type="button" class="secondary-button" (click)="closePackageForm()">Cancelar</button><button type="submit" class="primary-button" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar paquete' }}</button></footer>
+      </form>
+    </section>
+  </div>
+}

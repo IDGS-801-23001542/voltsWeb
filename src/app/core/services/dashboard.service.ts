@@ -1,21 +1,40 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {
+  HttpClient
+} from '@angular/common/http';
 
-import { environment } from '../../../environments/environment';
-import { ApiResponse } from '../models/api-response.model';
-import { DashboardSummary } from '../models/dashboard.model';
+import {
+  Injectable,
+  inject
+} from '@angular/core';
+
+import {
+  Observable
+} from 'rxjs';
+
+import {
+  environment
+} from '../../../environments/environment';
+
+import {
+  ApiResponse
+} from '../models/api-response.model';
+
+import {
+  DashboardSummary
+} from '../models/dashboard.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DashboardService {
-  constructor(
-    private readonly http: HttpClient
-  ) {}
+  private readonly http =
+    inject(HttpClient);
 
-  getSummary(): Observable<ApiResponse<DashboardSummary>> {
-    return this.http.get<ApiResponse<DashboardSummary>>(
+  getSummary():
+    Observable<ApiResponse<DashboardSummary>> {
+    return this.http.get<
+      ApiResponse<DashboardSummary>
+    >(
       `${environment.apiUrl}/Dashboard/summary`
     );
   }

@@ -20,21 +20,27 @@ import {
 } from '../models/api-response.model';
 
 import {
+  EntityStatusUpdateRequest
+} from '../models/common.model';
+
+import {
+  EntityWithPortalAccount
+} from '../models/customer.model';
+
+import {
   Institution,
   InstitutionCreateRequest,
   InstitutionUpdateRequest
 } from '../models/institution.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class InstitutionService {
   private readonly http = inject(HttpClient);
-
   private readonly apiUrl =
     `${environment.apiUrl}/Institutions`;
 
-  getAll(): Observable<ApiResponse<Institution[]>> {
+  getAll():
+    Observable<ApiResponse<Institution[]>> {
     return this.http.get<ApiResponse<Institution[]>>(
       this.apiUrl
     );
@@ -50,8 +56,12 @@ export class InstitutionService {
 
   create(
     request: InstitutionCreateRequest
-  ): Observable<ApiResponse<Institution>> {
-    return this.http.post<ApiResponse<Institution>>(
+  ): Observable<
+    ApiResponse<EntityWithPortalAccount<Institution>>
+  > {
+    return this.http.post<
+      ApiResponse<EntityWithPortalAccount<Institution>>
+    >(
       this.apiUrl,
       request
     );
@@ -68,22 +78,16 @@ export class InstitutionService {
   }
 
   updateStatus(
-    institution: Institution,
+    id: string,
     isActive: boolean
   ): Observable<ApiResponse<Institution>> {
-    const request: InstitutionUpdateRequest = {
-      name: institution.name,
-      contactName: institution.contactName,
-      email: institution.email,
-      phone: institution.phone ?? null,
-      address: institution.address ?? null,
-      institutionType:
-        institution.institutionType,
-      isActive
-    };
+    const request:
+      EntityStatusUpdateRequest = {
+        isActive
+      };
 
-    return this.update(
-      institution.id,
+    return this.http.patch<ApiResponse<Institution>>(
+      `${this.apiUrl}/${id}/status`,
       request
     );
   }

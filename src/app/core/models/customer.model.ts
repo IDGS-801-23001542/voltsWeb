@@ -1,59 +1,58 @@
-export type CustomerType =
-  | 'Individual'
-  | 'Institutional';
+import {
+  Address,
+  PersonName
+} from './common.model';
 
 export type CustomerStatusFilter =
   | 'all'
   | 'active'
   | 'inactive';
 
-export type CustomerTypeFilter =
-  | 'all'
-  | CustomerType;
+export interface PortalAccountRequest {
+  createPortalAccount: boolean;
+  autoGeneratePassword: boolean;
+  temporaryPassword?: string | null;
+}
+
+export interface PortalAccountCredentials {
+  created: boolean;
+  email: string;
+  temporaryPassword: string;
+  mustChangePassword: boolean;
+}
+
+export interface EntityWithPortalAccount<T> {
+  entity: T;
+  portalAccount?: PortalAccountCredentials | null;
+}
 
 export interface Customer {
   id: string;
-
-  customerType: CustomerType;
-
+  name: PersonName;
   fullName: string;
-
-  institutionName?: string | null;
-
   email: string;
-
   phone?: string | null;
-
-  address?: string | null;
-
+  address?: Address | null;
   isActive: boolean;
-
   isDeleted: boolean;
-
   createdAt: string;
-
   updatedAt?: string | null;
-
   createdBy?: string | null;
-
   updatedBy?: string | null;
 }
 
-export interface CustomerCreateRequest {
-  customerType: CustomerType;
-
-  fullName: string;
-
-  institutionName?: string | null;
-
+export interface CustomerCreateRequest
+  extends PortalAccountRequest {
+  name: PersonName;
   email: string;
-
   phone?: string | null;
-
-  address?: string | null;
+  address?: Address | null;
 }
 
-export interface CustomerUpdateRequest
-  extends CustomerCreateRequest {
+export interface CustomerUpdateRequest {
+  name: PersonName;
+  email: string;
+  phone?: string | null;
+  address?: Address | null;
   isActive: boolean;
 }

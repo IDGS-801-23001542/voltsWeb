@@ -1,0 +1,146 @@
+<section class="commercial-page">
+  <header class="page-heading">
+    <div>
+      <span>Gestión comercial</span>
+      <h1>Pedidos</h1>
+      <p>
+        Reserva producto terminado y genera producción
+        por las cantidades faltantes.
+      </p>
+    </div>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="state">
+      Cargando pedidos...
+    </div>
+  } @else if (orders().length === 0) {
+    <div class="state">
+      No hay pedidos. Convierte una cotización aprobada.
+    </div>
+  } @else {
+    <div class="cards">
+      @for (
+        order of orders();
+        track order.id
+      ) {
+        <article class="card">
+          <div class="card-heading">
+            <div>
+              <small>
+                {{ order.folio }}
+                · {{ order.quoteFolio }}
+              </small>
+
+              <h2>{{ order.recipientName }}</h2>
+
+              <p>
+                {{ order.commercialPackageName }}
+              </p>
+            </div>
+
+            <span class="badge">
+              {{ statusLabel(order.status) }}
+            </span>
+          </div>
+
+          <div class="details">
+            @for (
+              item of order.details;
+              track item.productId
+            ) {
+              <article>
+                <strong>{{ item.productName }}</strong>
+
+                <span>
+                  Solicitado:
+                  {{ item.requestedQuantity }}
+                </span>
+
+                <span>
+                  Reservado:
+                  {{ item.reservedQuantity }}
+                </span>
+
+                <span>
+                  Pendiente:
+                  {{ item.pendingQuantity }}
+                </span>
+              </article>
+            }
+          </div>
+
+          <div class="total">
+            <small>Total</small>
+            <strong>
+              {{ order.total | currency:'MXN' }}
+            </strong>
+          </div>
+
+          @if (order.productionOrderIds.length > 0) {
+            <small>
+              Producciones vinculadas:
+              {{ order.productionOrderIds.length }}
+            </small>
+          }
+
+          <div class="actions">
+            @if (
+              order.status ===
+              'PendingConfirmation'
+            ) {
+              <button
+                type="button"
+                class="primary-button"
+                [disabled]="actionId() === order.id"
+                (click)="confirm(order)"
+              >
+                ✅ Confirmar y reservar
+              </button>
+            }
+
+            @if (
+              order.status ===
+              'AwaitingProduction'
+            ) {
+              <button
+                type="button"
+                class="primary-button"
+                [disabled]="actionId() === order.id"
+                (click)="synchronize(order)"
+              >
+                🔄 Sincronizar stock
+              </button>
+            }
+
+            @if (
+              order.status !== 'Sold' &&
+              order.status !== 'Cancelled'
+            ) {
+              <button
+                type="button"
+                class="danger-button"
+                [disabled]="actionId() === order.id"
+                (click)="cancel(order)"
+              >
+                Cancelar
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>
