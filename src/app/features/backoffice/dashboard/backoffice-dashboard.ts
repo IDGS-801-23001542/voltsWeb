@@ -1,15 +1,15 @@
 import {
+  CurrencyPipe,
+  DatePipe
+} from '@angular/common';
+
+import {
   Component,
   OnInit,
   computed,
   inject,
   signal
 } from '@angular/core';
-
-import {
-  CurrencyPipe,
-  DatePipe
-} from '@angular/common';
 
 import {
   DashboardSummary
@@ -38,7 +38,6 @@ export class BackofficeDashboard implements OnInit {
     inject(DashboardService);
 
   readonly auth = inject(AuthService);
-
   readonly loading = signal(true);
   readonly errorMessage = signal('');
   readonly summary =
@@ -46,40 +45,14 @@ export class BackofficeDashboard implements OnInit {
 
   readonly currentDate = new Date();
 
-  readonly commercialCards = computed(() => {
-    const data = this.summary();
-
-    if (!data) {
-      return [];
-    }
-
-    return [
-      {
-        label: 'Clientes',
-        value: data.totalCustomers,
-        icon: '👥',
-        description: 'Clientes registrados'
-      },
-      {
-        label: 'Instituciones',
-        value: data.totalInstitutions,
-        icon: '🏫',
-        description: 'Organizaciones registradas'
-      },
-      {
-        label: 'Cotizaciones',
-        value: data.totalQuotes,
-        icon: '🧾',
-        description: 'Solicitudes de cotización'
-      },
-      {
-        label: 'Pedidos',
-        value: data.totalOrders,
-        icon: '📦',
-        description: 'Pedidos registrados'
-      }
-    ];
-  });
+  readonly maxRevenue = computed(() =>
+    Math.max(
+      1,
+      ...(
+        this.summary()?.monthlyRevenue ?? []
+      ).map(item => item.value)
+    )
+  );
 
   ngOnInit(): void {
     this.loadSummary();
@@ -98,12 +71,18 @@ export class BackofficeDashboard implements OnInit {
         },
         error: error => {
           this.loading.set(false);
-
           this.errorMessage.set(
             error?.error?.message ??
             'No fue posible cargar el dashboard.'
           );
         }
       });
+  }
+
+  revenueHeight(value: number): number {
+    return Math.max(
+      5,
+      value * 100 / this.maxRevenue()
+    );
   }
 }

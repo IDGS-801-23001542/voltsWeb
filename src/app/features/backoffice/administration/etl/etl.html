@@ -1,0 +1,175 @@
+<section class="etl-page">
+  <header class="page-heading">
+    <div>
+      <span>Administración</span>
+      <h1>Procesos ETL</h1>
+      <p>
+        Selección, preprocesamiento, minería descriptiva,
+        interpretación y difusión de datos empresariales.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      [disabled]="running()"
+      (click)="run()"
+    >
+      {{ running() ? 'Ejecutando...' : '▶ Ejecutar snapshot' }}
+    </button>
+  </header>
+
+  @if (successMessage()) {
+    <div class="feedback success">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="feedback error">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  <section class="phase-grid">
+    <article>
+      <span>1</span>
+      <strong>Selección</strong>
+      <small>MongoDB empresarial</small>
+    </article>
+    <article>
+      <span>2</span>
+      <strong>Preprocesamiento</strong>
+      <small>Validación y normalización</small>
+    </article>
+    <article>
+      <span>3</span>
+      <strong>Minería</strong>
+      <small>Indicadores descriptivos</small>
+    </article>
+    <article>
+      <span>4</span>
+      <strong>Interpretación</strong>
+      <small>Hallazgos operativos</small>
+    </article>
+    <article>
+      <span>5</span>
+      <strong>Difusión</strong>
+      <small>Dashboard y analítica</small>
+    </article>
+  </section>
+
+  <section class="panel">
+    <header>
+      <strong>Historial de ejecuciones</strong>
+      <span>{{ logs().length }} procesos</span>
+    </header>
+
+    @if (loading()) {
+      <div class="state">Cargando historial...</div>
+    } @else if (logs().length === 0) {
+      <div class="state">
+        Ejecuta el primer snapshot empresarial.
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Inicio</th>
+              <th>Proceso</th>
+              <th>Estado</th>
+              <th>Leídos</th>
+              <th>Procesados</th>
+              <th>Rechazados</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (log of logs(); track log.id) {
+              <tr>
+                <td>
+                  {{
+                    log.startedAt
+                      | date:'dd/MM/yyyy HH:mm:ss'
+                  }}
+                </td>
+                <td>
+                  <strong>{{ log.processName }}</strong>
+                  <small>
+                    {{ log.source }} → {{ log.destination }}
+                  </small>
+                </td>
+                <td>
+                  <span
+                    class="status"
+                    [class.warning]="
+                      log.status ===
+                      'CompletedWithWarnings'
+                    "
+                    [class.failed]="
+                      log.status === 'Failed'
+                    "
+                  >
+                    {{ log.status }}
+                  </span>
+                </td>
+                <td>{{ log.recordsRead }}</td>
+                <td>{{ log.recordsProcessed }}</td>
+                <td>{{ log.recordsRejected }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="detail-button"
+                    (click)="open(log)"
+                  >
+                    Ver
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>
+
+@if (selected(); as log) {
+  <div class="backdrop" (click)="close()">
+    <section
+      class="modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header>
+        <div>
+          <small>{{ log.status }}</small>
+          <h2>{{ log.processName }}</h2>
+        </div>
+        <button type="button" (click)="close()">✕</button>
+      </header>
+
+      <h3>Fases ejecutadas</h3>
+      <ol>
+        @for (phase of log.phases; track phase) {
+          <li>{{ phase }}</li>
+        }
+      </ol>
+
+      <h3>Hallazgos</h3>
+      <ul>
+        @for (
+          finding of log.findings;
+          track finding
+        ) {
+          <li>{{ finding }}</li>
+        }
+      </ul>
+
+      @if (log.errorMessage) {
+        <div class="feedback error">
+          {{ log.errorMessage }}
+        </div>
+      }
+    </section>
+  </div>
+}

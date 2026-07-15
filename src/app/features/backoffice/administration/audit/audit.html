@@ -1,0 +1,197 @@
+<section class="admin-page">
+  <header class="page-heading">
+    <div>
+      <span>Administración</span>
+      <h1>Auditoría</h1>
+      <p>
+        Trazabilidad completa de accesos, cambios administrativos, operaciones comerciales, inventario, producción y atención.
+      </p>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="message error">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  <section class="panel filters">
+    <input
+      [(ngModel)]="search"
+      placeholder="Usuario, entidad, folio o descripción..."
+      (keyup.enter)="searchLogs()"
+    />
+
+    <select [(ngModel)]="module">
+      <option value="">Todos los módulos</option>
+      @for (item of modules(); track item) {
+        <option [value]="item">{{ item }}</option>
+      }
+    </select>
+
+    <select [(ngModel)]="action">
+      <option value="">Todas las acciones</option>
+      <option value="Crear">Crear</option>
+      <option value="Actualizar">Actualizar</option>
+      <option value="Eliminar">Eliminar</option>
+      <option value="Confirmar">Confirmar</option>
+      <option value="Cancelar">Cancelar</option>
+      <option value="Convertir">Convertir</option>
+      <option value="Asignar">Asignar</option>
+      <option value="Cambiar estado">Cambiar estado</option>
+    </select>
+
+    <input type="date" [(ngModel)]="from" />
+    <input type="date" [(ngModel)]="to" />
+
+    <button
+      type="button"
+      class="primary"
+      (click)="searchLogs()"
+    >
+      Buscar
+    </button>
+
+    <button
+      type="button"
+      (click)="clearFilters()"
+    >
+      Limpiar
+    </button>
+  </section>
+
+  <section class="panel">
+    <div class="result-heading">
+      <strong>{{ total() }} operaciones</strong>
+      <span>
+        Página {{ page() }} de {{ totalPages() || 1 }}
+      </span>
+    </div>
+
+    @if (loading()) {
+      <div class="state">Cargando auditoría...</div>
+    } @else if (items().length === 0) {
+      <div class="state">
+        No hay operaciones con estos filtros.
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Actor</th>
+              <th>Área / módulo</th>
+              <th>Acción</th>
+              <th>Entidad</th>
+              <th>Resultado</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (item of items(); track item.id) {
+              <tr>
+                <td>
+                  {{
+                    item.createdAt
+                      | date:'dd/MM/yyyy HH:mm:ss'
+                  }}
+                </td>
+                <td>
+                  <strong>{{ item.userName }}</strong>
+                  <small>{{ item.roleName }}</small>
+                </td>
+                <td><strong>{{ item.area }}</strong><small>{{ item.module }}</small></td>
+                <td>
+                  <span class="badge">
+                    {{ item.action }}
+                  </span>
+                </td>
+                <td>
+                  <strong>{{ item.entityType }}</strong>
+                  <small>
+                    {{
+                      item.entityFolio ||
+                      item.entityId ||
+                      'Sin identificador'
+                    }}
+                  </small>
+                </td>
+                <td><span class="result-badge" [class.failed-result]="item.result === 'Failed'">{{ item.result === 'Failed' ? 'Fallida' : 'Exitosa' }}</span><small>{{ item.statusCode }} · {{ item.durationMs }} ms</small></td>
+                <td>
+                  <button
+                    type="button"
+                    (click)="openDetail(item)"
+                  >
+                    Ver
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <footer class="pagination">
+      <button
+        type="button"
+        [disabled]="page() <= 1"
+        (click)="previous()"
+      >
+        Anterior
+      </button>
+
+      <button
+        type="button"
+        [disabled]="page() >= totalPages()"
+        (click)="next()"
+      >
+        Siguiente
+      </button>
+    </footer>
+  </section>
+</section>
+
+@if (selected(); as item) {
+  <div class="backdrop" (click)="closeDetail()">
+    <section
+      class="modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header>
+        <div>
+          <small>{{ item.correlationId }}</small>
+          <h2>{{ item.action }} · {{ item.entityType }}</h2>
+        </div>
+        <button type="button" (click)="closeDetail()">✕</button>
+      </header>
+
+      <div class="detail-grid">
+        <article><small>Actor</small><strong>{{ item.userName }}</strong><span>{{ item.actorType }} · {{ item.roleName }}</span></article>
+        <article><small>Área y módulo</small><strong>{{ item.area }}</strong><span>{{ item.module }}</span></article>
+        <article>
+          <small>Ruta</small>
+          <strong>{{ item.httpMethod }} {{ item.path }}</strong>
+        </article>
+        <article>
+          <small>IP</small>
+          <strong>{{ item.ipAddress || 'No disponible' }}</strong>
+        </article>
+        <article>
+          <small>Estado HTTP</small>
+          <strong>{{ item.statusCode }}</strong>
+        </article>
+      </div>
+
+            <h3>Descripción de la operación</h3><p class="audit-description">{{ item.description }}</p>
+
+      <h3>Datos enviados</h3>
+      <pre>{{ prettyJson(item.requestData) }}</pre>
+
+      <h3>Respuesta</h3>
+      <pre>{{ prettyJson(item.responseData) }}</pre>
+    </section>
+  </div>
+}

@@ -1,0 +1,111 @@
+<section class="page">
+  <header class="heading">
+    <div>
+      <span>Gestión comercial</span>
+      <h1>Licencias</h1>
+      <p>
+        Asigna derechos de uso, dispositivos y garantía.
+      </p>
+    </div>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="empty">Cargando licencias...</div>
+  } @else if (licenses().length === 0) {
+    <div class="empty">
+      No hay licencias. Primero confirma una venta.
+    </div>
+  } @else {
+    <div class="grid">
+      @for (
+        license of licenses();
+        track license.id
+      ) {
+        <article class="card">
+          <small>{{ license.licenseCode }}</small>
+          <h2>{{ license.productName }}</h2>
+          <p>
+            {{ license.recipientName }}
+            · {{ license.commercialPlanName }}
+          </p>
+
+          <div class="data">
+            <span>
+              Estado:
+              <strong>{{ license.status }}</strong>
+            </span>
+
+            <span>
+              Garantía:
+              <strong>
+                {{
+                  license.warrantyEndDate
+                    | date:'dd/MM/yyyy'
+                }}
+              </strong>
+            </span>
+
+            <span>
+              Asignada a:
+              <strong>
+                {{
+                  license.assignedToName ||
+                  'Sin asignar'
+                }}
+              </strong>
+            </span>
+
+            <span>
+              Dispositivo:
+              <strong>
+                {{
+                  license.deviceSerialNumber ||
+                  'Sin vincular'
+                }}
+              </strong>
+            </span>
+          </div>
+
+          <div class="actions">
+            @if (
+              license.status === 'Available' ||
+              license.status === 'Active'
+            ) {
+              <button
+                type="button"
+                (click)="assign(license)"
+              >
+                🔗 Asignar
+              </button>
+            }
+
+            @if (license.status !== 'Revoked') {
+              <button
+                type="button"
+                class="danger"
+                (click)="changeStatus(
+                  license,
+                  'Revoked'
+                )"
+              >
+                Revocar
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

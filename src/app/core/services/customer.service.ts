@@ -20,25 +20,25 @@ import {
 } from '../models/api-response.model';
 
 import {
+  EntityStatusUpdateRequest
+} from '../models/common.model';
+
+import {
   Customer,
   CustomerCreateRequest,
-  CustomerUpdateRequest
+  CustomerUpdateRequest,
+  EntityWithPortalAccount
 } from '../models/customer.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class CustomerService {
   private readonly http = inject(HttpClient);
-
   private readonly apiUrl =
     `${environment.apiUrl}/Customers`;
 
   getAll():
     Observable<ApiResponse<Customer[]>> {
-    return this.http.get<
-      ApiResponse<Customer[]>
-    >(
+    return this.http.get<ApiResponse<Customer[]>>(
       this.apiUrl
     );
   }
@@ -46,18 +46,18 @@ export class CustomerService {
   getById(
     id: string
   ): Observable<ApiResponse<Customer>> {
-    return this.http.get<
-      ApiResponse<Customer>
-    >(
+    return this.http.get<ApiResponse<Customer>>(
       `${this.apiUrl}/${id}`
     );
   }
 
   create(
     request: CustomerCreateRequest
-  ): Observable<ApiResponse<Customer>> {
+  ): Observable<
+    ApiResponse<EntityWithPortalAccount<Customer>>
+  > {
     return this.http.post<
-      ApiResponse<Customer>
+      ApiResponse<EntityWithPortalAccount<Customer>>
     >(
       this.apiUrl,
       request
@@ -68,42 +68,23 @@ export class CustomerService {
     id: string,
     request: CustomerUpdateRequest
   ): Observable<ApiResponse<Customer>> {
-    return this.http.put<
-      ApiResponse<Customer>
-    >(
+    return this.http.put<ApiResponse<Customer>>(
       `${this.apiUrl}/${id}`,
       request
     );
   }
 
   updateStatus(
-    customer: Customer,
+    id: string,
     isActive: boolean
   ): Observable<ApiResponse<Customer>> {
-    const request: CustomerUpdateRequest = {
-      customerType:
-        customer.customerType,
+    const request:
+      EntityStatusUpdateRequest = {
+        isActive
+      };
 
-      fullName:
-        customer.fullName,
-
-      institutionName:
-        customer.institutionName ?? null,
-
-      email:
-        customer.email,
-
-      phone:
-        customer.phone ?? null,
-
-      address:
-        customer.address ?? null,
-
-      isActive
-    };
-
-    return this.update(
-      customer.id,
+    return this.http.patch<ApiResponse<Customer>>(
+      `${this.apiUrl}/${id}/status`,
       request
     );
   }
@@ -111,9 +92,7 @@ export class CustomerService {
   delete(
     id: string
   ): Observable<ApiResponse<string>> {
-    return this.http.delete<
-      ApiResponse<string>
-    >(
+    return this.http.delete<ApiResponse<string>>(
       `${this.apiUrl}/${id}`
     );
   }

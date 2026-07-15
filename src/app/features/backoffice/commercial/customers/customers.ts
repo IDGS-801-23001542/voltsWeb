@@ -7,20 +7,19 @@ import {
 } from '@angular/core';
 
 import {
-  DatePipe
-} from '@angular/common';
-
-import {
   FormBuilder,
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
 
 import {
+  formatAddress
+} from '../../../../core/models/common.model';
+
+import {
   Customer,
   CustomerStatusFilter,
-  CustomerType,
-  CustomerTypeFilter
+  PortalAccountCredentials
 } from '../../../../core/models/customer.model';
 
 import {
@@ -35,7 +34,6 @@ import {
   selector: 'app-customers',
   standalone: true,
   imports: [
-    DatePipe,
     ReactiveFormsModule
   ],
   templateUrl: './customers.html',
@@ -43,41 +41,33 @@ import {
 })
 export class Customers implements OnInit {
   private readonly fb = inject(FormBuilder);
-
   private readonly customerService =
     inject(CustomerService);
 
   readonly auth = inject(AuthService);
-
   readonly customers = signal<Customer[]>([]);
-
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly deleting = signal(false);
   readonly changingStatusId =
     signal<string | null>(null);
-
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
-
+  readonly formErrorMessage = signal('');
   readonly searchTerm = signal('');
-
   readonly statusFilter =
     signal<CustomerStatusFilter>('all');
-
-  readonly typeFilter =
-    signal<CustomerTypeFilter>('all');
-
   readonly formOpen = signal(false);
-
   readonly editingCustomer =
     signal<Customer | null>(null);
-
-  readonly deleteCandidate =
-    signal<Customer | null>(null);
-
   readonly detailCustomer =
     signal<Customer | null>(null);
+  readonly deleteCandidate =
+    signal<Customer | null>(null);
+  readonly portalCredentials =
+    signal<PortalAccountCredentials | null>(
+      null
+    );
 
   readonly canManage = computed(() =>
     this.auth.hasRole('Admin') ||
@@ -85,134 +75,99 @@ export class Customers implements OnInit {
   );
 
   readonly activeCustomers = computed(() =>
-    this.customers().filter(
-      customer => customer.isActive
-    ).length
+    this.customers()
+      .filter(item => item.isActive)
+      .length
   );
 
   readonly inactiveCustomers = computed(() =>
-    this.customers().filter(
-      customer => !customer.isActive
-    ).length
-  );
-
-  readonly individualCustomers = computed(() =>
-    this.customers().filter(
-      customer =>
-        customer.customerType === 'Individual'
-    ).length
-  );
-
-  readonly institutionalCustomers = computed(() =>
-    this.customers().filter(
-      customer =>
-        customer.customerType === 'Institutional'
-    ).length
-  );
-
-  readonly isInstitutionalType = computed(() =>
-    this.form.controls.customerType.value ===
-    'Institutional'
+    this.customers()
+      .filter(item => !item.isActive)
+      .length
   );
 
   readonly filteredCustomers = computed(() => {
-    const search = this.searchTerm()
-      .trim()
-      .toLowerCase();
-
+    const search =
+      this.searchTerm().trim().toLowerCase();
     const status = this.statusFilter();
-    const type = this.typeFilter();
 
     return this.customers().filter(customer => {
-      const searchableContent = [
+      const content = [
         customer.fullName,
         customer.email,
         customer.phone ?? '',
-        customer.institutionName ?? '',
-        customer.address ?? ''
-      ]
-        .join(' ')
-        .toLowerCase();
-
-      const matchesSearch =
-        !search ||
-        searchableContent.includes(search);
-
-      const matchesStatus =
-        status === 'all' ||
-        (
-          status === 'active' &&
-          customer.isActive
-        ) ||
-        (
-          status === 'inactive' &&
-          !customer.isActive
-        );
-
-      const matchesType =
-        type === 'all' ||
-        customer.customerType === type;
+        formatAddress(customer.address)
+      ].join(' ').toLowerCase();
 
       return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesType
+        (!search || content.includes(search)) &&
+        (
+          status === 'all' ||
+          (
+            status === 'active' &&
+            customer.isActive
+          ) ||
+          (
+            status === 'inactive' &&
+            !customer.isActive
+          )
+        )
       );
     });
   });
 
-  readonly form = this.fb.nonNullable.group({
-    customerType: [
-      'Individual' as CustomerType,
-      [
-        Validators.required
-      ]
-    ],
-
-    fullName: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(120)
-      ]
-    ],
-
-    institutionName: [
-      '',
-      [
-        Validators.maxLength(150)
-      ]
-    ],
-
-    email: [
-      '',
-      [
-        Validators.required,
-        Validators.email,
-        Validators.maxLength(150)
-      ]
-    ],
-
-    phone: [
-      '',
-      [
-        Validators.maxLength(25),
-        Validators.pattern(
-          /^[0-9+\-\s()]*$/
-        )
-      ]
-    ],
-
-    address: [
-      '',
-      [
-        Validators.maxLength(300)
-      ]
-    ],
-
-    isActive: [true]
-  });
+  readonly form =
+    this.fb.nonNullable.group({
+      firstNames: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(2),
+          Validators.maxLength(80)
+        ]
+      ],
+      paternalLastName: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(2),
+          Validators.maxLength(60)
+        ]
+      ],
+      maternalLastName: [
+        '',
+        Validators.maxLength(60)
+      ],
+      email: [
+        '',
+        [
+          Validators.required,
+          Validators.email,
+          Validators.maxLength(150)
+        ]
+      ],
+      phone: [
+        '',
+        Validators.pattern(/^\d{10}$/)
+      ],
+      createPortalAccount: [true],
+      autoGeneratePassword: [true],
+      temporaryPassword: [''],
+      hasAddress: [false],
+      street: [''],
+      exteriorNumber: [''],
+      interiorNumber: [''],
+      neighborhood: [''],
+      postalCode: [
+        '',
+        Validators.pattern(/^\d{5}$/)
+      ],
+      city: [''],
+      state: [''],
+      country: ['México'],
+      references: [''],
+      isActive: [true]
+    });
 
   ngOnInit(): void {
     this.loadCustomers();
@@ -220,137 +175,294 @@ export class Customers implements OnInit {
 
   loadCustomers(): void {
     this.loading.set(true);
-    this.errorMessage.set('');
 
     this.customerService.getAll().subscribe({
       next: response => {
         this.customers.set(
           response.data ?? []
         );
-
         this.loading.set(false);
       },
-
       error: error => {
         this.loading.set(false);
-
         this.errorMessage.set(
-          error?.error?.message ??
-          'No fue posible cargar los clientes.'
+          this.extractError(
+            error,
+            'No fue posible cargar los clientes.'
+          )
         );
       }
     });
   }
 
-  updateSearch(
-    event: Event
-  ): void {
-    const input =
-      event.target as HTMLInputElement;
-
-    this.searchTerm.set(input.value);
+  updateSearch(event: Event): void {
+    this.searchTerm.set(
+      (event.target as HTMLInputElement)
+        .value
+    );
   }
 
-  updateStatusFilter(
-    event: Event
-  ): void {
-    const select =
-      event.target as HTMLSelectElement;
-
+  updateStatusFilter(event: Event): void {
     this.statusFilter.set(
-      select.value as CustomerStatusFilter
+      (event.target as HTMLSelectElement)
+        .value as CustomerStatusFilter
     );
-  }
-
-  updateTypeFilter(
-    event: Event
-  ): void {
-    const select =
-      event.target as HTMLSelectElement;
-
-    this.typeFilter.set(
-      select.value as CustomerTypeFilter
-    );
-  }
-
-  onCustomerTypeChange(): void {
-    const customerType =
-      this.form.controls.customerType.value;
-
-    if (customerType === 'Individual') {
-      this.form.controls.institutionName.setValue(
-        ''
-      );
-    }
   }
 
   openCreateForm(): void {
-    if (!this.canManage()) {
-      return;
-    }
-
     this.editingCustomer.set(null);
-
-    this.form.reset({
-      customerType: 'Individual',
-      fullName: '',
-      institutionName: '',
-      email: '',
-      phone: '',
-      address: '',
-      isActive: true
-    });
-
-    this.clearMessages();
+    this.resetForm();
     this.formOpen.set(true);
   }
 
-  openEditForm(
-    customer: Customer
-  ): void {
-    if (!this.canManage()) {
-      return;
-    }
-
+  openEditForm(customer: Customer): void {
     this.editingCustomer.set(customer);
 
     this.form.reset({
-      customerType: customer.customerType,
-      fullName: customer.fullName,
-      institutionName:
-        customer.institutionName ?? '',
+      firstNames:
+        customer.name.firstNames,
+      paternalLastName:
+        customer.name.paternalLastName,
+      maternalLastName:
+        customer.name.maternalLastName ?? '',
       email: customer.email,
       phone: customer.phone ?? '',
-      address: customer.address ?? '',
+      createPortalAccount: false,
+      autoGeneratePassword: true,
+      temporaryPassword: '',
+      hasAddress:
+        Boolean(customer.address),
+      street:
+        customer.address?.street ?? '',
+      exteriorNumber:
+        customer.address?.exteriorNumber ?? '',
+      interiorNumber:
+        customer.address?.interiorNumber ?? '',
+      neighborhood:
+        customer.address?.neighborhood ?? '',
+      postalCode:
+        customer.address?.postalCode ?? '',
+      city:
+        customer.address?.city ?? '',
+      state:
+        customer.address?.state ?? '',
+      country:
+        customer.address?.country ?? 'México',
+      references:
+        customer.address?.references ?? '',
       isActive: customer.isActive
     });
 
-    this.clearMessages();
+    this.applyAddressValidators();
     this.formOpen.set(true);
   }
 
   closeForm(): void {
+    if (this.saving()) return;
+
+    this.formOpen.set(false);
+    this.editingCustomer.set(null);
+    this.formErrorMessage.set('');
+  }
+
+  submit(): void {
     if (this.saving()) {
       return;
     }
 
-    this.formOpen.set(false);
-    this.editingCustomer.set(null);
+    this.applyAddressValidators();
+    this.applyPasswordValidators();
 
-    this.form.reset({
-      customerType: 'Individual',
-      fullName: '',
-      institutionName: '',
-      email: '',
-      phone: '',
-      address: '',
-      isActive: true
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+
+      this.formErrorMessage.set(
+        'Revisa los campos obligatorios y la contraseña temporal.'
+      );
+
+      return;
+    }
+
+    const values =
+      this.form.getRawValue();
+
+    const requestBase = {
+      name: {
+        firstNames:
+          values.firstNames.trim(),
+
+        paternalLastName:
+          values.paternalLastName.trim(),
+
+        maternalLastName:
+          values.maternalLastName.trim() ||
+          null,
+
+        fullName: ''
+      },
+
+      email:
+        values.email
+          .trim()
+          .toLowerCase(),
+
+      phone:
+        values.phone.trim() ||
+        null,
+
+      address:
+        values.hasAddress
+          ? {
+              street:
+                values.street.trim(),
+
+              exteriorNumber:
+                values.exteriorNumber.trim(),
+
+              interiorNumber:
+                values.interiorNumber.trim() ||
+                null,
+
+              neighborhood:
+                values.neighborhood.trim(),
+
+              postalCode:
+                values.postalCode.trim(),
+
+              city:
+                values.city.trim(),
+
+              state:
+                values.state.trim(),
+
+              country:
+                values.country.trim() ||
+                'México',
+
+              references:
+                values.references.trim() ||
+                null
+            }
+          : null
+    };
+
+    const editing =
+      this.editingCustomer();
+
+    this.saving.set(true);
+    this.formErrorMessage.set('');
+
+    if (!editing) {
+      this.customerService
+        .create({
+          ...requestBase,
+
+          createPortalAccount:
+            values.createPortalAccount,
+
+          autoGeneratePassword:
+            values.autoGeneratePassword,
+
+          temporaryPassword:
+            values.autoGeneratePassword
+              ? null
+              : values.temporaryPassword.trim()
+        })
+        .subscribe({
+          next: response => {
+            this.saving.set(false);
+
+            this.portalCredentials.set(
+              response.data?.portalAccount ??
+              null
+            );
+
+            this.closeForm();
+
+            this.successMessage.set(
+              response.message
+            );
+
+            this.loadCustomers();
+          },
+
+          error: error => {
+            this.saving.set(false);
+
+            this.formErrorMessage.set(
+              this.extractError(
+                error,
+                'No fue posible crear el cliente.'
+              )
+            );
+          }
+        });
+
+      return;
+    }
+
+    this.customerService
+      .update(
+        editing.id,
+        {
+          ...requestBase,
+          isActive:
+            values.isActive
+        }
+      )
+      .subscribe({
+        next: response => {
+          this.saving.set(false);
+
+          this.closeForm();
+
+          this.successMessage.set(
+            response.message
+          );
+
+          this.loadCustomers();
+        },
+
+        error: error => {
+          this.saving.set(false);
+
+          this.formErrorMessage.set(
+            this.extractError(
+              error,
+              'No fue posible actualizar el cliente.'
+            )
+          );
+        }
+      });
+  }
+
+  toggleStatus(customer: Customer): void {
+    this.changingStatusId.set(customer.id);
+
+    this.customerService.updateStatus(
+      customer.id,
+      !customer.isActive
+    ).subscribe({
+      next: response => {
+        this.changingStatusId.set(null);
+        this.successMessage.set(
+          response.message
+        );
+        this.loadCustomers();
+      },
+      error: error => {
+        this.changingStatusId.set(null);
+        this.errorMessage.set(
+          this.extractError(
+            error,
+            'No fue posible cambiar el estado.'
+          )
+        );
+      }
     });
   }
 
-  openDetail(
-    customer: Customer
-  ): void {
+  openDetail(customer: Customer): void {
     this.detailCustomer.set(customer);
   }
 
@@ -358,167 +470,11 @@ export class Customers implements OnInit {
     this.detailCustomer.set(null);
   }
 
-  submit(): void {
-    if (
-      this.form.invalid ||
-      this.saving() ||
-      !this.canManage()
-    ) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    const values = this.form.getRawValue();
-
-    if (
-      values.customerType ===
-        'Institutional' &&
-      !values.institutionName.trim()
-    ) {
-      this.form.controls
-        .institutionName
-        .setErrors({
-          required: true
-        });
-
-      this.form.controls
-        .institutionName
-        .markAsTouched();
-
-      return;
-    }
-
-    this.saving.set(true);
-    this.clearMessages();
-
-    const editing =
-      this.editingCustomer();
-
-    const baseRequest = {
-      customerType: values.customerType,
-      fullName: values.fullName.trim(),
-      institutionName:
-        values.customerType === 'Institutional'
-          ? values.institutionName.trim()
-          : null,
-      email: values.email
-        .trim()
-        .toLowerCase(),
-      phone:
-        values.phone.trim() || null,
-      address:
-        values.address.trim() || null
-    };
-
-    const operation = editing
-      ? this.customerService.update(
-          editing.id,
-          {
-            ...baseRequest,
-            isActive: values.isActive
-          }
-        )
-      : this.customerService.create(
-          baseRequest
-        );
-
-    operation.subscribe({
-      next: response => {
-        this.saving.set(false);
-
-        this.successMessage.set(
-          response.message
-        );
-
-        this.closeForm();
-        this.loadCustomers();
-        this.clearSuccessMessageLater();
-      },
-
-      error: error => {
-        this.saving.set(false);
-
-        this.errorMessage.set(
-          error?.error?.message ??
-          'No fue posible guardar el cliente.'
-        );
-      }
-    });
-  }
-
-  toggleStatus(
-    customer: Customer
-  ): void {
-    if (
-      !this.canManage() ||
-      this.changingStatusId()
-    ) {
-      return;
-    }
-
-    this.changingStatusId.set(customer.id);
-    this.clearMessages();
-
-    this.customerService
-      .updateStatus(
-        customer,
-        !customer.isActive
-      )
-      .subscribe({
-        next: response => {
-          this.changingStatusId.set(null);
-
-          const updatedCustomer =
-            response.data;
-
-          this.customers.update(customers =>
-            customers.map(item =>
-              item.id === customer.id
-                ? (
-                    updatedCustomer ??
-                    {
-                      ...item,
-                      isActive:
-                        !item.isActive
-                    }
-                  )
-                : item
-            )
-          );
-
-          this.successMessage.set(
-            response.message
-          );
-
-          this.clearSuccessMessageLater();
-        },
-
-        error: error => {
-          this.changingStatusId.set(null);
-
-          this.errorMessage.set(
-            error?.error?.message ??
-            'No fue posible cambiar el estado del cliente.'
-          );
-        }
-      });
-  }
-
-  requestDelete(
-    customer: Customer
-  ): void {
-    if (!this.canManage()) {
-      return;
-    }
-
+  requestDelete(customer: Customer): void {
     this.deleteCandidate.set(customer);
   }
 
   cancelDelete(): void {
-    if (this.deleting()) {
-      return;
-    }
-
     this.deleteCandidate.set(null);
   }
 
@@ -526,56 +482,139 @@ export class Customers implements OnInit {
     const customer =
       this.deleteCandidate();
 
-    if (
-      !customer ||
-      this.deleting() ||
-      !this.canManage()
-    ) {
-      return;
-    }
+    if (!customer) return;
 
     this.deleting.set(true);
-    this.clearMessages();
 
-    this.customerService
-      .delete(customer.id)
-      .subscribe({
-        next: response => {
-          this.deleting.set(false);
-          this.deleteCandidate.set(null);
-
-          this.customers.update(customers =>
-            customers.filter(
-              item => item.id !== customer.id
-            )
-          );
-
-          this.successMessage.set(
-            response.message
-          );
-
-          this.clearSuccessMessageLater();
-        },
-
-        error: error => {
-          this.deleting.set(false);
-
-          this.errorMessage.set(
-            error?.error?.message ??
+    this.customerService.delete(
+      customer.id
+    ).subscribe({
+      next: response => {
+        this.deleting.set(false);
+        this.deleteCandidate.set(null);
+        this.successMessage.set(
+          response.message
+        );
+        this.loadCustomers();
+      },
+      error: error => {
+        this.deleting.set(false);
+        this.errorMessage.set(
+          this.extractError(
+            error,
             'No fue posible eliminar el cliente.'
+          )
+        );
+      }
+    });
+  }
+
+  closeCredentials(): void {
+    this.portalCredentials.set(null);
+  }
+
+  copyCredentials(): void {
+    const credentials =
+      this.portalCredentials();
+
+    if (!credentials) return;
+
+    navigator.clipboard.writeText(
+      `Correo: ${credentials.email}\nContraseña temporal: ${credentials.temporaryPassword}`
+    );
+  }
+
+  addressText(customer: Customer): string {
+    return formatAddress(customer.address);
+  }
+
+  private applyAddressValidators(): void {
+    const controls = [
+      this.form.controls.street,
+      this.form.controls.exteriorNumber,
+      this.form.controls.neighborhood,
+      this.form.controls.postalCode,
+      this.form.controls.city,
+      this.form.controls.state
+    ];
+
+    controls.forEach(control => {
+      this.form.controls.hasAddress.value
+        ? control.addValidators(
+            Validators.required
+          )
+        : control.removeValidators(
+            Validators.required
           );
-        }
+
+      control.updateValueAndValidity({
+        emitEvent: false
       });
+    });
   }
 
-  private clearMessages(): void {
-    this.errorMessage.set('');
-    this.successMessage.set('');
+  private applyPasswordValidators(): void {
+    const password =
+      this.form.controls.temporaryPassword;
+
+    if (
+      !this.editingCustomer() &&
+      this.form.controls
+        .createPortalAccount.value &&
+      !this.form.controls
+        .autoGeneratePassword.value
+    ) {
+      password.setValidators([
+        Validators.required,
+        Validators.minLength(8)
+      ]);
+    } else {
+      password.clearValidators();
+    }
+
+    password.updateValueAndValidity({
+      emitEvent: false
+    });
   }
 
-  private clearSuccessMessageLater(): void {
-    window.setTimeout(() => {
-      this.successMessage.set('');
-    }, 3500);
+  private resetForm(): void {
+    this.form.reset({
+      firstNames: '',
+      paternalLastName: '',
+      maternalLastName: '',
+      email: '',
+      phone: '',
+      createPortalAccount: true,
+      autoGeneratePassword: true,
+      temporaryPassword: '',
+      hasAddress: false,
+      street: '',
+      exteriorNumber: '',
+      interiorNumber: '',
+      neighborhood: '',
+      postalCode: '',
+      city: '',
+      state: '',
+      country: 'México',
+      references: '',
+      isActive: true
+    });
+
+    this.applyAddressValidators();
+    this.applyPasswordValidators();
+  }
+
+  private extractError(
+    error: any,
+    fallback: string
+  ): string {
+    const errors =
+      error?.error?.errors;
+
+    return Array.isArray(errors) &&
+      errors.length > 0
+      ? errors.join(' · ')
+      : error?.error?.message ??
+          fallback;
   }
 }

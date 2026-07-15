@@ -1,0 +1,97 @@
+<section class="page">
+  <header class="heading">
+    <div>
+      <span>Gestión comercial</span>
+      <h1>Ventas</h1>
+      <p>
+        Confirma pedidos reservados y genera licencias.
+      </p>
+    </div>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  <section class="panel">
+    <h2>Pedidos listos para venta</h2>
+
+    @if (readyOrders().length === 0) {
+      <p class="empty">
+        No hay pedidos listos para vender.
+      </p>
+    } @else {
+      <div class="grid">
+        @for (
+          order of readyOrders();
+          track order.id
+        ) {
+          <article class="card">
+            <small>{{ order.folio }}</small>
+            <h3>{{ order.recipientName }}</h3>
+            <p>{{ order.commercialPackageName }}</p>
+            <strong>
+              {{ order.total | currency:'MXN' }}
+            </strong>
+
+            <button
+              type="button"
+              [disabled]="sellingId() === order.id"
+              (click)="sell(order)"
+            >
+              {{
+                sellingId() === order.id
+                  ? 'Vendiendo...'
+                  : '💰 Confirmar venta'
+              }}
+            </button>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="panel">
+    <h2>Historial de ventas</h2>
+
+    @if (loading()) {
+      <p class="empty">Cargando...</p>
+    } @else if (sales().length === 0) {
+      <p class="empty">Todavía no hay ventas.</p>
+    } @else {
+      <div class="grid">
+        @for (
+          sale of sales();
+          track sale.id
+        ) {
+          <article class="card">
+            <small>
+              {{ sale.folio }}
+              · {{ sale.saleDate | date:'dd/MM/yyyy' }}
+            </small>
+
+            <h3>{{ sale.recipientName }}</h3>
+            <p>{{ sale.commercialPackageName }}</p>
+
+            <strong>
+              {{ sale.total | currency:'MXN' }}
+            </strong>
+
+            <span>
+              🔑 {{ sale.licenseIds.length }}
+              licencias generadas
+            </span>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>

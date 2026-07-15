@@ -1,0 +1,343 @@
+<section class="page">
+  <header class="heading">
+    <div>
+      <span>Administración</span>
+      <h1>Cuentas de acceso</h1>
+      <p>
+        Separa usuarios internos de clientes e instituciones
+        que ya cuentan con credenciales.
+      </p>
+    </div>
+
+    @if (activeTab() === 'internal') {
+      <button
+        class="primary"
+        type="button"
+        (click)="openCreate()"
+      >
+        ＋ Nuevo usuario interno
+      </button>
+    }
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  <nav class="tabs">
+    <button
+      type="button"
+      [class.active]="
+        activeTab() === 'internal'
+      "
+      (click)="setTab('internal')"
+    >
+      Backoffice
+      <strong>{{ internalUsers().length }}</strong>
+    </button>
+
+    <button
+      type="button"
+      [class.active]="
+        activeTab() === 'clients'
+      "
+      (click)="setTab('clients')"
+    >
+      Clientes con cuenta
+      <strong>{{ clientUsers().length }}</strong>
+    </button>
+
+    <button
+      type="button"
+      [class.active]="
+        activeTab() === 'institutions'
+      "
+      (click)="setTab('institutions')"
+    >
+      Instituciones con cuenta
+      <strong>{{ institutionUsers().length }}</strong>
+    </button>
+  </nav>
+
+  <section class="explanation">
+    @if (activeTab() === 'internal') {
+      <strong>Usuarios internos</strong>
+      <p>
+        Administradores, empleados y roles personalizados
+        que pueden entrar al backoffice.
+      </p>
+    } @else if (activeTab() === 'clients') {
+      <strong>Clientes con acceso digital</strong>
+      <p>
+        Solo aparecen clientes que además de su perfil
+        comercial tienen una cuenta User vinculada mediante
+        ProfileId. Los clientes del seed comercial sin cuenta
+        siguen apareciendo únicamente en Comercial → Clientes.
+      </p>
+    } @else {
+      <strong>Instituciones con acceso digital</strong>
+      <p>
+        Solo aparecen instituciones que ya tienen una cuenta
+        User de tipo Institution vinculada mediante ProfileId.
+      </p>
+    }
+  </section>
+
+  <section class="panel">
+    <input
+      type="search"
+      placeholder="Buscar por nombre, correo, rol o ProfileId..."
+      [value]="searchTerm()"
+      (input)="updateSearch($event)"
+    />
+
+    @if (loading()) {
+      <div class="state">
+        Cargando cuentas...
+      </div>
+    } @else if (visibleUsers().length === 0) {
+      <div class="state">
+        No hay cuentas en esta sección.
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cuenta</th>
+              <th>Tipo</th>
+              <th>Perfil relacionado</th>
+              <th>Estado</th>
+              <th>Seguridad</th>
+              <th>Último acceso</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              user of visibleUsers();
+              track user.id
+            ) {
+              <tr>
+                <td>
+                  <strong>
+                    {{ user.fullName }}
+                  </strong>
+                  <small>{{ user.email }}</small>
+                </td>
+
+                <td>{{ user.roleName }}</td>
+
+                <td>
+                  @if (user.relatedProfileName) {
+                    <strong>{{ user.relatedProfileName }}</strong>
+                    <small>{{ user.relatedProfileType }}</small>
+                  } @else if (user.roleName === 'Admin' || user.roleName === 'Employee') {
+                    <strong>Personal interno</strong>
+                    <small>No requiere perfil comercial</small>
+                  } @else {
+                    <span class="warning">Perfil no encontrado</span>
+                    <small>Revisa la relación ProfileId</small>
+                  }
+                </td>
+
+                <td>
+                  {{
+                    user.isActive
+                      ? 'Activo'
+                      : 'Inactivo'
+                  }}
+                </td>
+
+                <td>
+                  {{
+                    user.twoFactorEnabled
+                      ? '2FA activo'
+                      : 'Sin 2FA'
+                  }}
+
+                  @if (user.lockoutEnd) {
+                    <small>Bloqueado</small>
+                  }
+                </td>
+
+                <td>
+                  {{
+                    user.lastLoginAt
+                      ? (
+                          user.lastLoginAt
+                          | date:'dd/MM/yyyy HH:mm'
+                        )
+                      : 'Sin acceso'
+                  }}
+                </td>
+
+                <td class="actions">
+                  @if (user.roleName !== 'Client' && user.roleName !== 'Institution') {
+                    <button type="button" title="Editar cuenta interna" (click)="openEdit(user)">✏️</button>
+                  }
+
+                  <button
+                    type="button"
+                    title="Cambiar estado"
+                    (click)="toggleStatus(user)"
+                  >
+                    {{
+                      user.isActive
+                        ? '⏸️'
+                        : '▶️'
+                    }}
+                  </button>
+
+                  @if (user.lockoutEnd) {
+                    <button
+                      type="button"
+                      title="Desbloquear"
+                      (click)="unlock(user)"
+                    >
+                      🔓
+                    </button>
+                  }
+
+                  <button
+                    type="button"
+                    class="danger"
+                    title="Eliminar cuenta"
+                    (click)="delete(user)"
+                  >
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>
+
+@if (formOpen()) {
+  <div
+    class="backdrop"
+    (click)="closeForm()"
+  >
+    <section
+      class="modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header>
+        <h2>
+          {{
+            editingUser()
+              ? 'Editar cuenta'
+              : 'Nuevo usuario interno'
+          }}
+        </h2>
+
+        <button
+          type="button"
+          (click)="closeForm()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
+        @if (formErrorMessage()) {
+          <div class="message error">
+            ⚠ {{ formErrorMessage() }}
+          </div>
+        }
+
+        <div class="grid">
+          <label>
+            Nombres
+            <input formControlName="firstNames" />
+          </label>
+
+          <label>
+            Apellido paterno
+            <input formControlName="paternalLastName" />
+          </label>
+
+          <label>
+            Apellido materno
+            <input formControlName="maternalLastName" />
+          </label>
+
+          <label>
+            Correo
+            <input
+              type="email"
+              formControlName="email"
+            />
+          </label>
+
+          @if (!editingUser()) {
+            <label>
+              Contraseña inicial
+              <input
+                type="password"
+                formControlName="password"
+              />
+            </label>
+          }
+
+          <label>
+            Rol
+            <select formControlName="roleName">
+              @for (
+                role of assignableRoles();
+                track role.id
+              ) {
+                <option [value]="role.name">
+                  {{ role.name }}
+                </option>
+              }
+            </select>
+          </label>
+        </div>
+
+        @if (editingUser()) {
+          <label class="check">
+            <input
+              type="checkbox"
+              formControlName="isActive"
+            />
+            Cuenta activa
+          </label>
+        }
+
+        <footer>
+          <button
+            type="button"
+            (click)="closeForm()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            class="primary"
+            type="submit"
+            [disabled]="saving()"
+          >
+            Guardar
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}

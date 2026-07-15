@@ -7,20 +7,26 @@ import {
 } from '@angular/core';
 
 import {
-  DatePipe
-} from '@angular/common';
-
-import {
   FormBuilder,
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
 
 import {
+  formatAddress
+} from '../../../../core/models/common.model';
+
+import {
+  PortalAccountCredentials
+} from '../../../../core/models/customer.model';
+
+import {
   Institution,
   InstitutionStatusFilter,
   InstitutionType,
-  InstitutionTypeFilter
+  InstitutionTypeFilter,
+  INSTITUTION_TYPE_OPTIONS,
+  institutionTypeLabel
 } from '../../../../core/models/institution.model';
 
 import {
@@ -35,7 +41,6 @@ import {
   selector: 'app-institutions',
   standalone: true,
   imports: [
-    DatePipe,
     ReactiveFormsModule
   ],
   templateUrl: './institutions.html',
@@ -43,194 +48,170 @@ import {
 })
 export class Institutions implements OnInit {
   private readonly fb = inject(FormBuilder);
-
   private readonly institutionService =
     inject(InstitutionService);
 
   readonly auth = inject(AuthService);
-
   readonly institutions =
     signal<Institution[]>([]);
-
-  readonly institutionTypes:
-    InstitutionType[] = [
-      'Escuela',
-      'Preparatoria',
-      'Universidad',
-      'Guardería',
-      'Centro educativo',
-      'Asociación',
-      'Fundación',
-      'Otro'
-    ];
-
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly deleting = signal(false);
-
   readonly changingStatusId =
     signal<string | null>(null);
-
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
-
+  readonly formErrorMessage = signal('');
   readonly searchTerm = signal('');
-
   readonly statusFilter =
     signal<InstitutionStatusFilter>('all');
-
   readonly typeFilter =
     signal<InstitutionTypeFilter>('all');
-
   readonly formOpen = signal(false);
-
   readonly editingInstitution =
     signal<Institution | null>(null);
-
-  readonly deleteCandidate =
-    signal<Institution | null>(null);
-
   readonly detailInstitution =
     signal<Institution | null>(null);
+  readonly deleteCandidate =
+    signal<Institution | null>(null);
+  readonly portalCredentials =
+    signal<PortalAccountCredentials | null>(
+      null
+    );
+
+  readonly institutionTypes =
+    INSTITUTION_TYPE_OPTIONS;
 
   readonly canManage = computed(() =>
     this.auth.hasRole('Admin') ||
     this.auth.hasRole('Employee')
   );
 
-  readonly activeInstitutions = computed(() =>
-    this.institutions().filter(
-      institution => institution.isActive
-    ).length
-  );
+  readonly activeInstitutions =
+    computed(() =>
+      this.institutions()
+        .filter(item => item.isActive)
+        .length
+    );
 
-  readonly inactiveInstitutions = computed(() =>
-    this.institutions().filter(
-      institution => !institution.isActive
-    ).length
-  );
+  readonly inactiveInstitutions =
+    computed(() =>
+      this.institutions()
+        .filter(item => !item.isActive)
+        .length
+    );
 
-  readonly universities = computed(() =>
-    this.institutions().filter(
-      institution =>
-        institution.institutionType ===
-        'Universidad'
-    ).length
-  );
-
-  readonly schools = computed(() =>
-    this.institutions().filter(
-      institution =>
-        institution.institutionType ===
-          'Escuela' ||
-        institution.institutionType ===
-          'Preparatoria'
-    ).length
-  );
-
-  readonly filteredInstitutions = computed(() => {
-    const search = this.searchTerm()
-      .trim()
-      .toLowerCase();
-
-    const status = this.statusFilter();
-    const type = this.typeFilter();
-
-    return this.institutions().filter(
-      institution => {
-        const searchableContent = [
-          institution.name,
-          institution.contactName,
-          institution.email,
-          institution.phone ?? '',
-          institution.address ?? '',
-          institution.institutionType
-        ]
-          .join(' ')
+  readonly filteredInstitutions =
+    computed(() => {
+      const search =
+        this.searchTerm()
+          .trim()
           .toLowerCase();
 
-        const matchesSearch =
-          !search ||
-          searchableContent.includes(search);
+      return this.institutions().filter(
+        institution => {
+          const content = [
+            institution.name,
+            institution.responsible
+              .name.fullName,
+            institution.responsible.email,
+            institution.responsible
+              .phone ?? '',
+            institutionTypeLabel(
+              institution.institutionType
+            ),
+            formatAddress(
+              institution.address
+            )
+          ].join(' ').toLowerCase();
 
-        const matchesStatus =
-          status === 'all' ||
-          (
-            status === 'active' &&
-            institution.isActive
-          ) ||
-          (
-            status === 'inactive' &&
-            !institution.isActive
+          return (
+            (
+              !search ||
+              content.includes(search)
+            ) &&
+            (
+              this.statusFilter() ===
+                'all' ||
+              (
+                this.statusFilter() ===
+                  'active' &&
+                institution.isActive
+              ) ||
+              (
+                this.statusFilter() ===
+                  'inactive' &&
+                !institution.isActive
+              )
+            ) &&
+            (
+              this.typeFilter() ===
+                'all' ||
+              institution.institutionType ===
+                this.typeFilter()
+            )
           );
+        }
+      );
+    });
 
-        const matchesType =
-          type === 'all' ||
-          institution.institutionType === type;
-
-        return (
-          matchesSearch &&
-          matchesStatus &&
-          matchesType
-        );
-      }
-    );
-  });
-
-  readonly form = this.fb.nonNullable.group({
-    name: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(150)
-      ]
-    ],
-
-    contactName: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(120)
-      ]
-    ],
-
-    email: [
-      '',
-      [
-        Validators.required,
-        Validators.email,
-        Validators.maxLength(150)
-      ]
-    ],
-
-    phone: [
-      '',
-      [
-        Validators.maxLength(25),
-        Validators.pattern(
-          /^[0-9+\-\s()]*$/
-        )
-      ]
-    ],
-
-    address: [
-      '',
-      [
-        Validators.maxLength(300)
-      ]
-    ],
-
-    institutionType: [
-      'Escuela' as InstitutionType,
-      [
+  readonly form =
+    this.fb.nonNullable.group({
+      name: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3)
+        ]
+      ],
+      institutionType: [
+        'Other' as InstitutionType,
         Validators.required
-      ]
-    ],
-
-    isActive: [true]
-  });
+      ],
+      responsibleFirstNames: [
+        '',
+        Validators.required
+      ],
+      responsiblePaternalLastName: [
+        '',
+        Validators.required
+      ],
+      responsibleMaternalLastName: [''],
+      responsibleEmail: [
+        '',
+        [
+          Validators.required,
+          Validators.email
+        ]
+      ],
+      responsiblePhone: [
+        '',
+        Validators.pattern(/^\d{10}$/)
+      ],
+      responsiblePosition: [''],
+      estimatedStudents: [
+        0,
+        Validators.min(0)
+      ],
+      notes: [''],
+      createPortalAccount: [true],
+      autoGeneratePassword: [true],
+      temporaryPassword: [''],
+      hasAddress: [false],
+      street: [''],
+      exteriorNumber: [''],
+      interiorNumber: [''],
+      neighborhood: [''],
+      postalCode: [
+        '',
+        Validators.pattern(/^\d{5}$/)
+      ],
+      city: [''],
+      state: [''],
+      country: ['México'],
+      references: [''],
+      isActive: [true]
+    });
 
   ngOnInit(): void {
     this.loadInstitutions();
@@ -238,7 +219,6 @@ export class Institutions implements OnInit {
 
   loadInstitutions(): void {
     this.loading.set(true);
-    this.errorMessage.set('');
 
     this.institutionService
       .getAll()
@@ -247,116 +227,350 @@ export class Institutions implements OnInit {
           this.institutions.set(
             response.data ?? []
           );
-
           this.loading.set(false);
         },
-
         error: error => {
           this.loading.set(false);
-
           this.errorMessage.set(
-            error?.error?.message ??
-            'No fue posible cargar las instituciones.'
+            this.extractError(
+              error,
+              'No fue posible cargar las instituciones.'
+            )
           );
         }
       });
   }
 
-  updateSearch(
-    event: Event
-  ): void {
-    const input =
-      event.target as HTMLInputElement;
-
-    this.searchTerm.set(input.value);
-  }
-
-  updateStatusFilter(
-    event: Event
-  ): void {
-    const select =
-      event.target as HTMLSelectElement;
-
-    this.statusFilter.set(
-      select.value as InstitutionStatusFilter
+  updateSearch(event: Event): void {
+    this.searchTerm.set(
+      (event.target as HTMLInputElement)
+        .value
     );
   }
 
-  updateTypeFilter(
-    event: Event
-  ): void {
-    const select =
-      event.target as HTMLSelectElement;
+  updateStatusFilter(event: Event): void {
+    this.statusFilter.set(
+      (event.target as HTMLSelectElement)
+        .value as InstitutionStatusFilter
+    );
+  }
 
+  updateTypeFilter(event: Event): void {
     this.typeFilter.set(
-      select.value as InstitutionTypeFilter
+      (event.target as HTMLSelectElement)
+        .value as InstitutionTypeFilter
     );
   }
 
   openCreateForm(): void {
-    if (!this.canManage()) {
-      return;
-    }
-
     this.editingInstitution.set(null);
-
-    this.form.reset({
-      name: '',
-      contactName: '',
-      email: '',
-      phone: '',
-      address: '',
-      institutionType: 'Escuela',
-      isActive: true
-    });
-
-    this.clearMessages();
+    this.resetForm();
     this.formOpen.set(true);
   }
 
   openEditForm(
     institution: Institution
   ): void {
-    if (!this.canManage()) {
-      return;
-    }
-
     this.editingInstitution.set(
       institution
     );
 
     this.form.reset({
       name: institution.name,
-      contactName: institution.contactName,
-      email: institution.email,
-      phone: institution.phone ?? '',
-      address: institution.address ?? '',
       institutionType:
         institution.institutionType,
+      responsibleFirstNames:
+        institution.responsible
+          .name.firstNames,
+      responsiblePaternalLastName:
+        institution.responsible
+          .name.paternalLastName,
+      responsibleMaternalLastName:
+        institution.responsible
+          .name.maternalLastName ?? '',
+      responsibleEmail:
+        institution.responsible.email,
+      responsiblePhone:
+        institution.responsible.phone ?? '',
+      responsiblePosition:
+        institution.responsible.position ??
+        '',
+      estimatedStudents:
+        institution.estimatedStudents ?? 0,
+      notes: institution.notes ?? '',
+      createPortalAccount: false,
+      autoGeneratePassword: true,
+      temporaryPassword: '',
+      hasAddress:
+        Boolean(institution.address),
+      street:
+        institution.address?.street ?? '',
+      exteriorNumber:
+        institution.address
+          ?.exteriorNumber ?? '',
+      interiorNumber:
+        institution.address
+          ?.interiorNumber ?? '',
+      neighborhood:
+        institution.address
+          ?.neighborhood ?? '',
+      postalCode:
+        institution.address
+          ?.postalCode ?? '',
+      city:
+        institution.address?.city ?? '',
+      state:
+        institution.address?.state ?? '',
+      country:
+        institution.address?.country ??
+        'México',
+      references:
+        institution.address
+          ?.references ?? '',
       isActive: institution.isActive
     });
 
-    this.clearMessages();
+    this.applyAddressValidators();
     this.formOpen.set(true);
   }
 
   closeForm(): void {
+    if (this.saving()) return;
+
+    this.formOpen.set(false);
+    this.editingInstitution.set(null);
+    this.formErrorMessage.set('');
+  }
+
+  submit(): void {
     if (this.saving()) {
       return;
     }
 
-    this.formOpen.set(false);
-    this.editingInstitution.set(null);
+    this.applyAddressValidators();
+    this.applyPasswordValidators();
 
-    this.form.reset({
-      name: '',
-      contactName: '',
-      email: '',
-      phone: '',
-      address: '',
-      institutionType: 'Escuela',
-      isActive: true
-    });
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+
+      this.formErrorMessage.set(
+        'Revisa los campos obligatorios y la contraseña temporal.'
+      );
+
+      return;
+    }
+
+    const values =
+      this.form.getRawValue();
+
+    const requestBase = {
+      name:
+        values.name.trim(),
+
+      institutionType:
+        values.institutionType,
+
+      responsible: {
+        name: {
+          firstNames:
+            values.responsibleFirstNames
+              .trim(),
+
+          paternalLastName:
+            values
+              .responsiblePaternalLastName
+              .trim(),
+
+          maternalLastName:
+            values
+              .responsibleMaternalLastName
+              .trim() ||
+            null,
+
+          fullName: ''
+        },
+
+        email:
+          values.responsibleEmail
+            .trim()
+            .toLowerCase(),
+
+        phone:
+          values.responsiblePhone
+            .trim() ||
+          null,
+
+        position:
+          values.responsiblePosition
+            .trim() ||
+          null
+      },
+
+      address:
+        values.hasAddress
+          ? {
+              street:
+                values.street.trim(),
+
+              exteriorNumber:
+                values.exteriorNumber.trim(),
+
+              interiorNumber:
+                values.interiorNumber.trim() ||
+                null,
+
+              neighborhood:
+                values.neighborhood.trim(),
+
+              postalCode:
+                values.postalCode.trim(),
+
+              city:
+                values.city.trim(),
+
+              state:
+                values.state.trim(),
+
+              country:
+                values.country.trim() ||
+                'México',
+
+              references:
+                values.references.trim() ||
+                null
+            }
+          : null,
+
+      estimatedStudents:
+        values.estimatedStudents > 0
+          ? values.estimatedStudents
+          : null,
+
+      notes:
+        values.notes.trim() ||
+        null
+    };
+
+    const editing =
+      this.editingInstitution();
+
+    this.saving.set(true);
+    this.formErrorMessage.set('');
+
+    if (!editing) {
+      this.institutionService
+        .create({
+          ...requestBase,
+
+          createPortalAccount:
+            values.createPortalAccount,
+
+          autoGeneratePassword:
+            values.autoGeneratePassword,
+
+          temporaryPassword:
+            values.autoGeneratePassword
+              ? null
+              : values.temporaryPassword.trim()
+        })
+        .subscribe({
+          next: response => {
+            this.saving.set(false);
+
+            this.portalCredentials.set(
+              response.data?.portalAccount ??
+              null
+            );
+
+            this.closeForm();
+
+            this.successMessage.set(
+              response.message
+            );
+
+            this.loadInstitutions();
+          },
+
+          error: error => {
+            this.saving.set(false);
+
+            this.formErrorMessage.set(
+              this.extractError(
+                error,
+                'No fue posible crear la institución.'
+              )
+            );
+          }
+        });
+
+      return;
+    }
+
+    this.institutionService
+      .update(
+        editing.id,
+        {
+          ...requestBase,
+          isActive:
+            values.isActive
+        }
+      )
+      .subscribe({
+        next: response => {
+          this.saving.set(false);
+
+          this.closeForm();
+
+          this.successMessage.set(
+            response.message
+          );
+
+          this.loadInstitutions();
+        },
+
+        error: error => {
+          this.saving.set(false);
+
+          this.formErrorMessage.set(
+            this.extractError(
+              error,
+              'No fue posible actualizar la institución.'
+            )
+          );
+        }
+      });
+  }
+
+  toggleStatus(
+    institution: Institution
+  ): void {
+    this.changingStatusId.set(
+      institution.id
+    );
+
+    this.institutionService
+      .updateStatus(
+        institution.id,
+        !institution.isActive
+      )
+      .subscribe({
+        next: response => {
+          this.changingStatusId.set(null);
+          this.successMessage.set(
+            response.message
+          );
+          this.loadInstitutions();
+        },
+        error: error => {
+          this.changingStatusId.set(null);
+          this.errorMessage.set(
+            this.extractError(
+              error,
+              'No fue posible cambiar el estado.'
+            )
+          );
+        }
+      });
   }
 
   openDetail(
@@ -371,159 +585,15 @@ export class Institutions implements OnInit {
     this.detailInstitution.set(null);
   }
 
-  submit(): void {
-    if (
-      this.form.invalid ||
-      this.saving() ||
-      !this.canManage()
-    ) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    this.saving.set(true);
-    this.clearMessages();
-
-    const values = this.form.getRawValue();
-
-    const editing =
-      this.editingInstitution();
-
-    const baseRequest = {
-      name: values.name.trim(),
-
-      contactName:
-        values.contactName.trim(),
-
-      email: values.email
-        .trim()
-        .toLowerCase(),
-
-      phone:
-        values.phone.trim() || null,
-
-      address:
-        values.address.trim() || null,
-
-      institutionType:
-        values.institutionType
-    };
-
-    const operation = editing
-      ? this.institutionService.update(
-          editing.id,
-          {
-            ...baseRequest,
-            isActive: values.isActive
-          }
-        )
-      : this.institutionService.create(
-          baseRequest
-        );
-
-    operation.subscribe({
-      next: response => {
-        this.saving.set(false);
-
-        this.successMessage.set(
-          response.message
-        );
-
-        this.closeForm();
-        this.loadInstitutions();
-        this.clearSuccessMessageLater();
-      },
-
-      error: error => {
-        this.saving.set(false);
-
-        this.errorMessage.set(
-          error?.error?.message ??
-          'No fue posible guardar la institución.'
-        );
-      }
-    });
-  }
-
-  toggleStatus(
-    institution: Institution
-  ): void {
-    if (
-      !this.canManage() ||
-      this.changingStatusId()
-    ) {
-      return;
-    }
-
-    this.changingStatusId.set(
-      institution.id
-    );
-
-    this.clearMessages();
-
-    this.institutionService
-      .updateStatus(
-        institution,
-        !institution.isActive
-      )
-      .subscribe({
-        next: response => {
-          this.changingStatusId.set(null);
-
-          const updatedInstitution =
-            response.data;
-
-          this.institutions.update(
-            institutions =>
-              institutions.map(item =>
-                item.id === institution.id
-                  ? (
-                      updatedInstitution ??
-                      {
-                        ...item,
-                        isActive:
-                          !item.isActive
-                      }
-                    )
-                  : item
-              )
-          );
-
-          this.successMessage.set(
-            response.message
-          );
-
-          this.clearSuccessMessageLater();
-        },
-
-        error: error => {
-          this.changingStatusId.set(null);
-
-          this.errorMessage.set(
-            error?.error?.message ??
-            'No fue posible cambiar el estado de la institución.'
-          );
-        }
-      });
-  }
-
   requestDelete(
     institution: Institution
   ): void {
-    if (!this.canManage()) {
-      return;
-    }
-
     this.deleteCandidate.set(
       institution
     );
   }
 
   cancelDelete(): void {
-    if (this.deleting()) {
-      return;
-    }
-
     this.deleteCandidate.set(null);
   }
 
@@ -531,16 +601,9 @@ export class Institutions implements OnInit {
     const institution =
       this.deleteCandidate();
 
-    if (
-      !institution ||
-      this.deleting() ||
-      !this.canManage()
-    ) {
-      return;
-    }
+    if (!institution) return;
 
     this.deleting.set(true);
-    this.clearMessages();
 
     this.institutionService
       .delete(institution.id)
@@ -548,68 +611,144 @@ export class Institutions implements OnInit {
         next: response => {
           this.deleting.set(false);
           this.deleteCandidate.set(null);
-
-          this.institutions.update(
-            institutions =>
-              institutions.filter(
-                item =>
-                  item.id !== institution.id
-              )
-          );
-
           this.successMessage.set(
             response.message
           );
-
-          this.clearSuccessMessageLater();
+          this.loadInstitutions();
         },
-
         error: error => {
           this.deleting.set(false);
-
           this.errorMessage.set(
-            error?.error?.message ??
-            'No fue posible eliminar la institución.'
+            this.extractError(
+              error,
+              'No fue posible eliminar la institución.'
+            )
           );
         }
       });
   }
 
-  institutionIcon(
+  closeCredentials(): void {
+    this.portalCredentials.set(null);
+  }
+
+  copyCredentials(): void {
+    const credentials =
+      this.portalCredentials();
+
+    if (!credentials) return;
+
+    navigator.clipboard.writeText(
+      `Correo: ${credentials.email}\nContraseña temporal: ${credentials.temporaryPassword}`
+    );
+  }
+
+  typeLabel(
     type: InstitutionType
   ): string {
-    switch (type) {
-      case 'Universidad':
-        return '🎓';
+    return institutionTypeLabel(type);
+  }
 
-      case 'Preparatoria':
-        return '📘';
+  addressText(
+    institution: Institution
+  ): string {
+    return formatAddress(
+      institution.address
+    );
+  }
 
-      case 'Guardería':
-        return '🧸';
+  private applyAddressValidators(): void {
+    const controls = [
+      this.form.controls.street,
+      this.form.controls.exteriorNumber,
+      this.form.controls.neighborhood,
+      this.form.controls.postalCode,
+      this.form.controls.city,
+      this.form.controls.state
+    ];
 
-      case 'Asociación':
-        return '🤝';
+    controls.forEach(control => {
+      this.form.controls.hasAddress.value
+        ? control.addValidators(
+            Validators.required
+          )
+        : control.removeValidators(
+            Validators.required
+          );
 
-      case 'Fundación':
-        return '💚';
+      control.updateValueAndValidity({
+        emitEvent: false
+      });
+    });
+  }
 
-      case 'Centro educativo':
-        return '📚';
+  private applyPasswordValidators(): void {
+    const password =
+      this.form.controls.temporaryPassword;
 
-      default:
-        return '🏫';
+    if (
+      !this.editingInstitution() &&
+      this.form.controls
+        .createPortalAccount.value &&
+      !this.form.controls
+        .autoGeneratePassword.value
+    ) {
+      password.setValidators([
+        Validators.required,
+        Validators.minLength(8)
+      ]);
+    } else {
+      password.clearValidators();
     }
+
+    password.updateValueAndValidity({
+      emitEvent: false
+    });
   }
 
-  private clearMessages(): void {
-    this.errorMessage.set('');
-    this.successMessage.set('');
+  private resetForm(): void {
+    this.form.reset({
+      name: '',
+      institutionType: 'Other',
+      responsibleFirstNames: '',
+      responsiblePaternalLastName: '',
+      responsibleMaternalLastName: '',
+      responsibleEmail: '',
+      responsiblePhone: '',
+      responsiblePosition: '',
+      estimatedStudents: 0,
+      notes: '',
+      createPortalAccount: true,
+      autoGeneratePassword: true,
+      temporaryPassword: '',
+      hasAddress: false,
+      street: '',
+      exteriorNumber: '',
+      interiorNumber: '',
+      neighborhood: '',
+      postalCode: '',
+      city: '',
+      state: '',
+      country: 'México',
+      references: '',
+      isActive: true
+    });
+
+    this.applyAddressValidators();
+    this.applyPasswordValidators();
   }
 
-  private clearSuccessMessageLater(): void {
-    window.setTimeout(() => {
-      this.successMessage.set('');
-    }, 3500);
+  private extractError(
+    error: any,
+    fallback: string
+  ): string {
+    const errors =
+      error?.error?.errors;
+
+    return Array.isArray(errors) &&
+      errors.length > 0
+      ? errors.join(' · ')
+      : error?.error?.message ??
+          fallback;
   }
 }
