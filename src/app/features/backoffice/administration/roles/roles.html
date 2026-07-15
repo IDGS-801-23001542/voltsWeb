@@ -1,0 +1,279 @@
+<section class="roles-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">Administración</span>
+      <h1>Roles y permisos</h1>
+      <p>
+        Cada rol muestra únicamente los permisos que realmente
+        puede recibir.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreate()"
+    >
+      ＋ Nuevo rol
+    </button>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <section class="state-card">
+      Cargando roles...
+    </section>
+  } @else {
+    <section class="roles-grid">
+      @for (role of roles(); track role.id) {
+        <article class="role-card">
+          <small>
+            {{ role.isActive ? 'Activo' : 'Inactivo' }}
+          </small>
+
+          <h2>{{ role.name }}</h2>
+          <p>{{ role.description }}</p>
+
+          <strong>{{ permissionSummary(role) }}</strong>
+
+          <footer>
+            <button
+              type="button"
+              (click)="openEdit(role)"
+            >
+              ✏️ Editar
+            </button>
+
+            <button
+              type="button"
+              class="danger-button"
+              [disabled]="isProtectedRole(role)"
+              (click)="delete(role)"
+            >
+              🗑️ Eliminar
+            </button>
+          </footer>
+        </article>
+      }
+    </section>
+  }
+</section>
+
+@if (formOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="closeForm()"
+  >
+    <section
+      class="role-modal"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">Configuración</span>
+          <h2>
+            {{
+              editingRole()
+                ? 'Editar rol'
+                : 'Nuevo rol'
+            }}
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          (click)="closeForm()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
+        @if (formErrorMessage()) {
+          <div class="message error-message">
+            ⚠ {{ formErrorMessage() }}
+          </div>
+        }
+
+        @if (isEditingAdmin()) {
+          <div class="notice">
+            Admin conserva acceso total. Sus permisos son
+            informativos y no pueden quitarse.
+          </div>
+        }
+
+        @if (
+          editingRole()?.name === 'Employee'
+        ) {
+          <div class="notice">
+            Employee solo recibe permisos operativos. Nunca
+            verá administración de usuarios, roles o permisos.
+          </div>
+        }
+
+        <div class="form-grid">
+          <label>
+            Nombre
+            <input formControlName="name" />
+          </label>
+
+          <label>
+            Estado
+            <select formControlName="isActive">
+              <option [ngValue]="true">
+                Activo
+              </option>
+              <option [ngValue]="false">
+                Inactivo
+              </option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          Descripción
+          <textarea
+            rows="3"
+            formControlName="description"
+          ></textarea>
+        </label>
+
+        <header class="permissions-heading">
+          <div>
+            <h3>Permisos disponibles</h3>
+            <p>
+              Los permisos que no correspondan al tipo de rol
+              no se muestran ni pueden enviarse.
+            </p>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              [disabled]="isEditingAdmin()"
+              (click)="selectAllPermissions()"
+            >
+              Marcar todos
+            </button>
+
+            <button
+              type="button"
+              [disabled]="isEditingAdmin()"
+              (click)="clearAllPermissions()"
+            >
+              Limpiar
+            </button>
+          </div>
+        </header>
+
+        @for (
+          group of permissionGroups();
+          track group.name
+        ) {
+          <article class="permission-group">
+            <header>
+              <div>
+                <h4>{{ group.name }}</h4>
+                <small>
+                  {{ groupSelectedCount(group) }}
+                  de
+                  {{ group.permissions.length }}
+                </small>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  [disabled]="isEditingAdmin()"
+                  (click)="selectGroup(group)"
+                >
+                  Marcar grupo
+                </button>
+
+                <button
+                  type="button"
+                  [disabled]="isEditingAdmin()"
+                  (click)="clearGroup(group)"
+                >
+                  Limpiar
+                </button>
+              </div>
+            </header>
+
+            <div class="permission-grid">
+              @for (
+                permission of group.permissions;
+                track permission.code
+              ) {
+                <label
+                  class="permission-card"
+                  [class.selected]="
+                    hasPermission(
+                      permission.code
+                    )
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    [checked]="
+                      hasPermission(
+                        permission.code
+                      )
+                    "
+                    [disabled]="isEditingAdmin()"
+                    (change)="
+                      togglePermission(
+                        permission.code
+                      )
+                    "
+                  />
+
+                  <span>
+                    <strong>
+                      {{ permission.label }}
+                    </strong>
+
+                    <small>
+                      {{ permission.description }}
+                    </small>
+                  </span>
+                </label>
+              }
+            </div>
+          </article>
+        }
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            (click)="closeForm()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            Guardar
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}

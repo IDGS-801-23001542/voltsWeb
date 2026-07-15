@@ -1,0 +1,298 @@
+:host {
+  display: block;
+}
+
+.analytics-page {
+  width: min(100%, 1500px);
+  margin: 0 auto;
+}
+
+.page-heading,
+.panel,
+.metric-grid article,
+.state {
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  background: #ffffff;
+  box-shadow:
+    0 14px 34px
+    rgba(15, 23, 42, 0.05);
+}
+
+.page-heading {
+  margin-bottom: 1rem;
+  padding: 1.3rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-heading span,
+.panel header span {
+  color: #16a34a;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-heading h1,
+.panel h2 {
+  margin: 0.25rem 0;
+  color: #17211a;
+}
+
+.page-heading p {
+  margin: 0;
+  color: #64748b;
+}
+
+button {
+  min-height: 42px;
+  padding: 0 1rem;
+  border: none;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #16a34a;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.metric-grid {
+  margin-bottom: 1rem;
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.metric-grid article {
+  padding: 1rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.metric-grid small {
+  color: #64748b;
+  font-weight: 800;
+}
+
+.metric-grid strong {
+  color: #17211a;
+  font-size: 1.35rem;
+}
+
+.panel {
+  padding: 1.1rem;
+}
+
+.panel header {
+  margin-bottom: 1rem;
+}
+
+.chart-grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.funnel {
+  display: grid;
+  grid-template-columns:
+    repeat(7, auto);
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.funnel article,
+.conversion-grid article {
+  padding: 1rem;
+  text-align: center;
+  border-radius: 0.9rem;
+  background: #f8fafc;
+}
+
+.funnel small,
+.conversion-grid small {
+  display: block;
+  color: #64748b;
+}
+
+.funnel strong,
+.conversion-grid strong {
+  color: #17211a;
+  font-size: 1.6rem;
+}
+
+.conversion-grid {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.line-panel svg {
+  width: 100%;
+  min-height: 220px;
+  overflow: visible;
+}
+
+.grid-line {
+  fill: none;
+  stroke: #cbd5e1;
+  stroke-width: 1;
+}
+
+.chart-line {
+  fill: none;
+  stroke: #16a34a;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.secondary-line {
+  stroke: #7c3aed;
+}
+
+.axis-labels {
+  display: grid;
+  grid-template-columns:
+    repeat(8, minmax(0, 1fr));
+  color: #94a3b8;
+  font-size: 0.58rem;
+  text-align: center;
+}
+
+.bar-list,
+.ranking-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bar-list > article > div:first-child {
+  margin-bottom: 0.35rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.bar-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.bar-track span {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      #22c55e,
+      #15803d
+    );
+}
+
+.ranking-list article {
+  padding: 0.75rem;
+  display: grid;
+  grid-template-columns:
+    32px 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid #edf2f7;
+  border-radius: 0.85rem;
+}
+
+.ranking-list b {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 0.7rem;
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.ranking-list div {
+  display: grid;
+}
+
+.ranking-list small {
+  color: #94a3b8;
+}
+
+.state {
+  min-height: 300px;
+  display: grid;
+  place-items: center;
+}
+
+.error {
+  color: #991b1b;
+}
+
+:host-context(body.night-mode) .page-heading,
+:host-context(body.night-mode) .panel,
+:host-context(body.night-mode) .metric-grid article,
+:host-context(body.night-mode) .state {
+  color: #f8fafc;
+  border-color: #2d263d;
+  background: #151519;
+}
+
+:host-context(body.night-mode) .page-heading h1,
+:host-context(body.night-mode) .panel h2,
+:host-context(body.night-mode) .metric-grid strong,
+:host-context(body.night-mode) .funnel strong,
+:host-context(body.night-mode) .conversion-grid strong {
+  color: #f8fafc;
+}
+
+:host-context(body.night-mode) .funnel article,
+:host-context(body.night-mode) .conversion-grid article,
+:host-context(body.night-mode) .ranking-list article {
+  border-color: #2d263d;
+  background: #101014;
+}
+
+@media (max-width: 1050px) {
+  .metric-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .page-heading {
+    flex-direction: column;
+  }
+
+  .funnel {
+    grid-template-columns: 1fr;
+  }
+
+  .funnel > span {
+    text-align: center;
+    transform: rotate(90deg);
+  }
+
+  .conversion-grid,
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .axis-labels {
+    font-size: 0.5rem;
+  }
+}

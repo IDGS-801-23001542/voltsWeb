@@ -1,0 +1,34 @@
+export type LicenseStatus =
+  | 'Available'
+  | 'Active'
+  | 'Expired'
+  | 'Revoked';
+
+export interface License {
+  id: string;
+  licenseCode: string;
+  saleId: string;
+  saleFolio: string;
+  orderId: string;
+  orderFolio: string;
+  saleDetailId: string;
+  productId: string;
+  productName: string;
+  commercialPlanId: string;
+  commercialPlanName: string;
+  commercialPackageId: string;
+  commercialPackageName: string;
+  recipientType: 'Customer' | 'Institution';
+  customerId?: string | null;
+  institutionId?: string | null;
+  recipientName: string;
+  status: LicenseStatus;
+  warrantyStartDate: string;
+  warrantyEndDate: string;
+  activationDate?: string | null;
+  expirationDate?: string | null;
+  assignedToName?: string | null;
+  assignedToEmail?: string | null;
+  deviceSerialNumber?: string | null;
+  createdAt: string;
+}

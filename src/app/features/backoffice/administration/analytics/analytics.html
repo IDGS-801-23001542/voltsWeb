@@ -1,0 +1,339 @@
+<section class="analytics-page">
+  <header class="page-heading">
+    <div>
+      <span>Administración</span>
+      <h1>Analítica VOLTS</h1>
+      <p>
+        Conversión comercial, ingresos, compras,
+        licencias, producción y desempeño por producto.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      (click)="load()"
+      [disabled]="loading()"
+    >
+      ↻ Actualizar
+    </button>
+  </header>
+
+  @if (loading()) {
+    <div class="state">
+      Cargando indicadores y gráficas...
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state error">
+      {{ errorMessage() }}
+    </div>
+  } @else if (overview(); as data) {
+    <section class="metric-grid">
+      <article>
+        <small>Ingresos</small>
+        <strong>
+          {{
+            data.totalRevenue
+              | currency:'MXN':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+      <article>
+        <small>Compras</small>
+        <strong>
+          {{
+            data.totalPurchases
+              | currency:'MXN':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+      <article>
+        <small>Margen comercial bruto</small>
+        <strong>
+          {{
+            data.grossCommercialMargin
+              | currency:'MXN':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+
+      <article>
+        <small>Ticket promedio</small>
+        <strong>
+          {{
+            data.averageTicket
+              | currency:'MXN':'symbol':'1.2-2'
+          }}
+        </strong>
+      </article>
+    </section>
+
+    <section class="panel funnel-panel">
+      <header>
+        <div>
+          <span>Embudo comercial</span>
+          <h2>De cotización a venta</h2>
+        </div>
+      </header>
+
+      <div class="funnel">
+        <article>
+          <small>Cotizaciones</small>
+          <strong>{{ data.funnel.quotes }}</strong>
+        </article>
+        <span>→</span>
+        <article>
+          <small>Aprobadas</small>
+          <strong>{{ data.funnel.approvedQuotes }}</strong>
+        </article>
+        <span>→</span>
+        <article>
+          <small>Pedidos</small>
+          <strong>{{ data.funnel.orders }}</strong>
+        </article>
+        <span>→</span>
+        <article>
+          <small>Ventas</small>
+          <strong>{{ data.funnel.sales }}</strong>
+        </article>
+      </div>
+
+      <div class="conversion-grid">
+        <article>
+          <small>Aprobación</small>
+          <strong>
+            {{
+              data.funnel.approvalRate
+                | number:'1.0-2'
+            }}%
+          </strong>
+        </article>
+
+        <article>
+          <small>Cotización → pedido</small>
+          <strong>
+            {{
+              data.funnel.quoteToOrderRate
+                | number:'1.0-2'
+            }}%
+          </strong>
+        </article>
+
+        <article>
+          <small>Pedido → venta</small>
+          <strong>
+            {{
+              data.funnel.orderToSaleRate
+                | number:'1.0-2'
+            }}%
+          </strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="chart-grid">
+      <article class="panel line-panel">
+        <header>
+          <div>
+            <span>Tendencia</span>
+            <h2>Ingresos mensuales</h2>
+          </div>
+        </header>
+
+        <svg
+          viewBox="0 0 720 220"
+          role="img"
+          aria-label="Gráfica de ingresos mensuales"
+        >
+          <polyline
+            class="grid-line"
+            points="18,202 702,202"
+          />
+          <polyline
+            class="chart-line"
+            [attr.points]="revenuePoints()"
+          />
+        </svg>
+
+        <div class="axis-labels">
+          @for (
+            item of data.monthlyRevenue;
+            track item.label
+          ) {
+            <span>{{ item.label }}</span>
+          }
+        </div>
+      </article>
+
+      <article class="panel line-panel">
+        <header>
+          <div>
+            <span>Inversión</span>
+            <h2>Compras mensuales</h2>
+          </div>
+        </header>
+
+        <svg
+          viewBox="0 0 720 220"
+          role="img"
+          aria-label="Gráfica de compras mensuales"
+        >
+          <polyline
+            class="grid-line"
+            points="18,202 702,202"
+          />
+          <polyline
+            class="chart-line secondary-line"
+            [attr.points]="purchasePoints()"
+          />
+        </svg>
+
+        <div class="axis-labels">
+          @for (
+            item of data.monthlyPurchases;
+            track item.label
+          ) {
+            <span>{{ item.label }}</span>
+          }
+        </div>
+      </article>
+    </section>
+
+    <section class="chart-grid">
+      <article class="panel">
+        <header>
+          <div>
+            <span>Distribución</span>
+            <h2>Estados de pedidos</h2>
+          </div>
+        </header>
+
+        <div class="bar-list">
+          @for (
+            item of data.orderStatuses;
+            track item.key
+          ) {
+            <article>
+              <div>
+                <span>{{ item.label }}</span>
+                <strong>{{ item.count }}</strong>
+              </div>
+              <div class="bar-track">
+                <span
+                  [style.width.%]="
+                    barWidth(
+                      item.value,
+                      data.orderStatuses
+                    )
+                  "
+                ></span>
+              </div>
+            </article>
+          }
+        </div>
+      </article>
+
+      <article class="panel">
+        <header>
+          <div>
+            <span>Distribución</span>
+            <h2>Estados de licencias</h2>
+          </div>
+        </header>
+
+        <div class="bar-list">
+          @for (
+            item of data.licenseStatuses;
+            track item.key
+          ) {
+            <article>
+              <div>
+                <span>{{ item.label }}</span>
+                <strong>{{ item.count }}</strong>
+              </div>
+              <div class="bar-track">
+                <span
+                  [style.width.%]="
+                    barWidth(
+                      item.value,
+                      data.licenseStatuses
+                    )
+                  "
+                ></span>
+              </div>
+            </article>
+          }
+        </div>
+      </article>
+    </section>
+
+    <section class="chart-grid">
+      <article class="panel">
+        <header>
+          <div>
+            <span>Ranking</span>
+            <h2>Productos por ingresos</h2>
+          </div>
+        </header>
+
+        <div class="ranking-list">
+          @for (
+            item of data.topProducts;
+            track item.key;
+            let index = $index
+          ) {
+            <article>
+              <b>{{ index + 1 }}</b>
+              <div>
+                <strong>{{ item.label }}</strong>
+                <small>
+                  {{ item.count }} unidades
+                </small>
+              </div>
+              <span>
+                {{
+                  item.value
+                    | currency:'MXN':'symbol':'1.2-2'
+                }}
+              </span>
+            </article>
+          }
+        </div>
+      </article>
+
+      <article class="panel">
+        <header>
+          <div>
+            <span>Ranking</span>
+            <h2>Clientes por facturación</h2>
+          </div>
+        </header>
+
+        <div class="ranking-list">
+          @for (
+            item of data.topCustomers;
+            track item.key;
+            let index = $index
+          ) {
+            <article>
+              <b>{{ index + 1 }}</b>
+              <div>
+                <strong>{{ item.label }}</strong>
+                <small>
+                  {{ item.count }} ventas
+                </small>
+              </div>
+              <span>
+                {{
+                  item.value
+                    | currency:'MXN':'symbol':'1.2-2'
+                }}
+              </span>
+            </article>
+          }
+        </div>
+      </article>
+    </section>
+  }
+</section>

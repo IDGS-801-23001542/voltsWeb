@@ -1,0 +1,373 @@
+<section class="management-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">Gestión comercial</span>
+      <h1>Clientes</h1>
+      <p>Administra clientes y su acceso al portal.</p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateForm()"
+    >
+      ＋ Nuevo cliente
+    </button>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="summary-grid">
+    <article class="summary-card">
+      <span>👥</span>
+      <div>
+        <small>Total</small>
+        <strong>{{ customers().length }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>✅</span>
+      <div>
+        <small>Activos</small>
+        <strong>{{ activeCustomers() }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>⏸️</span>
+      <div>
+        <small>Inactivos</small>
+        <strong>{{ inactiveCustomers() }}</strong>
+      </div>
+    </article>
+  </div>
+
+  <section class="panel">
+    <div class="toolbar">
+      <label class="search-control">
+        <span>🔎</span>
+        <input
+          type="search"
+          placeholder="Buscar cliente..."
+          [value]="searchTerm()"
+          (input)="updateSearch($event)"
+        />
+      </label>
+
+      <select
+        [value]="statusFilter()"
+        (change)="updateStatusFilter($event)"
+      >
+        <option value="all">Todos</option>
+        <option value="active">Activos</option>
+        <option value="inactive">Inactivos</option>
+      </select>
+    </div>
+
+    @if (loading()) {
+      <div class="state">Cargando clientes...</div>
+    } @else {
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Contacto</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              customer of filteredCustomers();
+              track customer.id
+            ) {
+              <tr>
+                <td>
+                  <strong>{{ customer.fullName }}</strong>
+                  <small>{{ addressText(customer) }}</small>
+                </td>
+                <td>
+                  <strong>{{ customer.email }}</strong>
+                  <small>{{ customer.phone || 'Sin teléfono' }}</small>
+                </td>
+                <td>
+                  <span
+                    class="badge"
+                    [class.inactive]="!customer.isActive"
+                  >
+                    {{ customer.isActive ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td class="actions">
+                  <button
+                    type="button"
+                    (click)="openDetail(customer)"
+                  >
+                    👁️
+                  </button>
+                  <button
+                    type="button"
+                    (click)="openEditForm(customer)"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    type="button"
+                    (click)="toggleStatus(customer)"
+                  >
+                    {{ customer.isActive ? '⏸️' : '▶️' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="danger"
+                    (click)="requestDelete(customer)"
+                  >
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>
+
+@if (formOpen()) {
+  <div class="modal-backdrop" (click)="closeForm()">
+    <section
+      class="modal-card"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <h2>
+          {{ editingCustomer() ? 'Editar cliente' : 'Crear cliente' }}
+        </h2>
+        <button type="button" (click)="closeForm()">✕</button>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        @if (formErrorMessage()) {
+          <div class="message error-message">
+            ⚠ {{ formErrorMessage() }}
+          </div>
+        }
+
+        <h3>Datos personales</h3>
+
+        <div class="form-grid three">
+          <label>
+            Nombres *
+            <input formControlName="firstNames" />
+          </label>
+          <label>
+            Apellido paterno *
+            <input formControlName="paternalLastName" />
+          </label>
+          <label>
+            Apellido materno
+            <input formControlName="maternalLastName" />
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Correo *
+            <input
+              type="email"
+              formControlName="email"
+            />
+          </label>
+          <label>
+            Teléfono
+            <input
+              type="tel"
+              maxlength="10"
+              formControlName="phone"
+            />
+          </label>
+        </div>
+
+        @if (!editingCustomer()) {
+          <h3>Acceso al portal</h3>
+
+          <label class="checkbox">
+            <input
+              type="checkbox"
+              formControlName="createPortalAccount"
+            />
+            Crear cuenta de acceso al portal
+          </label>
+
+          @if (form.controls.createPortalAccount.value) {
+            <div class="portal-access-box">
+              <p>
+                La cuenta usará el mismo correo del cliente.
+              </p>
+
+              <label class="checkbox">
+                <input
+                  type="checkbox"
+                  formControlName="autoGeneratePassword"
+                />
+                Generar contraseña temporal automáticamente
+              </label>
+
+              @if (!form.controls.autoGeneratePassword.value) {
+                <label>
+                  Contraseña temporal *
+                  <input
+                    type="text"
+                    minlength="8"
+                    formControlName="temporaryPassword"
+                  />
+                </label>
+              }
+            </div>
+          }
+        }
+
+        <label class="checkbox">
+          <input
+            type="checkbox"
+            formControlName="hasAddress"
+          />
+          Capturar dirección
+        </label>
+
+        @if (form.controls.hasAddress.value) {
+          <h3>Dirección</h3>
+
+          <div class="form-grid three">
+            <label>Calle *<input formControlName="street" /></label>
+            <label>Número exterior *<input formControlName="exteriorNumber" /></label>
+            <label>Número interior<input formControlName="interiorNumber" /></label>
+            <label>Colonia *<input formControlName="neighborhood" /></label>
+            <label>Código postal *<input maxlength="5" formControlName="postalCode" /></label>
+            <label>Ciudad *<input formControlName="city" /></label>
+            <label>Estado *<input formControlName="state" /></label>
+            <label>País<input formControlName="country" /></label>
+          </div>
+
+          <label>
+            Referencias
+            <textarea rows="3" formControlName="references"></textarea>
+          </label>
+        }
+
+        @if (editingCustomer()) {
+          <label class="checkbox">
+            <input
+              type="checkbox"
+              formControlName="isActive"
+            />
+            Cliente activo
+          </label>
+        }
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="closeForm()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (portalCredentials(); as credentials) {
+  <div class="modal-backdrop">
+    <section class="confirmation-card credentials-card">
+      <span class="credentials-icon">🔑</span>
+      <h2>Cuenta creada correctamente</h2>
+      <p>
+        Esta contraseña temporal se mostrará una sola vez.
+      </p>
+
+      <div class="credential-row">
+        <small>Correo</small>
+        <strong>{{ credentials.email }}</strong>
+      </div>
+
+      <div class="credential-row">
+        <small>Contraseña temporal</small>
+        <strong>{{ credentials.temporaryPassword }}</strong>
+      </div>
+
+      <p class="credential-warning">
+        El usuario deberá cambiarla desde su cuenta.
+      </p>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="copyCredentials()"
+        >
+          📋 Copiar
+        </button>
+        <button
+          type="button"
+          class="primary-button"
+          (click)="closeCredentials()"
+        >
+          Aceptar
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (detailCustomer(); as customer) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <section class="modal-card detail" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>Detalle del cliente</h2>
+        <button type="button" (click)="closeDetail()">✕</button>
+      </header>
+      <div class="detail-grid">
+        <article><small>Nombre</small><strong>{{ customer.fullName }}</strong></article>
+        <article><small>Correo</small><strong>{{ customer.email }}</strong></article>
+        <article class="wide"><small>Dirección</small><strong>{{ addressText(customer) }}</strong></article>
+      </div>
+    </section>
+  </div>
+}
+
+@if (deleteCandidate(); as customer) {
+  <div class="modal-backdrop" (click)="cancelDelete()">
+    <section class="confirmation-card" (click)="$event.stopPropagation()">
+      <h2>Eliminar cliente</h2>
+      <p>¿Eliminar a <strong>{{ customer.fullName }}</strong>?</p>
+      <div class="form-actions">
+        <button type="button" class="secondary-button" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="danger-button" (click)="confirmDelete()">Eliminar</button>
+      </div>
+    </section>
+  </div>
+}

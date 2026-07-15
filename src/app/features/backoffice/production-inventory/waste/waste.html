@@ -1,0 +1,679 @@
+<section class="waste-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Producción e inventario
+      </span>
+
+      <h1>Merma y recuperación</h1>
+
+      <p>
+        Controla sobrantes reutilizables, materiales
+        vendibles, reciclaje y desechos finales.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateModal()"
+    >
+      ＋ Registrar merma manual
+    </button>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  @if (summary(); as data) {
+    <div class="summary-grid">
+      <article class="summary-card">
+        <span>♻️</span>
+
+        <div>
+          <small>Registros</small>
+          <strong>{{ data.totalRecords }}</strong>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <span>📦</span>
+
+        <div>
+          <small>Disponibles</small>
+          <strong>
+            {{ data.availableRecords }}
+          </strong>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <span>💸</span>
+
+        <div>
+          <small>Costo estimado</small>
+
+          <strong>
+            {{
+              data.estimatedWasteCost
+                | currency:'MXN'
+            }}
+          </strong>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <span>💰</span>
+
+        <div>
+          <small>Valor recuperado</small>
+
+          <strong>
+            {{
+              data.recoveredValue
+                | currency:'MXN'
+            }}
+          </strong>
+        </div>
+      </article>
+    </div>
+  }
+
+  <section class="waste-panel">
+    <div class="panel-toolbar">
+      <div class="search-control">
+        <span>🔎</span>
+
+        <input
+          type="search"
+          placeholder="Buscar material, folio o motivo..."
+          [value]="searchTerm()"
+          (input)="updateSearch($event)"
+        />
+      </div>
+
+      <select
+        [value]="classificationFilter()"
+        (change)="updateClassificationFilter($event)"
+      >
+        <option value="all">
+          Todas las clasificaciones
+        </option>
+
+        @for (
+          classification of classifications;
+          track classification.value
+        ) {
+          <option [value]="classification.value">
+            {{ classification.label }}
+          </option>
+        }
+      </select>
+
+      <select
+        [value]="statusFilter()"
+        (change)="updateStatusFilter($event)"
+      >
+        <option value="all">
+          Todos los estados
+        </option>
+
+        <option value="available">
+          Con cantidad disponible
+        </option>
+
+        <option value="completed">
+          Sin cantidad disponible
+        </option>
+      </select>
+    </div>
+
+    @if (loading()) {
+      <div class="state-container">
+        <span class="loader"></span>
+        <p>Cargando registros...</p>
+      </div>
+    } @else if (
+      filteredWastes().length === 0
+    ) {
+      <div class="state-container">
+        <span class="state-icon">♻️</span>
+
+        <strong>
+          No hay registros de merma
+        </strong>
+
+        <p>
+          Las mermas de producción aparecerán aquí
+          automáticamente.
+        </p>
+      </div>
+    } @else {
+      <div class="waste-grid">
+        @for (
+          waste of filteredWastes();
+          track waste.id
+        ) {
+          <article class="waste-card">
+            <header class="waste-header">
+              <div>
+                <small>
+                  {{ waste.rawMaterialCode }}
+                </small>
+
+                <h2>
+                  {{ waste.rawMaterialName }}
+                </h2>
+              </div>
+
+              <span class="status-badge">
+                {{ getStatusLabel(waste.status) }}
+              </span>
+            </header>
+
+            <div class="badge-row">
+              <span class="classification-badge">
+                {{
+                  getClassificationLabel(
+                    waste.classification
+                  )
+                }}
+              </span>
+
+              <span class="destination-badge">
+                {{
+                  getDestinationLabel(
+                    waste.destination
+                  )
+                }}
+              </span>
+            </div>
+
+            <div class="waste-data">
+              <div>
+                <small>Generada</small>
+
+                <strong>
+                  {{ waste.quantityGenerated }}
+                  {{ waste.unitSymbol }}
+                </strong>
+              </div>
+
+              <div>
+                <small>Disponible</small>
+
+                <strong>
+                  {{ waste.availableQuantity }}
+                  {{ waste.unitSymbol }}
+                </strong>
+              </div>
+
+              <div>
+                <small>Costo estimado</small>
+
+                <strong>
+                  {{
+                    waste.estimatedCost
+                      | currency:'MXN'
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <small>Recuperado</small>
+
+                <strong>
+                  {{
+                    waste.recoveredValue
+                      | currency:'MXN'
+                  }}
+                </strong>
+              </div>
+            </div>
+
+            @if (waste.productionFolio) {
+              <div class="production-reference">
+                Producción:
+                <strong>
+                  {{ waste.productionFolio }}
+                </strong>
+              </div>
+            }
+
+            <p class="reason">
+              {{ waste.reason }}
+            </p>
+
+            <div class="waste-actions">
+              <button
+                type="button"
+                (click)="openDetail(waste)"
+              >
+                👁️ Detalle
+              </button>
+
+              @if (waste.availableQuantity > 0) {
+                <button
+                  type="button"
+                  class="process-button"
+                  (click)="openDispositionModal(waste)"
+                >
+                  ♻️ Procesar
+                </button>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>
+
+@if (createModalOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="closeCreateModal()"
+  >
+    <section
+      class="modal-card"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            Ajuste manual
+          </span>
+
+          <h2>Registrar merma</h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeCreateModal()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <form
+        [formGroup]="createForm"
+        (ngSubmit)="submitCreate()"
+      >
+        <div class="form-grid">
+          <div class="form-field full-field">
+            <label>Materia prima *</label>
+
+            <select formControlName="rawMaterialId">
+              <option value="">
+                Selecciona un material
+              </option>
+
+              @for (
+                material of materials();
+                track material.id
+              ) {
+                <option [value]="material.id">
+                  {{ material.code }} -
+                  {{ material.name }}
+                  · {{ material.currentStock }}
+                  {{ material.unitSymbol }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>
+              Cantidad *
+              @if (
+                getSelectedCreateMaterial();
+                as material
+              ) {
+                ({{ material.unitSymbol }})
+              }
+            </label>
+
+            <input
+              type="number"
+              min="0.0001"
+              [attr.step]="
+                quantityStepFor(
+                  getSelectedCreateMaterial()
+                )
+              "
+              formControlName="quantity" 
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Valor recuperable</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="estimatedRecoveryValue"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Clasificación *</label>
+
+            <select formControlName="classification">
+              @for (
+                classification of classifications;
+                track classification.value
+              ) {
+                <option [value]="classification.value">
+                  {{ classification.label }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Destino inicial *</label>
+
+            <select formControlName="destination">
+              @for (
+                destination of destinations;
+                track destination.value
+              ) {
+                <option [value]="destination.value">
+                  {{ destination.label }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field full-field">
+            <label>Motivo *</label>
+
+            <input
+              type="text"
+              formControlName="reason"
+              placeholder="Material dañado, corte incorrecto o deterioro."
+            />
+          </div>
+
+          <div class="form-field full-field">
+            <label>Observaciones</label>
+
+            <textarea
+              rows="4"
+              formControlName="notes"
+            ></textarea>
+          </div>
+        </div>
+
+        <p class="warning-box">
+          La merma manual descontará esta cantidad
+          del inventario normal de materia prima.
+        </p>
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="closeCreateModal()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            {{
+              saving()
+                ? 'Registrando...'
+                : 'Registrar merma'
+            }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (
+  dispositionModalOpen() &&
+  selectedWaste();
+  as waste
+) {
+  <div
+    class="modal-backdrop"
+    (click)="closeDispositionModal()"
+  >
+    <section
+      class="modal-card"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            Disposición de merma
+          </span>
+
+          <h2>{{ waste.rawMaterialName }}</h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeDispositionModal()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <form
+        [formGroup]="dispositionForm"
+        (ngSubmit)="submitDisposition()"
+      >
+        <div class="available-box">
+          Disponible:
+          <strong>
+            {{ waste.availableQuantity }}
+            {{ waste.unitSymbol }}
+          </strong>
+        </div>
+
+        <div class="form-field">
+          <label>Acción *</label>
+
+          <select formControlName="action">
+            @for (
+              action of actions;
+              track action.value
+            ) {
+              <option [value]="action.value">
+                {{ action.label }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Cantidad *</label>
+
+          <input
+            type="number"
+            min="0.0001"
+            [max]="waste.availableQuantity"
+            [attr.step]="
+              quantityStepFor(
+                selectedWaste()
+              )
+            "
+            formControlName="quantity" 
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Valor recuperado</label>
+
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            formControlName="recoveredValue"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Observaciones</label>
+
+          <textarea
+            rows="4"
+            formControlName="notes"
+          ></textarea>
+        </div>
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="closeDispositionModal()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="processing()"
+          >
+            {{
+              processing()
+                ? 'Procesando...'
+                : 'Confirmar acción'
+            }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (
+  detailModalOpen() &&
+  selectedWaste();
+  as waste
+) {
+  <div
+    class="modal-backdrop"
+    (click)="closeDetail()"
+  >
+    <section
+      class="modal-card"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            Detalle de merma
+          </span>
+
+          <h2>{{ waste.rawMaterialName }}</h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeDetail()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <div class="detail-content">
+        <div class="detail-grid">
+          <div>
+            <small>Cantidad generada</small>
+            <strong>
+              {{ waste.quantityGenerated }}
+              {{ waste.unitSymbol }}
+            </strong>
+          </div>
+
+          <div>
+            <small>Cantidad disponible</small>
+            <strong>
+              {{ waste.availableQuantity }}
+              {{ waste.unitSymbol }}
+            </strong>
+          </div>
+
+          <div>
+            <small>Clasificación</small>
+            <strong>
+              {{
+                getClassificationLabel(
+                  waste.classification
+                )
+              }}
+            </strong>
+          </div>
+
+          <div>
+            <small>Estado</small>
+            <strong>
+              {{ getStatusLabel(waste.status) }}
+            </strong>
+          </div>
+
+          <div>
+            <small>Costo estimado</small>
+            <strong>
+              {{
+                waste.estimatedCost
+                  | currency:'MXN'
+              }}
+            </strong>
+          </div>
+
+          <div>
+            <small>Valor recuperado</small>
+            <strong>
+              {{
+                waste.recoveredValue
+                  | currency:'MXN'
+              }}
+            </strong>
+          </div>
+        </div>
+
+        <div class="notes-box">
+          <strong>Motivo</strong>
+          <p>{{ waste.reason }}</p>
+
+          @if (waste.notes) {
+            <strong>Observaciones</strong>
+            <p>{{ waste.notes }}</p>
+          }
+
+          <small>
+            Registrada:
+            {{
+              waste.wasteDate
+                | date:'dd/MM/yyyy HH:mm'
+            }}
+          </small>
+        </div>
+      </div>
+    </section>
+  </div>
+}
+

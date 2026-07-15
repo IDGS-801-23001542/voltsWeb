@@ -1,0 +1,686 @@
+<section class="updates-page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Atención y contenido
+      </span>
+
+      <h1>
+        Actualizaciones
+      </h1>
+
+      <p>
+        Administra noticias, versiones y cambios
+        relacionados con Android, firmware,
+        plataforma web y el ecosistema VOLTS.
+      </p>
+    </div>
+
+    <div class="heading-actions">
+      <button
+        type="button"
+        class="secondary-button"
+        [disabled]="loading()"
+        (click)="loadUpdates()"
+      >
+        ↻ Actualizar
+      </button>
+
+      @if (auth.hasRole('Admin')) {
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openCreateForm()"
+        >
+          ＋ Nueva actualización
+        </button>
+      }
+    </div>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <span class="summary-icon">
+        📢
+      </span>
+
+      <div>
+        <small>Total</small>
+        <strong>{{ summary().total }}</strong>
+        <p>Registros creados</p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon published-icon">
+        ✅
+      </span>
+
+      <div>
+        <small>Publicadas</small>
+        <strong>
+          {{ summary().published }}
+        </strong>
+        <p>Visibles para usuarios</p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon draft-icon">
+        📝
+      </span>
+
+      <div>
+        <small>Borradores</small>
+        <strong>
+          {{ summary().drafts }}
+        </strong>
+        <p>Pendientes de publicación</p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-icon android-icon">
+        📱
+      </span>
+
+      <div>
+        <small>Android</small>
+        <strong>
+          {{ summary().android }}
+        </strong>
+        <p>Versiones móviles</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="content-panel">
+    <div class="filters">
+      <label class="search-field">
+        <span>
+          Buscar actualización
+        </span>
+
+        <div class="input-wrapper">
+          <span>🔎</span>
+
+          <input
+            type="search"
+            [formControl]="searchControl"
+            placeholder="Título, contenido o versión..."
+          />
+        </div>
+      </label>
+
+      <label class="filter-field">
+        <span>Plataforma</span>
+
+        <select
+          [formControl]="platformControl"
+        >
+          <option value="all">
+            Todas
+          </option>
+
+          @for (
+            platform of platforms;
+            track platform
+          ) {
+            <option [value]="platform">
+              {{ platformLabel(platform) }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label class="filter-field">
+        <span>Publicación</span>
+
+        <select
+          [formControl]="publicationControl"
+        >
+          <option value="all">
+            Todas
+          </option>
+
+          <option value="published">
+            Publicadas
+          </option>
+
+          <option value="draft">
+            Borradores
+          </option>
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="clear-button"
+        (click)="clearFilters()"
+      >
+        Limpiar
+      </button>
+    </div>
+
+    @if (
+      errorMessage() &&
+      !detailOpen() &&
+      !formOpen()
+    ) {
+      <div class="feedback error-feedback">
+        ⚠️ {{ errorMessage() }}
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="state-container">
+        <span class="loader"></span>
+
+        <strong>
+          Cargando actualizaciones...
+        </strong>
+
+        <p>
+          Consultando noticias y versiones
+          registradas en VOLTS.
+        </p>
+      </div>
+    } @else if (
+      filteredUpdates().length === 0
+    ) {
+      <div class="state-container">
+        <span class="state-icon">
+          📭
+        </span>
+
+        <strong>
+          No se encontraron actualizaciones
+        </strong>
+
+        <p>
+          Ajusta los filtros o crea
+          una nueva publicación.
+        </p>
+      </div>
+    } @else {
+      <div class="results-heading">
+        <strong>
+          {{ filteredUpdates().length }}
+          actualizaciones
+        </strong>
+
+        <span>
+          de {{ summary().total }}
+          registradas
+        </span>
+      </div>
+
+      <div class="updates-list">
+        @for (
+          update of filteredUpdates();
+          track update.id
+        ) {
+          <article
+            class="update-card"
+            [class.draft-card]="
+              !update.isPublished
+            "
+          >
+            <div class="update-icon">
+              {{
+                platformIcon(
+                  update.platform
+                )
+              }}
+            </div>
+
+            <div class="update-main">
+              <div class="update-heading">
+                <div>
+                  <span class="platform-label">
+                    {{
+                      platformLabel(
+                        update.platform
+                      )
+                    }}
+                  </span>
+
+                  <h2>
+                    {{ update.title }}
+                  </h2>
+                </div>
+
+                <span
+                  class="publication-chip"
+                  [class.published-chip]="
+                    update.isPublished
+                  "
+                  [class.draft-chip]="
+                    !update.isPublished
+                  "
+                >
+                  {{
+                    update.isPublished
+                      ? 'Publicada'
+                      : 'Borrador'
+                  }}
+                </span>
+              </div>
+
+              <p class="content-preview">
+                {{ update.content }}
+              </p>
+
+              <div class="update-meta">
+                <span>
+                  Versión
+                  <strong>
+                    {{ update.version }}
+                  </strong>
+                </span>
+
+                <span>
+                  {{
+                    update.publishDate
+                      | date:'dd/MM/yyyy HH:mm'
+                  }}
+                </span>
+              </div>
+            </div>
+
+            <div class="update-actions">
+              <button
+                type="button"
+                class="view-button"
+                (click)="openDetails(update)"
+              >
+                Ver detalle
+              </button>
+
+              @if (auth.hasRole('Admin')) {
+                <button
+                  type="button"
+                  class="edit-button"
+                  (click)="openEditForm(update)"
+                >
+                  Editar
+                </button>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>
+
+@if (
+  detailOpen() &&
+  selectedUpdate();
+  as update
+) {
+  <div
+    class="modal-backdrop"
+    (click)="closeDetails()"
+  ></div>
+
+  <aside class="update-drawer">
+    <header class="drawer-heading">
+      <div>
+        <span class="page-label">
+          Detalle de actualización
+        </span>
+
+        <h2>
+          {{ update.title }}
+        </h2>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        (click)="closeDetails()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="drawer-content">
+      @if (successMessage()) {
+        <div class="feedback success-feedback">
+          ✅ {{ successMessage() }}
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="feedback error-feedback">
+          ⚠️ {{ errorMessage() }}
+        </div>
+      }
+
+      <section class="platform-profile">
+        <span class="profile-icon">
+          {{
+            platformIcon(
+              update.platform
+            )
+          }}
+        </span>
+
+        <div>
+          <strong>
+            {{
+              platformLabel(
+                update.platform
+              )
+            }}
+          </strong>
+
+          <span>
+            Versión {{ update.version }}
+          </span>
+        </div>
+
+        <span
+          class="publication-chip"
+          [class.published-chip]="
+            update.isPublished
+          "
+          [class.draft-chip]="
+            !update.isPublished
+          "
+        >
+          {{
+            update.isPublished
+              ? 'Publicada'
+              : 'Borrador'
+          }}
+        </span>
+      </section>
+
+      <section class="detail-section">
+        <h3>
+          Contenido de la actualización
+        </h3>
+
+        <div class="content-body">
+          {{ update.content }}
+        </div>
+      </section>
+
+      <section class="detail-section">
+        <h3>Información</h3>
+
+        <dl class="detail-grid">
+          <div>
+            <dt>Plataforma</dt>
+
+            <dd>
+              {{
+                platformLabel(
+                  update.platform
+                )
+              }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Versión</dt>
+
+            <dd>
+              {{ update.version }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Fecha de publicación</dt>
+
+            <dd>
+              {{
+                update.publishDate
+                  | date:'dd/MM/yyyy HH:mm'
+              }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Fecha de creación</dt>
+
+            <dd>
+              {{
+                update.createdAt
+                  | date:'dd/MM/yyyy HH:mm'
+              }}
+            </dd>
+          </div>
+
+          <div class="full-detail">
+            <dt>Última actualización</dt>
+
+            <dd>
+              @if (update.updatedAt) {
+                {{
+                  update.updatedAt
+                    | date:'dd/MM/yyyy HH:mm'
+                }}
+              } @else {
+                Sin modificaciones
+              }
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      @if (auth.hasRole('Admin')) {
+        <section class="detail-section">
+          <h3>Publicación</h3>
+
+          <p class="section-description">
+            Las actualizaciones publicadas podrán
+            mostrarse en el sitio y portales de VOLTS.
+          </p>
+
+          <button
+            type="button"
+            class="publication-button"
+            [disabled]="saving()"
+            (click)="togglePublication(update)"
+          >
+            {{
+              update.isPublished
+                ? '📝 Convertir en borrador'
+                : '✅ Publicar actualización'
+            }}
+          </button>
+        </section>
+      }
+    </div>
+
+    <footer class="drawer-footer">
+      @if (auth.hasRole('Admin')) {
+        <button
+          type="button"
+          class="primary-button"
+          (click)="openEditForm(update)"
+        >
+          ✏️ Editar actualización
+        </button>
+
+        <button
+          type="button"
+          class="delete-button"
+          [disabled]="saving()"
+          (click)="deleteUpdate(update)"
+        >
+          🗑️ Eliminar
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="secondary-button full-button"
+          (click)="closeDetails()"
+        >
+          Cerrar
+        </button>
+      }
+    </footer>
+  </aside>
+}
+
+@if (formOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="closeForm()"
+  ></div>
+
+  <section class="form-modal">
+    <header class="drawer-heading">
+      <div>
+        <span class="page-label">
+          {{
+            editingUpdate()
+              ? 'Editar actualización'
+              : 'Nueva actualización'
+          }}
+        </span>
+
+        <h2>
+          {{
+            editingUpdate()
+              ? 'Actualizar publicación'
+              : 'Crear publicación'
+          }}
+        </h2>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        [disabled]="saving()"
+        (click)="closeForm()"
+      >
+        ×
+      </button>
+    </header>
+
+    <form
+      class="update-form"
+      [formGroup]="form"
+      (ngSubmit)="saveUpdate()"
+    >
+      @if (errorMessage()) {
+        <div class="feedback error-feedback">
+          ⚠️ {{ errorMessage() }}
+        </div>
+      }
+
+      <div class="form-grid">
+        <label class="full-field">
+          <span>Título</span>
+
+          <input
+            type="text"
+            formControlName="title"
+            placeholder="Ej. VOLTS App 1.2.0 disponible"
+          />
+
+          @if (
+            form.controls.title.touched &&
+            form.controls.title.invalid
+          ) {
+            <small class="field-error">
+              Ingresa un título válido.
+            </small>
+          }
+        </label>
+
+        <label>
+          <span>Plataforma</span>
+
+          <select formControlName="platform">
+            @for (
+              platform of platforms;
+              track platform
+            ) {
+              <option [value]="platform">
+                {{
+                  platformLabel(
+                    platform
+                  )
+                }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Versión</span>
+
+          <input
+            type="text"
+            formControlName="version"
+            placeholder="1.0.0"
+          />
+        </label>
+
+        <label class="full-field">
+          <span>Contenido</span>
+
+          <textarea
+            rows="12"
+            formControlName="content"
+            placeholder="Describe los cambios, mejoras o novedades..."
+          ></textarea>
+
+          <small class="helper-text">
+            Puedes escribir cada cambio
+            en una línea diferente.
+          </small>
+        </label>
+      </div>
+
+      <label class="publication-option">
+        <input
+          type="checkbox"
+          formControlName="isPublished"
+        />
+
+        <span>
+          <strong>
+            Publicar actualización
+          </strong>
+
+          <small>
+            Si se desactiva, el registro se
+            guardará como borrador.
+          </small>
+        </span>
+      </label>
+
+      <footer class="form-footer">
+        <button
+          type="button"
+          class="secondary-button"
+          [disabled]="saving()"
+          (click)="closeForm()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="primary-button"
+          [disabled]="saving()"
+        >
+          {{
+            saving()
+              ? 'Guardando...'
+              : form.controls.isPublished.value
+                ? 'Guardar y publicar'
+                : 'Guardar borrador'
+          }}
+        </button>
+      </footer>
+    </form>
+  </section>
+}

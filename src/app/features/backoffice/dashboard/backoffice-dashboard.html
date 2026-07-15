@@ -1,23 +1,20 @@
 <section class="dashboard-page">
-  <div class="dashboard-heading">
+  <header class="dashboard-heading">
     <div>
       <span class="page-label">
         Panel ejecutivo
       </span>
-
       <h1>
         Hola, {{ auth.currentUser()?.fullName }}
       </h1>
-
       <p>
-        Aquí tienes un resumen general de la operación
+        Resumen administrativo, comercial y operativo
         del ecosistema VOLTS.
       </p>
     </div>
 
     <div class="current-date">
       <span>📅</span>
-
       <div>
         <small>Fecha actual</small>
         <strong>
@@ -25,163 +22,229 @@
         </strong>
       </div>
     </div>
-  </div>
+  </header>
 
   @if (loading()) {
-    <div class="dashboard-loading">
-      <span class="loader"></span>
-      <p>Cargando información del sistema...</p>
+    <div class="dashboard-state">
+      Cargando indicadores...
     </div>
   } @else if (errorMessage()) {
-    <div class="dashboard-error">
-      <span>⚠️</span>
-
-      <div>
-        <strong>No se pudo cargar el resumen</strong>
-        <p>{{ errorMessage() }}</p>
-      </div>
-
-      <button
-        type="button"
-        (click)="loadSummary()"
-      >
+    <div class="dashboard-state error">
+      {{ errorMessage() }}
+      <button type="button" (click)="loadSummary()">
         Reintentar
       </button>
     </div>
   } @else if (summary(); as data) {
-    <div class="main-statistics">
-      <article class="stat-card revenue-card">
-        <div class="stat-icon">💰</div>
+    <section class="main-statistics">
+      <article>
+        <span>Ingresos acumulados</span>
+        <strong>
+          {{
+            data.totalRevenue
+              | currency:'MXN':'symbol':'1.2-2'
+          }}
+        </strong>
+        <small>
+          Este mes:
+          {{
+            data.currentMonthRevenue
+              | currency:'MXN':'symbol':'1.2-2'
+          }}
+        </small>
+      </article>
 
-        <div>
-          <span>Ingresos acumulados</span>
+      <article>
+        <span>Ventas</span>
+        <strong>{{ data.totalSales }}</strong>
+        <small>
+          {{ data.readyForSaleOrders }}
+          pedidos listos
+        </small>
+      </article>
 
-          <strong>
-            {{
-              data.totalRevenue
-                | currency:'MXN':'symbol':'1.2-2'
-            }}
-          </strong>
+      <article>
+        <span>Licencias activas</span>
+        <strong>{{ data.activeLicenses }}</strong>
+        <small>
+          {{ data.availableLicenses }}
+          disponibles
+        </small>
+      </article>
 
-          <small>
-            {{ data.totalSales }} ventas registradas
-          </small>
+      <article>
+        <span>Cuentas de portal</span>
+        <strong>{{ data.portalAccounts }}</strong>
+        <small>
+          {{ data.internalUsers }}
+          usuarios internos
+        </small>
+      </article>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="panel">
+        <header>
+          <span>Comercial</span>
+          <h2>Operación actual</h2>
+        </header>
+
+        <div class="summary-list">
+          <article>
+            <span>Clientes</span>
+            <strong>{{ data.totalCustomers }}</strong>
+          </article>
+          <article>
+            <span>Instituciones</span>
+            <strong>{{ data.totalInstitutions }}</strong>
+          </article>
+          <article>
+            <span>Cotizaciones</span>
+            <strong>{{ data.totalQuotes }}</strong>
+          </article>
+          <article>
+            <span>Pedidos</span>
+            <strong>{{ data.totalOrders }}</strong>
+          </article>
         </div>
       </article>
 
-      <article class="stat-card licenses-card">
-        <div class="stat-icon">🔑</div>
-
-        <div>
-          <span>Licencias</span>
-          <strong>{{ data.totalLicenses }}</strong>
-          <small>Licencias del ecosistema</small>
-        </div>
-      </article>
-
-      <article class="stat-card products-card">
-        <div class="stat-icon">🐕</div>
-
-        <div>
-          <span>Productos</span>
-          <strong>{{ data.totalProducts }}</strong>
-          <small>Productos en catálogo</small>
-        </div>
-      </article>
-
-      <article class="stat-card users-card">
-        <div class="stat-icon">👤</div>
-
-        <div>
-          <span>Usuarios</span>
-          <strong>{{ data.totalUsers }}</strong>
-          <small>Cuentas registradas</small>
-        </div>
-      </article>
-    </div>
-
-    <div class="dashboard-grid">
-      <section class="dashboard-panel commercial-panel">
-        <div class="panel-heading">
-          <div>
-            <span>Actividad comercial</span>
-            <h2>Resumen de operación</h2>
-          </div>
-
-          <div class="panel-icon">📈</div>
-        </div>
-
-        <div class="commercial-cards">
-          @for (
-            card of commercialCards();
-            track card.label
-          ) {
-            <article class="commercial-card">
-              <span class="commercial-icon">
-                {{ card.icon }}
-              </span>
-
-              <div>
-                <strong>{{ card.value }}</strong>
-                <b>{{ card.label }}</b>
-                <small>{{ card.description }}</small>
-              </div>
-            </article>
-          }
-        </div>
-      </section>
-
-      <section class="dashboard-panel alerts-panel">
-        <div class="panel-heading">
-          <div>
-            <span>Atención requerida</span>
-            <h2>Alertas del sistema</h2>
-          </div>
-
-          <div class="panel-icon">🚨</div>
-        </div>
+      <article class="panel">
+        <header>
+          <span>Atención requerida</span>
+          <h2>Alertas operativas</h2>
+        </header>
 
         <div class="alert-list">
           <article
-            class="system-alert"
-            [class.alert-warning]="data.lowStock > 0"
+            [class.warning]="
+              data.lowRawMaterialStock > 0
+            "
           >
-            <span class="alert-icon">📦</span>
-
-            <div>
-              <strong>
-                {{ data.lowStock }} materiales con stock bajo
-              </strong>
-
-              <p>
-                De {{ data.totalRawMaterials }}
-                materias primas registradas.
-              </p>
-            </div>
+            <strong>
+              {{ data.lowRawMaterialStock }}
+              materias primas bajo mínimo
+            </strong>
           </article>
 
           <article
-            class="system-alert"
-            [class.alert-warning]="
-              data.openSupportTickets > 0
+            [class.warning]="
+              data.lowFinishedStockProducts > 0
             "
           >
-            <span class="alert-icon">🎧</span>
+            <strong>
+              {{ data.lowFinishedStockProducts }}
+              productos terminados bajo mínimo
+            </strong>
+          </article>
 
-            <div>
-              <strong>
-                {{ data.openSupportTickets }}
-                tickets abiertos
-              </strong>
+          <article
+            [class.warning]="
+              data.awaitingProductionOrders > 0
+            "
+          >
+            <strong>
+              {{ data.awaitingProductionOrders }}
+              pedidos esperando producción
+            </strong>
+          </article>
 
-              <p>
-                De {{ data.totalSupportTickets }}
-                solicitudes de soporte.
-              </p>
-            </div>
+          <article
+            [class.warning]="
+              data.pendingComments > 0
+            "
+          >
+            <strong>
+              {{ data.pendingComments }}
+              comentarios pendientes
+            </strong>
           </article>
         </div>
-      </section>
-    </div>
+      </article>
+    </section>
+
+    <section class="dashboard-grid charts-row">
+      <article class="panel revenue-panel">
+        <header>
+          <span>Tendencia</span>
+          <h2>Ingresos de los últimos meses</h2>
+        </header>
+
+        <div class="mini-chart">
+          @for (
+            item of data.monthlyRevenue;
+            track item.label
+          ) {
+            <article>
+              <div>
+                <span
+                  [style.height.%]="
+                    revenueHeight(item.value)
+                  "
+                ></span>
+              </div>
+              <small>{{ item.label }}</small>
+            </article>
+          }
+        </div>
+      </article>
+
+      <article class="panel">
+        <header>
+          <span>Licencias</span>
+          <h2>Estado del parque digital</h2>
+        </header>
+
+        <div class="license-grid">
+          <article>
+            <strong>{{ data.availableLicenses }}</strong>
+            <small>Disponibles</small>
+          </article>
+          <article>
+            <strong>{{ data.activeLicenses }}</strong>
+            <small>Activas</small>
+          </article>
+          <article>
+            <strong>{{ data.expiredLicenses }}</strong>
+            <small>Vencidas</small>
+          </article>
+          <article>
+            <strong>{{ data.revokedLicenses }}</strong>
+            <small>Revocadas</small>
+          </article>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <header>
+        <span>Desempeño</span>
+        <h2>Productos destacados</h2>
+      </header>
+
+      <div class="top-products">
+        @for (
+          product of data.topProducts;
+          track product.key;
+          let index = $index
+        ) {
+          <article>
+            <b>{{ index + 1 }}</b>
+            <div>
+              <strong>{{ product.label }}</strong>
+              <small>
+                {{ product.count }} unidades
+              </small>
+            </div>
+            <span>
+              {{
+                product.value
+                  | currency:'MXN':'symbol':'1.2-2'
+              }}
+            </span>
+          </article>
+        }
+      </div>
+    </section>
   }
 </section>

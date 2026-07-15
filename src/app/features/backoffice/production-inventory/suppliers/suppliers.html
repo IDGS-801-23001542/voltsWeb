@@ -1,0 +1,589 @@
+<section class="page">
+  <header class="page-heading">
+    <div>
+      <span class="page-label">
+        Producción e inventario
+      </span>
+
+      <h1>Proveedores</h1>
+
+      <p>
+        Administra contactos, direcciones, categorías
+        abastecidas y condiciones comerciales.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateForm()"
+    >
+      ＋ Nuevo proveedor
+    </button>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      ✓ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      ⚠ {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="summary-grid">
+    <article class="summary-card">
+      <span>🚚</span>
+      <div>
+        <small>Total</small>
+        <strong>{{ suppliers().length }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>✅</span>
+      <div>
+        <small>Activos</small>
+        <strong>{{ activeCount() }}</strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>⏸️</span>
+      <div>
+        <small>Inactivos</small>
+        <strong>{{ inactiveCount() }}</strong>
+      </div>
+    </article>
+  </div>
+
+  <section class="panel">
+    <div class="toolbar">
+      <div class="search-control">
+        <span>🔎</span>
+
+        <input
+          type="search"
+          placeholder="Buscar por código, nombre, contacto, correo o RFC..."
+          [value]="searchTerm()"
+          (input)="updateSearch($event)"
+        />
+      </div>
+
+      <select
+        [value]="statusFilter()"
+        (change)="updateStatusFilter($event)"
+      >
+        <option value="all">Todos</option>
+        <option value="active">Activos</option>
+        <option value="inactive">Inactivos</option>
+      </select>
+    </div>
+
+    @if (loading()) {
+      <div class="state-container">
+        <span class="loader"></span>
+        <p>Cargando proveedores...</p>
+      </div>
+    } @else if (
+      filteredSuppliers().length === 0
+    ) {
+      <div class="state-container">
+        <span class="state-icon">🚚</span>
+        <strong>No se encontraron proveedores</strong>
+      </div>
+    } @else {
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Proveedor</th>
+              <th>Contacto</th>
+              <th>Dirección</th>
+              <th>Tipo</th>
+              <th>Entrega</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              supplier of filteredSuppliers();
+              track supplier.id
+            ) {
+              <tr>
+                <td data-label="Proveedor">
+                  <div class="entity-name">
+                    <strong>{{ supplier.name }}</strong>
+                    <small>{{ supplier.code }}</small>
+                    @if (supplier.taxId) {
+                      <small>RFC: {{ supplier.taxId }}</small>
+                    }
+                  </div>
+                </td>
+
+                <td data-label="Contacto">
+                  <div class="contact-data">
+                    <strong>
+                      {{ supplier.contactName }}
+                    </strong>
+
+                    <a [href]="'mailto:' + supplier.email">
+                      {{ supplier.email }}
+                    </a>
+
+                    <small>
+                      {{ supplier.phone || 'Sin teléfono' }}
+                    </small>
+                  </div>
+                </td>
+
+                <td data-label="Dirección">
+                  <p class="address-text">
+                    {{ formatAddress(supplier) }}
+                  </p>
+                </td>
+
+                <td data-label="Tipo">
+                  <span class="type-badge">
+                    {{
+                      getSupplierTypeLabel(
+                        supplier.supplierType
+                      )
+                    }}
+                  </span>
+                </td>
+
+                <td data-label="Entrega">
+                  {{ supplier.leadTimeDays }} días
+                </td>
+
+                <td data-label="Estado">
+                  <span
+                    class="status-badge"
+                    [class.inactive-status]="
+                      !supplier.isActive
+                    "
+                  >
+                    {{
+                      supplier.isActive
+                        ? 'Activo'
+                        : 'Inactivo'
+                    }}
+                  </span>
+                </td>
+
+                <td
+                  data-label="Acciones"
+                  class="actions-cell"
+                >
+                  <button
+                    type="button"
+                    title="Editar"
+                    (click)="openEditForm(supplier)"
+                  >
+                    ✏️
+                  </button>
+
+                  <button
+                    type="button"
+                    [title]="
+                      supplier.isActive
+                        ? 'Desactivar'
+                        : 'Activar'
+                    "
+                    (click)="toggleStatus(supplier)"
+                  >
+                    {{
+                      supplier.isActive
+                        ? '⏸️'
+                        : '▶️'
+                    }}
+                  </button>
+
+                  @if (isAdmin()) {
+                    <button
+                      type="button"
+                      class="delete-button"
+                      title="Eliminar"
+                      (click)="requestDelete(supplier)"
+                    >
+                      🗑️
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>
+
+@if (formOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="closeForm()"
+  >
+    <section
+      class="modal-card large-modal"
+      role="dialog"
+      aria-modal="true"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="page-label">
+            {{
+              editingSupplier()
+                ? 'Editar registro'
+                : 'Nuevo registro'
+            }}
+          </span>
+
+          <h2>
+            {{
+              editingSupplier()
+                ? 'Editar proveedor'
+                : 'Crear proveedor'
+            }}
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeForm()"
+        >
+          ✕
+        </button>
+      </header>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
+        <h3>Información general</h3>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Código *</label>
+            <input
+              type="text"
+              maxlength="30"
+              formControlName="code"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Nombre comercial *</label>
+            <input
+              type="text"
+              maxlength="150"
+              formControlName="name"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Razón social</label>
+            <input
+              type="text"
+              maxlength="200"
+              formControlName="legalName"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>RFC</label>
+            <input
+              type="text"
+              maxlength="20"
+              formControlName="taxId"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Contacto *</label>
+            <input
+              type="text"
+              maxlength="150"
+              formControlName="contactName"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Correo *</label>
+            <input
+              type="email"
+              formControlName="email"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Teléfono</label>
+            <input
+              type="text"
+              formControlName="phone"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Tipo de proveedor *</label>
+            <select formControlName="supplierType">
+              @for (
+                item of supplierTypes;
+                track item.value
+              ) {
+                <option [value]="item.value">
+                  {{ item.label }}
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <h3>Dirección</h3>
+
+        <div class="form-grid">
+          <div class="form-field wide-field">
+            <label>Calle *</label>
+            <input
+              type="text"
+              maxlength="150"
+              formControlName="street"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Número exterior *</label>
+            <input
+              type="text"
+              maxlength="20"
+              formControlName="exteriorNumber"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Número interior</label>
+            <input
+              type="text"
+              maxlength="20"
+              formControlName="interiorNumber"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Colonia *</label>
+            <input
+              type="text"
+              maxlength="120"
+              formControlName="neighborhood"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Código postal *</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="5"
+              formControlName="postalCode"
+            />
+
+            @if (
+              form.controls.postalCode.touched &&
+              form.controls.postalCode.invalid
+            ) {
+              <small class="field-error">
+                Debe contener 5 dígitos.
+              </small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label>Ciudad *</label>
+            <input
+              type="text"
+              maxlength="100"
+              formControlName="city"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Estado *</label>
+            <input
+              type="text"
+              maxlength="100"
+              formControlName="state"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>País *</label>
+            <input
+              type="text"
+              maxlength="100"
+              formControlName="country"
+            />
+          </div>
+
+          <div class="form-field full-field">
+            <label>Referencias</label>
+            <textarea
+              rows="3"
+              maxlength="500"
+              formControlName="references"
+            ></textarea>
+          </div>
+        </div>
+
+        <h3>Operación comercial</h3>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Días de entrega</label>
+            <input
+              type="number"
+              min="0"
+              max="365"
+              step="1"
+              formControlName="leadTimeDays"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Condiciones de pago</label>
+            <input
+              type="text"
+              maxlength="300"
+              formControlName="paymentTerms"
+            />
+          </div>
+
+          <div class="form-field full-field">
+            <label>Categorías abastecidas</label>
+
+            <div class="category-selector">
+              @for (
+                category of materialCategories;
+                track category.value
+              ) {
+                <button
+                  type="button"
+                  [class.selected]="
+                    hasMaterialCategory(
+                      category.value
+                    )
+                  "
+                  (click)="
+                    toggleMaterialCategory(
+                      category.value
+                    )
+                  "
+                >
+                  {{ category.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="form-field full-field">
+            <label>Notas</label>
+            <textarea
+              rows="4"
+              maxlength="1000"
+              formControlName="notes"
+            ></textarea>
+          </div>
+        </div>
+
+        @if (editingSupplier()) {
+          <label class="status-checkbox">
+            <input
+              type="checkbox"
+              formControlName="isActive"
+            />
+            Proveedor activo
+          </label>
+        }
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="saving()"
+            (click)="closeForm()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            {{
+              saving()
+                ? 'Guardando...'
+                : 'Guardar proveedor'
+            }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (deleteCandidate(); as supplier) {
+  <div
+    class="modal-backdrop"
+    (click)="cancelDelete()"
+  >
+    <section
+      class="confirmation-card"
+      (click)="$event.stopPropagation()"
+    >
+      <span>🗑️</span>
+
+      <h2>Eliminar proveedor</h2>
+
+      <p>
+        ¿Deseas eliminar
+        <strong>{{ supplier.name }}</strong>?
+      </p>
+
+      <small>
+        El backend impedirá eliminarlo si ya tiene
+        compras registradas.
+      </small>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="cancelDelete()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="danger-button"
+          [disabled]="deleting()"
+          (click)="confirmDelete()"
+        >
+          {{
+            deleting()
+              ? 'Eliminando...'
+              : 'Eliminar'
+          }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
