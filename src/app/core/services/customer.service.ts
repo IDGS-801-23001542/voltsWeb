@@ -51,6 +51,29 @@ export class CustomerService {
     );
   }
 
+  getMyProfile(): Observable<
+  ApiResponse<Customer>
+> {
+  return this.http.get<
+    ApiResponse<Customer>
+  >(
+    `${environment.apiUrl}/Customers/my`
+  );
+}
+
+updateMyProfile(
+  request: CustomerUpdateRequest
+): Observable<
+  ApiResponse<Customer>
+> {
+  return this.http.put<
+    ApiResponse<Customer>
+  >(
+    `${environment.apiUrl}/Customers/my`,
+    request
+  );
+}
+
   create(
     request: CustomerCreateRequest
   ): Observable<

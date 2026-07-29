@@ -1,0 +1,318 @@
+<main class="products-page">
+  <div class="products-container">
+
+    <section class="products-hero">
+      <div class="hero-content">
+        <span class="page-label">
+          Portal del cliente
+        </span>
+
+        <h1>
+          Mis productos
+        </h1>
+
+        <p>
+          Consulta los productos adquiridos,
+          la cantidad acumulada y la información
+          de tu compra más reciente.
+        </p>
+
+        <div class="hero-actions">
+          <a
+            routerLink="/cliente/compras"
+            class="primary-button"
+          >
+            <span aria-hidden="true">
+              🛒
+            </span>
+
+            Ver mis compras
+          </a>
+
+          <a
+            routerLink="/cliente"
+            class="secondary-button"
+          >
+            ← Volver al resumen
+          </a>
+        </div>
+      </div>
+
+      <div
+        class="hero-icon"
+        aria-hidden="true"
+      >
+        <span>
+          📦
+        </span>
+      </div>
+    </section>
+
+    @if (
+      !loading() &&
+      !errorMessage()
+    ) {
+      <section
+        class="summary-grid"
+        aria-label="Resumen de productos"
+      >
+        <article class="summary-card">
+          <div class="summary-icon">
+            📦
+          </div>
+
+          <div>
+            <strong>
+              {{ totalProducts() }}
+            </strong>
+
+            <span>
+              Productos distintos
+            </span>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">
+            🔢
+          </div>
+
+          <div>
+            <strong>
+              {{ totalUnits() }}
+            </strong>
+
+            <span>
+              Unidades adquiridas
+            </span>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">
+            🛒
+          </div>
+
+          <div>
+            <strong>
+              {{ totalOrders() }}
+            </strong>
+
+            <span>
+              Compras consideradas
+            </span>
+          </div>
+        </article>
+      </section>
+    }
+
+    <section class="products-section">
+      <header class="section-heading">
+        <div>
+          <span class="section-label">
+            Catálogo personal
+          </span>
+
+          <h2>
+            Productos asociados a tu cuenta
+          </h2>
+        </div>
+
+        @if (
+          !loading() &&
+          products().length > 0
+        ) {
+          <span class="result-count">
+            {{
+              products().length === 1
+                ? '1 producto'
+                : products().length +
+                  ' productos'
+            }}
+          </span>
+        }
+      </header>
+
+      @if (loading()) {
+        <div
+          class="state-card"
+          aria-live="polite"
+        >
+          <span class="loader"></span>
+
+          <div>
+            <h3>
+              Cargando tus productos
+            </h3>
+
+            <p>
+              Estamos consultando las compras
+              asociadas a tu cuenta.
+            </p>
+          </div>
+        </div>
+      }
+
+      @else if (errorMessage()) {
+        <div
+          class="state-card error-state"
+          role="alert"
+        >
+          <div class="state-icon">
+            ⚠️
+          </div>
+
+          <div class="state-content">
+            <h3>
+              No fue posible cargar la información
+            </h3>
+
+            <p>
+              {{ errorMessage() }}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="retry-button"
+            (click)="loadProducts()"
+          >
+            Reintentar
+          </button>
+        </div>
+      }
+
+      @else if (
+        products().length === 0
+      ) {
+        <div class="empty-state">
+          <div
+            class="empty-illustration"
+            aria-hidden="true"
+          >
+            📭
+          </div>
+
+          <span class="empty-label">
+            Sin productos
+          </span>
+
+          <h3>
+            Aún no tienes productos asociados
+          </h3>
+
+          <p>
+            Los productos aparecerán aquí cuando
+            una cotización se convierta en pedido.
+          </p>
+
+          <a
+            routerLink="/cotizacion"
+            class="primary-button"
+          >
+            Solicitar cotización
+          </a>
+        </div>
+      }
+
+      @else {
+        <div class="products-grid">
+          @for (
+            product of products();
+            track product.productId
+          ) {
+            <article class="product-card">
+              <header class="product-header">
+                <div
+                  class="product-icon"
+                  aria-hidden="true"
+                >
+                  📦
+                </div>
+
+                <span class="product-status">
+                  Producto adquirido
+                </span>
+              </header>
+
+              <div class="product-content">
+                <span class="product-caption">
+                  Producto VOLTS
+                </span>
+
+                <h3>
+                  {{ product.productName }}
+                </h3>
+
+                <p>
+                  Producto asociado a las compras
+                  realizadas desde tu cuenta.
+                </p>
+              </div>
+
+              <dl class="product-details">
+                <div>
+                  <dt>
+                    Cantidad adquirida
+                  </dt>
+
+                  <dd>
+                    {{
+                      product.totalQuantity
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>
+                    Pedidos relacionados
+                  </dt>
+
+                  <dd>
+                    {{
+                      product.ordersCount
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>
+                    Última compra
+                  </dt>
+
+                  <dd>
+                    {{
+                      product.lastPurchaseDate
+                        | date:
+                          'dd/MM/yyyy'
+                    }}
+                  </dd>
+                </div>
+              </dl>
+
+              <footer class="product-footer">
+                <div>
+                  <span>
+                    Último pedido
+                  </span>
+
+                  <strong>
+                    {{
+                      product.lastOrderFolio
+                    }}
+                  </strong>
+                </div>
+
+                <a
+                  routerLink="/cliente/compras"
+                >
+                  Ver compras →
+                </a>
+              </footer>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</main>

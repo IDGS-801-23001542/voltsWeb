@@ -14,6 +14,12 @@ export class CommercialPackageService {
     return this.http.get<ApiResponse<CommercialPackage[]>>(this.apiUrl);
   }
 
+  getActive(): Observable<ApiResponse<CommercialPackage[]>> {
+  return this.http.get<ApiResponse<CommercialPackage[]>>(
+    `${this.apiUrl}/active`
+  );
+}
+
   create(request: CommercialPackageCreateRequest): Observable<ApiResponse<CommercialPackage>> {
     return this.http.post<ApiResponse<CommercialPackage>>(this.apiUrl, request);
   }

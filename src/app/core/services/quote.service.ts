@@ -118,6 +118,13 @@ export class QuoteService {
     );
   }
 
+  getMyQuotes():
+  Observable<ApiResponse<Quote[]>> {
+  return this.http.get<ApiResponse<Quote[]>>(
+    `${this.apiUrl}/my`
+  );
+}
+
   getById(
     id: string
   ): Observable<ApiResponse<Quote>> {

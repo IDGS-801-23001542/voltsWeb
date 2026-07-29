@@ -1,0 +1,415 @@
+<main class="quotes-page">
+  <div class="quotes-container">
+    <!-- ENCABEZADO -->
+    <section class="quotes-hero">
+      <div class="hero-content">
+        <span class="page-label">
+          Portal del cliente
+        </span>
+
+        <h1>Mis cotizaciones</h1>
+
+        <p>
+          Consulta las solicitudes que has enviado,
+          sus importes, vigencia y estado actual.
+        </p>
+
+        <div class="hero-actions">
+          <a
+            routerLink="/cotizacion"
+            class="primary-button"
+          >
+            <span aria-hidden="true">
+              ＋
+            </span>
+
+            Nueva cotización
+          </a>
+
+          <a
+            routerLink="/cliente"
+            class="secondary-button"
+          >
+            ← Volver al resumen
+          </a>
+        </div>
+      </div>
+
+      <div
+        class="hero-icon"
+        aria-hidden="true"
+      >
+        <span>📝</span>
+      </div>
+    </section>
+
+    <!-- RESUMEN -->
+    @if (!loading() && !errorMessage()) {
+      <section
+        class="summary-grid"
+        aria-label="Resumen de cotizaciones"
+      >
+        <article class="summary-card">
+          <div class="summary-icon">
+            📋
+          </div>
+
+          <div>
+            <strong>
+              {{ totalQuotes() }}
+            </strong>
+
+            <span>
+              Cotizaciones
+            </span>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">
+            ⏳
+          </div>
+
+          <div>
+            <strong>
+              {{ pendingQuotes() }}
+            </strong>
+
+            <span>
+              Pendientes
+            </span>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">
+            ✅
+          </div>
+
+          <div>
+            <strong>
+              {{ approvedQuotes() }}
+            </strong>
+
+            <span>
+              Aprobadas
+            </span>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">
+            💰
+          </div>
+
+          <div>
+            <strong class="money-value">
+              {{
+                totalQuoted()
+                  | currency:
+                    'MXN':
+                    'symbol-narrow':
+                    '1.2-2'
+              }}
+            </strong>
+
+            <span>
+              Total cotizado
+            </span>
+          </div>
+        </article>
+      </section>
+    }
+
+    <!-- CONTENIDO -->
+    <section class="quotes-section">
+      <header class="section-heading">
+        <div>
+          <span class="section-label">
+            Historial
+          </span>
+
+          <h2>
+            Cotizaciones registradas
+          </h2>
+        </div>
+
+        @if (
+          !loading() &&
+          quotes().length > 0
+        ) {
+          <span class="result-count">
+            {{
+              quotes().length === 1
+                ? '1 resultado'
+                : quotes().length + ' resultados'
+            }}
+          </span>
+        }
+      </header>
+
+      <!-- CARGANDO -->
+      @if (loading()) {
+        <div
+          class="state-card loading-state"
+          aria-live="polite"
+        >
+          <span class="loader"></span>
+
+          <div>
+            <h3>
+              Cargando tus cotizaciones
+            </h3>
+
+            <p>
+              Estamos consultando la información
+              de tu cuenta.
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- ERROR -->
+      @else if (errorMessage()) {
+        <div
+          class="state-card error-state"
+          role="alert"
+        >
+          <div class="state-icon">
+            ⚠️
+          </div>
+
+          <div class="state-content">
+            <h3>
+              No fue posible cargar la información
+            </h3>
+
+            <p>
+              {{ errorMessage() }}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="retry-button"
+            (click)="loadQuotes()"
+          >
+            Reintentar
+          </button>
+        </div>
+      }
+
+      <!-- VACÍO -->
+      @else if (quotes().length === 0) {
+        <div class="empty-state">
+          <div
+            class="empty-illustration"
+            aria-hidden="true"
+          >
+            📭
+          </div>
+
+          <span class="empty-label">
+            Sin cotizaciones
+          </span>
+
+          <h3>
+            Aún no has solicitado una cotización
+          </h3>
+
+          <p>
+            Selecciona una solución de VOLTS y
+            envía tu primera solicitud. Cuando la
+            registres aparecerá en esta sección.
+          </p>
+
+          <a
+            routerLink="/cotizacion"
+            class="primary-button"
+          >
+            Crear mi primera cotización
+          </a>
+        </div>
+      }
+
+      <!-- LISTADO -->
+      @else {
+        <div class="quotes-list">
+          @for (
+            quote of quotes();
+            track quote.id
+          ) {
+            <article class="quote-card">
+              <div class="quote-card-header">
+                <div class="quote-identity">
+                  <div
+                    class="quote-icon"
+                    aria-hidden="true"
+                  >
+                    📄
+                  </div>
+
+                  <div>
+                    <span class="quote-caption">
+                      Cotización
+                    </span>
+
+                    <h3>
+                      {{ quote.folio }}
+                    </h3>
+                  </div>
+                </div>
+
+                <span
+                  class="status-badge"
+                  [class]="
+                    'status-badge ' +
+                    getStatusClass(
+                      quote.status
+                    )
+                  "
+                >
+                  <span aria-hidden="true">
+                    {{
+                      getStatusIcon(
+                        quote.status
+                      )
+                    }}
+                  </span>
+
+                  {{
+                    getStatusLabel(
+                      quote.status
+                    )
+                  }}
+                </span>
+              </div>
+
+              <div class="quote-product">
+                <span class="product-icon">
+                  📦
+                </span>
+
+                <div>
+                  <span>
+                    Paquete comercial
+                  </span>
+
+                  <strong>
+                    {{
+                      quote.commercialPackageName
+                    }}
+                  </strong>
+
+                  <small>
+                    {{
+                      quote.commercialPlanName
+                    }}
+                  </small>
+                </div>
+              </div>
+
+              <dl class="quote-details">
+                <div>
+                  <dt>Fecha de solicitud</dt>
+
+                  <dd>
+                    {{
+                      quote.createdAt
+                        | date:
+                          'dd/MM/yyyy'
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>Vigencia</dt>
+
+                  <dd>
+                    {{
+                      quote.validUntil
+                        | date:
+                          'dd/MM/yyyy'
+                    }}
+
+                    @if (isExpired(quote)) {
+                      <span class="expired-label">
+                        Vencida
+                      </span>
+                    }
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>Paquetes</dt>
+
+                  <dd>
+                    {{ quote.packageQuantity }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>Productos incluidos</dt>
+
+                  <dd>
+                    {{ quote.details.length }}
+                  </dd>
+                </div>
+              </dl>
+
+              @if (quote.notes) {
+                <div class="quote-notes">
+                  <strong>
+                    Notas
+                  </strong>
+
+                  <p>
+                    {{ quote.notes }}
+                  </p>
+                </div>
+              }
+
+              <footer class="quote-footer">
+                <div class="quote-total">
+                  <span>
+                    Total cotizado
+                  </span>
+
+                  <strong>
+                    {{
+                      quote.total
+                        | currency:
+                          'MXN':
+                          'symbol-narrow':
+                          '1.2-2'
+                    }}
+                  </strong>
+
+                  <small>
+                    IVA incluido
+                  </small>
+                </div>
+
+                @if (
+                  quote.status ===
+                  'Converted'
+                ) {
+                  <span class="converted-message">
+                    📦 Pedido generado
+                  </span>
+                } @else if (
+                  quote.status ===
+                  'Pending'
+                ) {
+                  <span class="pending-message">
+                    En proceso de revisión
+                  </span>
+                }
+              </footer>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</main>

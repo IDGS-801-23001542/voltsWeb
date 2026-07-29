@@ -1,0 +1,515 @@
+<main class="licenses-page">
+  <div class="licenses-container">
+
+    <section class="licenses-hero">
+      <div class="hero-content">
+        <span class="page-label">
+          Portal del cliente
+        </span>
+
+        <h1>
+          Mis licencias
+        </h1>
+
+        <p>
+          Consulta las licencias asociadas a tus
+          productos, su vigencia, estado y datos
+          de asignación.
+        </p>
+
+        <div class="hero-actions">
+          <a
+            routerLink="/cliente/productos"
+            class="primary-button"
+          >
+            <span aria-hidden="true">
+              📦
+            </span>
+
+            Ver mis productos
+          </a>
+
+          <a
+            routerLink="/cliente"
+            class="secondary-button"
+          >
+            ← Volver al resumen
+          </a>
+        </div>
+      </div>
+
+      <div
+        class="hero-icon"
+        aria-hidden="true"
+      >
+        🔑
+      </div>
+    </section>
+
+    @if (
+      !loading() &&
+      !errorMessage()
+    ) {
+      <section
+        class="summary-grid"
+        aria-label="Resumen de licencias"
+      >
+        <article class="summary-card">
+          <div class="summary-icon">
+            🔑
+          </div>
+
+          <div>
+            <strong>
+              {{ totalLicenses() }}
+            </strong>
+
+            <span>
+              Licencias totales
+            </span>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">
+            🟢
+          </div>
+
+          <div>
+            <strong>
+              {{ activeLicenses() }}
+            </strong>
+
+            <span>
+              Activas
+            </span>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">
+            🟡
+          </div>
+
+          <div>
+            <strong>
+              {{ availableLicenses() }}
+            </strong>
+
+            <span>
+              Disponibles
+            </span>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon">
+            🚫
+          </div>
+
+          <div>
+            <strong>
+              {{ inactiveLicenses() }}
+            </strong>
+
+            <span>
+              Inactivas
+            </span>
+          </div>
+        </article>
+      </section>
+    }
+
+    <section class="licenses-section">
+      <header class="section-heading">
+        <div>
+          <span class="section-label">
+            Administración
+          </span>
+
+          <h2>
+            Licencias asociadas a tu cuenta
+          </h2>
+        </div>
+
+        @if (
+          !loading() &&
+          licenses().length > 0
+        ) {
+          <span class="result-count">
+            {{
+              licenses().length === 1
+                ? '1 licencia'
+                : licenses().length +
+                  ' licencias'
+            }}
+          </span>
+        }
+      </header>
+
+      @if (loading()) {
+        <div
+          class="state-card"
+          aria-live="polite"
+        >
+          <span class="loader"></span>
+
+          <div>
+            <h3>
+              Cargando tus licencias
+            </h3>
+
+            <p>
+              Estamos consultando la información
+              asociada a tu cuenta.
+            </p>
+          </div>
+        </div>
+      }
+
+      @else if (errorMessage()) {
+        <div
+          class="state-card error-state"
+          role="alert"
+        >
+          <div class="state-icon">
+            ⚠️
+          </div>
+
+          <div class="state-content">
+            <h3>
+              No fue posible cargar la información
+            </h3>
+
+            <p>
+              {{ errorMessage() }}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="retry-button"
+            (click)="loadLicenses()"
+          >
+            Reintentar
+          </button>
+        </div>
+      }
+
+      @else if (
+        licenses().length === 0
+      ) {
+        <div class="empty-state">
+          <div
+            class="empty-illustration"
+            aria-hidden="true"
+          >
+            🔐
+          </div>
+
+          <span class="empty-label">
+            Sin licencias
+          </span>
+
+          <h3>
+            Aún no tienes licencias asociadas
+          </h3>
+
+          <p>
+            Las licencias aparecerán cuando una
+            compra genere productos que requieran
+            activación o asignación.
+          </p>
+
+          <a
+            routerLink="/cliente/compras"
+            class="primary-button"
+          >
+            Ver mis compras
+          </a>
+        </div>
+      }
+
+      @else {
+        <div class="licenses-list">
+          @for (
+            license of licenses();
+            track license.id
+          ) {
+            <article class="license-card">
+              <header class="license-header">
+                <div class="license-identity">
+                  <div
+                    class="license-icon"
+                    aria-hidden="true"
+                  >
+                    🔑
+                  </div>
+
+                  <div>
+                    <span class="license-caption">
+                      Código de licencia
+                    </span>
+
+                    <h3>
+                      {{ license.licenseCode }}
+                    </h3>
+                  </div>
+                </div>
+
+                <span
+                  [class]="
+                    'status-badge ' +
+                    getStatusClass(
+                      license.status
+                    )
+                  "
+                >
+                  <span aria-hidden="true">
+                    {{
+                      getStatusIcon(
+                        license.status
+                      )
+                    }}
+                  </span>
+
+                  {{
+                    getStatusLabel(
+                      license.status
+                    )
+                  }}
+                </span>
+              </header>
+
+              <section class="license-product">
+                <span
+                  class="product-icon"
+                  aria-hidden="true"
+                >
+                  📦
+                </span>
+
+                <div>
+                  <span>
+                    Producto
+                  </span>
+
+                  <strong>
+                    {{ license.productName }}
+                  </strong>
+
+                  <small>
+                    {{
+                      license.commercialPackageName
+                    }}
+                    ·
+                    {{
+                      license.commercialPlanName
+                    }}
+                  </small>
+                </div>
+              </section>
+
+              <dl class="license-details">
+                <div>
+                  <dt>
+                    Pedido
+                  </dt>
+
+                  <dd>
+                    {{ license.orderFolio }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>
+                    Venta
+                  </dt>
+
+                  <dd>
+                    {{ license.saleFolio }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>
+                    Inicio de garantía
+                  </dt>
+
+                  <dd>
+                    {{
+                      license.warrantyStartDate
+                        | date:
+                          'dd/MM/yyyy'
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>
+                    Fin de garantía
+                  </dt>
+
+                  <dd>
+                    {{
+                      license.warrantyEndDate
+                        | date:
+                          'dd/MM/yyyy'
+                    }}
+
+                    @if (
+                      isWarrantyExpired(
+                        license
+                      )
+                    ) {
+                      <span class="expired-label">
+                        Vencida
+                      </span>
+                    }
+                  </dd>
+                </div>
+              </dl>
+
+              @if (
+                license.activationDate ||
+                license.expirationDate
+              ) {
+                <section class="activation-information">
+                  @if (
+                    license.activationDate
+                  ) {
+                    <div>
+                      <span>
+                        Activación
+                      </span>
+
+                      <strong>
+                        {{
+                          license.activationDate
+                            | date:
+                              'dd/MM/yyyy'
+                        }}
+                      </strong>
+                    </div>
+                  }
+
+                  @if (
+                    license.expirationDate
+                  ) {
+                    <div>
+                      <span>
+                        Expiración
+                      </span>
+
+                      <strong>
+                        {{
+                          license.expirationDate
+                            | date:
+                              'dd/MM/yyyy'
+                        }}
+                      </strong>
+                    </div>
+                  }
+                </section>
+              }
+
+              @if (
+                hasAssignment(license)
+              ) {
+                <section class="assignment-card">
+                  <div class="assignment-heading">
+                    <span aria-hidden="true">
+                      👤
+                    </span>
+
+                    <strong>
+                      Información de asignación
+                    </strong>
+                  </div>
+
+                  <dl>
+                    @if (
+                      license.assignedToName
+                    ) {
+                      <div>
+                        <dt>
+                          Asignada a
+                        </dt>
+
+                        <dd>
+                          {{
+                            license.assignedToName
+                          }}
+                        </dd>
+                      </div>
+                    }
+
+                    @if (
+                      license.assignedToEmail
+                    ) {
+                      <div>
+                        <dt>
+                          Correo
+                        </dt>
+
+                        <dd>
+                          {{
+                            license.assignedToEmail
+                          }}
+                        </dd>
+                      </div>
+                    }
+
+                    @if (
+                      license.deviceSerialNumber
+                    ) {
+                      <div>
+                        <dt>
+                          Número de serie
+                        </dt>
+
+                        <dd>
+                          {{
+                            license.deviceSerialNumber
+                          }}
+                        </dd>
+                      </div>
+                    }
+                  </dl>
+                </section>
+              } @else {
+                <section class="unassigned-message">
+                  <span aria-hidden="true">
+                    ℹ️
+                  </span>
+
+                  <p>
+                    Esta licencia todavía no tiene
+                    una persona o dispositivo
+                    asignado.
+                  </p>
+                </section>
+              }
+
+              <footer class="license-footer">
+                <div>
+                  <span>
+                    Titular
+                  </span>
+
+                  <strong>
+                    {{ license.recipientName }}
+                  </strong>
+                </div>
+
+                <span class="read-only-label">
+                  Solo consulta
+                </span>
+              </footer>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</main>

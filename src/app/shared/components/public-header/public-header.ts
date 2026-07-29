@@ -9,7 +9,13 @@ import {
   RouterLinkActive
 } from '@angular/router';
 
-import { ThemeService } from '../../../core/services/theme.service';
+import {
+  AuthService
+} from '../../../core/services/auth.service';
+
+import {
+  ThemeService
+} from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-public-header',
@@ -23,6 +29,7 @@ import { ThemeService } from '../../../core/services/theme.service';
 })
 export class PublicHeader {
   readonly menuOpen = signal(false);
+  readonly accountMenuOpen = signal(false);
   readonly headerHidden = signal(false);
   readonly headerScrolled = signal(false);
 
@@ -54,49 +61,143 @@ export class PublicHeader {
     }
   ];
 
+  readonly clientMenuItems = [
+    {
+      path: '/cliente',
+      icon: '🏠',
+      label: 'Resumen',
+      exact: true
+    },
+    {
+      path: '/cliente/compras',
+      icon: '🛒',
+      label: 'Mis compras',
+      exact: false
+    },
+    {
+      path: '/cliente/productos',
+      icon: '📦',
+      label: 'Mis productos',
+      exact: false
+    },
+    {
+      path: '/cliente/cotizaciones',
+      icon: '📝',
+      label: 'Mis cotizaciones',
+      exact: false
+    },
+    {
+      path: '/cliente/comentarios',
+      icon: '💬',
+      label: 'Mis comentarios',
+      exact: false
+    },
+    {
+      path: '/cliente/licencias',
+      icon: '🔑',
+      label: 'Licencias',
+      exact: false
+    },
+    {
+      path: '/cliente/documentacion',
+      icon: '📚',
+      label: 'Documentación',
+      exact: false
+    },
+    {
+      path: '/cliente/perfil',
+      icon: '⚙️',
+      label: 'Mi perfil',
+      exact: false
+    }
+  ];
+
   private touchStartY = 0;
   private accumulatedDirection = 0;
 
   constructor(
-    public readonly theme: ThemeService
+    public readonly theme: ThemeService,
+    public readonly auth: AuthService
   ) {}
+
+  get customerDisplayName(): string {
+    const user = this.auth.currentUser();
+
+    if (!user) {
+      return 'Mi cuenta';
+    }
+
+    const firstName =
+      user.firstNames
+        ?.trim()
+        .split(/\s+/)[0];
+
+    return firstName ||
+      user.fullName ||
+      'Mi cuenta';
+  }
+
+  @HostListener(
+    'document:click',
+    ['$event']
+  )
+  onDocumentClick(
+    event: MouseEvent
+  ): void {
+    const target =
+      event.target as HTMLElement | null;
+
+    if (
+      target?.closest(
+        '.account-menu'
+      )
+    ) {
+      return;
+    }
+
+    this.closeAccountMenu();
+  }
 
   /*
    * Detecta directamente la dirección de la rueda.
-   * Ya no depende de window.scrollY.
    */
-  @HostListener('window:wheel', ['$event'])
-  onWheel(event: WheelEvent): void {
-    if (this.menuOpen()) {
+  @HostListener(
+    'window:wheel',
+    ['$event']
+  )
+  onWheel(
+    event: WheelEvent
+  ): void {
+    if (
+      this.menuOpen() ||
+      this.accountMenuOpen()
+    ) {
       this.showHeader();
       return;
     }
 
-    /*
-     * Acumulamos movimiento para evitar que un pequeño
-     * movimiento accidental o del trackpad cambie el header.
-     */
     if (
       Math.sign(event.deltaY) !==
-      Math.sign(this.accumulatedDirection)
+      Math.sign(
+        this.accumulatedDirection
+      )
     ) {
       this.accumulatedDirection = 0;
     }
 
-    this.accumulatedDirection += event.deltaY;
+    this.accumulatedDirection +=
+      event.deltaY;
 
-    /*
-     * Usuario desplazándose hacia abajo.
-     */
-    if (this.accumulatedDirection > 18) {
+    if (
+      this.accumulatedDirection > 18
+    ) {
       this.hideHeader();
       this.accumulatedDirection = 0;
     }
 
-    /*
-     * Usuario desplazándose hacia arriba.
-     */
-    if (this.accumulatedDirection < -8) {
+    if (
+      this.accumulatedDirection < -8
+    ) {
       this.showHeader();
       this.accumulatedDirection = 0;
     }
@@ -104,56 +205,68 @@ export class PublicHeader {
     this.headerScrolled.set(true);
   }
 
-  /*
-   * Inicio del gesto táctil en celular.
-   */
-  @HostListener('window:touchstart', ['$event'])
-  onTouchStart(event: TouchEvent): void {
+  @HostListener(
+    'window:touchstart',
+    ['$event']
+  )
+  onTouchStart(
+    event: TouchEvent
+  ): void {
     this.touchStartY =
       event.touches[0]?.clientY ?? 0;
   }
 
-  /*
-   * Detecta hacia dónde mueve el dedo.
-   *
-   * El dedo sube:
-   * la página baja y el header se oculta.
-   *
-   * El dedo baja:
-   * la página sube y el header aparece.
-   */
-  @HostListener('window:touchmove', ['$event'])
-  onTouchMove(event: TouchEvent): void {
-    if (this.menuOpen()) {
+  @HostListener(
+    'window:touchmove',
+    ['$event']
+  )
+  onTouchMove(
+    event: TouchEvent
+  ): void {
+    if (
+      this.menuOpen() ||
+      this.accountMenuOpen()
+    ) {
       this.showHeader();
       return;
     }
 
     const currentTouchY =
-      event.touches[0]?.clientY ?? this.touchStartY;
+      event.touches[0]?.clientY ??
+      this.touchStartY;
 
     const difference =
-      currentTouchY - this.touchStartY;
+      currentTouchY -
+      this.touchStartY;
 
     if (difference < -12) {
       this.hideHeader();
-      this.touchStartY = currentTouchY;
+      this.touchStartY =
+        currentTouchY;
     }
 
     if (difference > 7) {
       this.showHeader();
-      this.touchStartY = currentTouchY;
+      this.touchStartY =
+        currentTouchY;
     }
 
     this.headerScrolled.set(true);
   }
 
-  /*
-   * También responde cuando el usuario navega
-   * con el teclado.
-   */
-  @HostListener('window:keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent): void {
+  @HostListener(
+    'window:keydown',
+    ['$event']
+  )
+  onKeyDown(
+    event: KeyboardEvent
+  ): void {
+    if (event.key === 'Escape') {
+      this.closeAccountMenu();
+      this.closeMenu();
+      return;
+    }
+
     if (
       event.key === 'ArrowUp' ||
       event.key === 'PageUp' ||
@@ -171,19 +284,23 @@ export class PublicHeader {
     }
   }
 
-  /*
-   * Al mover el mouse hasta la zona superior
-   * también mostramos el header.
-   */
-  @HostListener('document:mousemove', ['$event'])
-  onMouseMove(event: MouseEvent): void {
+  @HostListener(
+    'document:mousemove',
+    ['$event']
+  )
+  onMouseMove(
+    event: MouseEvent
+  ): void {
     if (event.clientY <= 18) {
       this.showHeader();
     }
   }
 
   private hideHeader(): void {
-    if (this.menuOpen()) {
+    if (
+      this.menuOpen() ||
+      this.accountMenuOpen()
+    ) {
       return;
     }
 
@@ -195,7 +312,11 @@ export class PublicHeader {
   }
 
   toggleMenu(): void {
-    this.menuOpen.update(value => !value);
+    this.accountMenuOpen.set(false);
+
+    this.menuOpen.update(
+      value => !value
+    );
 
     if (this.menuOpen()) {
       this.showHeader();
@@ -204,5 +325,33 @@ export class PublicHeader {
 
   closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  toggleAccountMenu(
+    event?: MouseEvent
+  ): void {
+    event?.stopPropagation();
+
+    this.menuOpen.set(false);
+
+    this.accountMenuOpen.update(
+      value => !value
+    );
+
+    this.showHeader();
+  }
+
+  closeAccountMenu(): void {
+    this.accountMenuOpen.set(false);
+  }
+
+  closeAllMenus(): void {
+    this.closeMenu();
+    this.closeAccountMenu();
+  }
+
+  logout(): void {
+    this.closeAllMenus();
+    this.auth.logout();
   }
 }

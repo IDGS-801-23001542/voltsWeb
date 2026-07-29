@@ -438,23 +438,120 @@ export const routes: Routes = [
     ]
   },
 
-  // =========================================================
-  // PORTAL DEL CLIENTE
-  // =========================================================
-  {
-    path: 'cliente',
-    title: 'VOLTS | Mi portal',
-    canActivate: [
-      authGuard,
-      clientGuard
-    ],
-    loadComponent: () =>
-      import(
-        './features/client/client-dashboard'
-      ).then(
-        module => module.ClientDashboard
-      )
-  },
+// =========================================================
+// PORTAL DEL CLIENTE
+// =========================================================
+{
+  path: 'cliente',
+  canActivate: [
+    authGuard,
+    clientGuard
+  ],
+  children: [
+    {
+      path: '',
+      title: 'VOLTS | Mi cuenta',
+      loadComponent: () =>
+        import(
+          './features/client/client-dashboard/client-dashboard'
+        ).then(
+          module => module.ClientDashboard
+        )
+    },
+    {
+      path: 'compras',
+      title: 'VOLTS | Mis compras',
+      loadComponent: () =>
+        import(
+          './features/client/client-orders/client-orders'
+        ).then(
+          module =>
+            module.ClientOrders
+        )
+    },
+    {
+      path: 'productos',
+      title: 'VOLTS | Mis productos',
+      loadComponent: () =>
+        import(
+          './features/client/client-products/client-products'
+        ).then(
+          module =>
+            module.ClientProducts
+        )
+    },
+    {
+  path: 'cotizaciones',
+  title: 'VOLTS | Mis cotizaciones',
+  loadComponent: () =>
+    import(
+      './features/client/client-quotes/client-quotes'
+    ).then(
+      module => module.ClientQuotes
+    )
+    },
+    {
+      path: 'comentarios',
+      title: 'VOLTS | Mis comentarios',
+      data: {
+        icon: '💬',
+        title: 'Mis comentarios',
+        description:
+          'Consulta los comentarios y opiniones que has registrado.'
+      },
+      loadComponent: () =>
+        import(
+          './features/client/client-section-placeholder/client-section-placeholder'
+        ).then(
+          module =>
+            module.ClientSectionPlaceholder
+        )
+    },
+    {
+      path: 'licencias',
+      title: 'VOLTS | Mis licencias',
+      loadComponent: () =>
+        import(
+          './features/client/client-licenses/client-licenses'
+        ).then(
+          module =>
+            module.ClientLicenses
+        )
+    },
+    {
+      path: 'documentacion',
+      title: 'VOLTS | Documentación',
+      data: {
+        icon: '📚',
+        title: 'Documentación',
+        description:
+          'Accede a manuales, guías y recursos relacionados con tus productos.'
+      },
+      loadComponent: () =>
+        import(
+          './features/client/client-section-placeholder/client-section-placeholder'
+        ).then(
+          module =>
+            module.ClientSectionPlaceholder
+        )
+    },
+    {
+  path: 'perfil',
+  title: 'VOLTS | Mi perfil',
+  loadComponent: () =>
+    import(
+      './features/client/client-profile/client-profile'
+    ).then(
+      module =>
+        module.ClientProfile
+    )
+},
+    {
+      path: '**',
+      redirectTo: ''
+    }
+  ]
+},
 
   // =========================================================
   // REDIRECCIONES DE COMPATIBILIDAD

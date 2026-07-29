@@ -1,5 +1,6 @@
 import {
   Component,
+  OnInit,
   computed,
   inject,
   signal
@@ -11,149 +12,190 @@ import {
   Validators
 } from '@angular/forms';
 
-import { QuoteService } from '../../../core/services/quote.service';
+import {
+  CommercialPackage
+} from '../../../core/models/commercial-package.model';
 
-interface VoltsPlan {
-  name: string;
-  price: number;
-  colorClass: 'basic-plan' | 'educator-plan' | 'institution-plan';
-  icon: string;
-  description: string;
-  badge?: string;
-  features: string[];
-}
+import {
+  CommercialPackageService
+} from '../../../core/services/commercial-package.service';
+
+import {
+  QuoteService
+} from '../../../core/services/quote.service';
+
+import {
+  AuthService
+} from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-quote',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [
+    ReactiveFormsModule
+  ],
   templateUrl: './quote.html',
   styleUrl: './quote.css'
 })
-export class Quote {
+export class Quote implements OnInit {
   private readonly fb = inject(FormBuilder);
-  private readonly quoteService = inject(QuoteService);
 
+  private readonly quoteService =
+    inject(QuoteService);
+
+  private readonly commercialPackageService =
+    inject(CommercialPackageService);
+  private readonly authService =
+    inject(AuthService);
+  readonly loadingPackages = signal(true);
   readonly loading = signal(false);
   readonly submitted = signal(false);
-  readonly errorMessage = signal('');
 
-  readonly selectedIndex = signal(1);
+  readonly errorMessage = signal('');
+  readonly packagesErrorMessage = signal('');
+
+  readonly packages =
+    signal<CommercialPackage[]>([]);
+
+  readonly selectedIndex = signal(0);
   readonly quantity = signal(1);
 
-  readonly plans: VoltsPlan[] = [
-    {
-      name: 'Básico',
-      price: 349,
-      colorClass: 'basic-plan',
-      icon: '🌱',
-      description: 'Para comenzar la experiencia VOLTS en casa.',
-      features: [
-        'Cuenta personal',
-        'Aplicación Android',
-        'Manual digital',
-        'Garantía',
-        'Actualizaciones',
-        'Acceso al portal'
-      ]
-    },
-    {
-      name: 'Educador',
-      price: 549,
-      colorClass: 'educator-plan',
-      icon: '🎓',
-      description: 'La experiencia completa para familias y docentes.',
-      badge: '⭐ Más popular',
-      features: [
-        'Todo lo incluido en el plan Básico',
-        'Recursos pedagógicos',
-        'Material educativo',
-        'Reportes básicos',
-        'Certificados',
-        'Historial educativo'
-      ]
-    },
-    {
-      name: 'Institucional',
-      price: 1899,
-      colorClass: 'institution-plan',
-      icon: '🏫',
-      description: 'Herramientas avanzadas para escuelas e instituciones.',
-      badge: '🏫 Para instituciones',
-      features: [
-        'Todo lo incluido en planes anteriores',
-        'Dashboard institucional',
-        'Administración de grupos',
-        'Administración de alumnos',
-        'Reportes avanzados',
-        'Capacitación'
-      ]
+  readonly selectedPackage =
+    computed<CommercialPackage | null>(() => {
+      const availablePackages = this.packages();
+      const index = this.selectedIndex();
+
+      return availablePackages[index] ?? null;
+    });
+
+  readonly subtotal = computed(() => {
+    const selectedPackage =
+      this.selectedPackage();
+
+    if (!selectedPackage) {
+      return 0;
     }
-  ];
 
-  readonly selectedPlan = computed(
-    () => this.plans[this.selectedIndex()]
-  );
-
-  readonly shipping = computed(
-    () => this.quantity() >= 3 ? 0 : 99
-  );
-
-  readonly subtotal = computed(
-    () => this.selectedPlan().price * this.quantity()
-  );
-
-  readonly total = computed(
-    () => this.subtotal() + this.shipping()
-  );
-
-  readonly form = this.fb.nonNullable.group({
-    fullName: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(120)
-      ]
-    ],
-    email: [
-      '',
-      [
-        Validators.required,
-        Validators.email
-      ]
-    ],
-    phone: [
-      '',
-      [
-        Validators.maxLength(25)
-      ]
-    ],
-    institutionName: [
-      '',
-      [
-        Validators.maxLength(150)
-      ]
-    ],
-    notes: [
-      '',
-      [
-        Validators.maxLength(2000)
-      ]
-    ]
+    return (
+      selectedPackage.price *
+      this.quantity()
+    );
   });
 
-  selectPlan(index: number): void {
+  /*
+   * El backend debe calcular los importes finales.
+   * Este envío solamente se muestra como estimación visual.
+   */
+  readonly shipping = computed(() =>
+    this.quantity() >= 3 ? 0 : 99
+  );
+
+  readonly total = computed(() =>
+    this.subtotal() + this.shipping()
+  );
+
+  readonly form =
+    this.fb.nonNullable.group({
+      fullName: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(120)
+        ]
+      ],
+
+      email: [
+        '',
+        [
+          Validators.required,
+          Validators.email
+        ]
+      ],
+
+      phone: [
+        '',
+        [
+          Validators.maxLength(25)
+        ]
+      ],
+
+      institutionName: [
+        '',
+        [
+          Validators.maxLength(150)
+        ]
+      ],
+
+      notes: [
+        '',
+        [
+          Validators.maxLength(2000)
+        ]
+      ]
+    });
+
+  ngOnInit(): void {
+    this.loadPackages();
+  }
+
+  loadPackages(): void {
+    this.loadingPackages.set(true);
+    this.packagesErrorMessage.set('');
+
+    this.commercialPackageService
+      .getActive()
+      .subscribe({
+        next: response => {
+          const packages =
+            (response.data ?? [])
+              .filter(item =>
+                item.isActive &&
+                !item.isDeleted
+              )
+              .sort(
+                (first, second) =>
+                  first.displayOrder -
+                  second.displayOrder
+              );
+
+          this.packages.set(packages);
+          this.selectedIndex.set(0);
+          this.loadingPackages.set(false);
+        },
+
+        error: error => {
+          this.loadingPackages.set(false);
+
+          this.packagesErrorMessage.set(
+            error?.error?.message ??
+            'No fue posible cargar los paquetes comerciales.'
+          );
+        }
+      });
+  }
+
+  selectPackage(index: number): void {
+    if (
+      index < 0 ||
+      index >= this.packages().length
+    ) {
+      return;
+    }
+
     this.selectedIndex.set(index);
   }
 
-  handlePlanKeydown(
+  handlePackageKeydown(
     event: KeyboardEvent,
     index: number
   ): void {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (
+      event.key === 'Enter' ||
+      event.key === ' '
+    ) {
       event.preventDefault();
-      this.selectPlan(index);
+      this.selectPackage(index);
     }
   }
 
@@ -164,37 +206,103 @@ export class Quote {
   }
 
   increase(): void {
-    this.quantity.update(value => value + 1);
+    this.quantity.update(
+      value => value + 1
+    );
   }
 
   submit(): void {
-    if (this.form.invalid || this.loading()) {
-      this.form.markAllAsTouched();
-      return;
-    }
+  if (
+    this.form.invalid ||
+    this.loading()
+  ) {
+    this.form.markAllAsTouched();
+    return;
+  }
 
-    this.loading.set(true);
-    this.errorMessage.set('');
+  const selectedPackage =
+    this.selectedPackage();
 
-    const value = this.form.getRawValue();
-    const plan = this.selectedPlan();
+  if (!selectedPackage) {
+    this.errorMessage.set(
+      'Selecciona un paquete comercial antes de continuar.'
+    );
 
-    this.quoteService.create({
-      fullName: value.fullName.trim(),
-      email: value.email.trim(),
-      phone: value.phone.trim() || undefined,
-      institutionName:
-        value.institutionName.trim() || undefined,
-      planName: plan.name,
-      quantity: this.quantity(),
-      unitPrice: plan.price,
-      shipping: this.shipping(),
-      notes: value.notes.trim() || undefined
-    }).subscribe({
+    return;
+  }
+
+  const currentUser =
+    this.authService.currentUser();
+
+  const customerId =
+    currentUser?.roleName === 'Client'
+      ? currentUser.profileId ?? null
+      : null;
+
+  if (
+    currentUser?.roleName === 'Client' &&
+    !customerId
+  ) {
+    this.errorMessage.set(
+      'Tu cuenta no tiene un perfil de cliente asociado.'
+    );
+
+    return;
+  }
+
+  this.loading.set(true);
+  this.errorMessage.set('');
+
+  const value =
+    this.form.getRawValue();
+
+  const institutionName =
+    value.institutionName.trim();
+
+  const originalNotes =
+    value.notes.trim();
+
+  const notes = [
+    institutionName
+      ? `Institución o escuela: ${institutionName}`
+      : '',
+    originalNotes
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  this.quoteService
+    .createPublic({
+      recipientType: 'Customer',
+      customerId,
+      institutionId: null,
+
+      contactName:
+        value.fullName.trim(),
+
+      email:
+        value.email
+          .trim()
+          .toLowerCase(),
+
+      phone:
+        value.phone.trim() || null,
+
+      commercialPackageId:
+        selectedPackage.id,
+
+      packageQuantity:
+        this.quantity(),
+
+      notes:
+        notes || null
+    })
+    .subscribe({
       next: () => {
         this.loading.set(false);
         this.submitted.set(true);
       },
+
       error: error => {
         this.loading.set(false);
 
@@ -204,21 +312,67 @@ export class Quote {
         );
       }
     });
-  }
+}
 
   reset(): void {
     this.form.reset();
+
     this.quantity.set(1);
-    this.selectedIndex.set(1);
+    this.selectedIndex.set(0);
     this.submitted.set(false);
     this.errorMessage.set('');
   }
 
-  formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
-      maximumFractionDigits: 0
-    }).format(value);
+  getPackageIcon(
+    index: number
+  ): string {
+    const icons = [
+      '🌱',
+      '🎓',
+      '🏫',
+      '⚡',
+      '📦'
+    ];
+
+    return icons[index % icons.length];
+  }
+
+  getPackageClass(
+    index: number
+  ): string {
+    const classes = [
+      'basic-plan',
+      'educator-plan',
+      'institution-plan'
+    ];
+
+    return classes[index % classes.length];
+  }
+
+  getPackageBadge(
+    index: number
+  ): string | null {
+    if (index === 1) {
+      return '⭐ Más popular';
+    }
+
+    if (index === 2) {
+      return '🏫 Para instituciones';
+    }
+
+    return null;
+  }
+
+  formatCurrency(
+    value: number
+  ): string {
+    return new Intl.NumberFormat(
+      'es-MX',
+      {
+        style: 'currency',
+        currency: 'MXN',
+        maximumFractionDigits: 0
+      }
+    ).format(value);
   }
 }

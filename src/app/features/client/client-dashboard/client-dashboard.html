@@ -1,0 +1,565 @@
+<main class="dashboard-page">
+  <div class="dashboard-container">
+
+    <!-- BIENVENIDA -->
+    <section class="welcome-card">
+      <div class="welcome-content">
+        <span class="portal-label">
+          Portal del cliente
+        </span>
+
+        <h1>
+          Hola, {{ displayName() }}
+          <span aria-hidden="true">👋</span>
+        </h1>
+
+        <p>
+          Bienvenido nuevamente a VOLTS.
+          Desde aquí puedes consultar tus compras,
+          productos, cotizaciones, licencias y
+          documentación.
+        </p>
+
+        <div class="welcome-actions">
+          <a
+            routerLink="/cotizacion"
+            class="primary-action"
+          >
+            <span aria-hidden="true">
+              📝
+            </span>
+
+            Nueva cotización
+          </a>
+
+          <a
+            routerLink="/cliente/perfil"
+            class="secondary-action"
+          >
+            <span aria-hidden="true">
+              ⚙️
+            </span>
+
+            Ver mi perfil
+          </a>
+          <button
+            type="button"
+            class="secondary-button"
+            routerLink="/">
+            🏠 Inicio
+          </button>
+        </div>
+      </div>
+
+      <div
+        class="welcome-illustration"
+        aria-hidden="true"
+      >
+        <div class="illustration-glow"></div>
+
+        <img
+          src="assets/images/logo_volts.png"
+          alt=""
+        />
+      </div>
+    </section>
+
+    <!-- MÉTRICAS -->
+    <section
+      class="dashboard-section"
+      aria-labelledby="summary-title"
+    >
+      <header class="section-heading">
+        <div>
+          <span class="section-eyebrow">
+            Resumen
+          </span>
+
+          <h2 id="summary-title">
+            Tu actividad
+          </h2>
+        </div>
+
+        <p>
+          Consulta rápidamente la información
+          principal de tu cuenta.
+        </p>
+      </header>
+
+      <div class="metrics-grid">
+        @for (
+          metric of metrics();
+          track metric.route
+        ) {
+          <a
+            [routerLink]="metric.route"
+            class="metric-card"
+          >
+            <div class="metric-icon">
+              {{ metric.icon }}
+            </div>
+
+            <div class="metric-information">
+              <strong>
+                {{ metric.value }}
+              </strong>
+
+              <h3>
+                {{ metric.label }}
+              </h3>
+
+              <p>
+                {{ metric.description }}
+              </p>
+            </div>
+
+            <span
+              class="metric-arrow"
+              aria-hidden="true"
+            >
+              →
+            </span>
+          </a>
+        }
+      </div>
+    </section>
+
+    <!-- CONTENIDO INFERIOR -->
+    <div class="dashboard-columns">
+      <!-- ACCIONES RÁPIDAS -->
+      <section
+        class="dashboard-panel"
+        aria-labelledby="actions-title"
+      >
+        <header class="panel-heading">
+          <div>
+            <span class="section-eyebrow">
+              Accesos
+            </span>
+
+            <h2 id="actions-title">
+              Acciones rápidas
+            </h2>
+          </div>
+        </header>
+
+        <div class="quick-actions">
+          @for (
+            action of quickActions;
+            track action.route
+          ) {
+            <a
+              [routerLink]="action.route"
+              class="quick-action"
+            >
+              <span
+                class="quick-action-icon"
+                aria-hidden="true"
+              >
+                {{ action.icon }}
+              </span>
+
+              <span class="quick-action-content">
+                <strong>
+                  {{ action.title }}
+                </strong>
+
+                <small>
+                  {{ action.description }}
+                </small>
+              </span>
+
+              <span
+                class="quick-action-arrow"
+                aria-hidden="true"
+              >
+                →
+              </span>
+            </a>
+          }
+        </div>
+      </section>
+
+      <!-- INFORMACIÓN DE CUENTA -->
+      <aside
+        class="dashboard-panel account-panel"
+        aria-labelledby="account-title"
+      >
+        <header class="panel-heading">
+          <div>
+            <span class="section-eyebrow">
+              Cuenta
+            </span>
+
+            <h2 id="account-title">
+              Mis datos
+            </h2>
+          </div>
+
+          <a
+            routerLink="/cliente/perfil"
+            class="edit-profile-link"
+          >
+            Ver perfil
+          </a>
+        </header>
+
+        <div class="account-avatar">
+          <span aria-hidden="true">
+            👤
+          </span>
+        </div>
+
+        <div class="account-information">
+          <h3>
+            {{ fullName() }}
+          </h3>
+
+          <p>
+            {{ email() }}
+          </p>
+
+          <span class="account-role">
+            Cliente VOLTS
+          </span>
+        </div>
+
+        <div class="account-note">
+          <span aria-hidden="true">
+            ℹ️
+          </span>
+
+          <p>
+            La información completa del perfil
+            estará disponible cuando se conecte
+            el endpoint personal del cliente.
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ACTIVIDAD RECIENTE -->
+    <section class="dashboard-section activity-section">
+  <header class="section-heading">
+    <div>
+      <span class="section-label">
+        Seguimiento
+      </span>
+
+      <h2>
+        Actividad reciente
+      </h2>
+
+      <p>
+        Consulta los movimientos más recientes
+        asociados a tu cuenta.
+      </p>
+    </div>
+  </header>
+
+  @if (activityLoading()) {
+    <div
+      class="activity-state"
+      aria-live="polite"
+    >
+      <span class="activity-loader"></span>
+
+      <div>
+        <strong>
+          Cargando actividad
+        </strong>
+
+        <p>
+          Estamos consultando tus movimientos
+          recientes.
+        </p>
+      </div>
+    </div>
+  }
+
+  @else if (
+    recentActivity().length === 0
+  ) {
+    <div class="activity-empty">
+      <div
+        class="activity-empty-icon"
+        aria-hidden="true"
+      >
+        🕒
+      </div>
+
+      <div>
+        <strong>
+          Todavía no hay actividad
+        </strong>
+
+        <p>
+          Tus cotizaciones, compras y licencias
+          aparecerán aquí cuando se registren
+          movimientos.
+        </p>
+      </div>
+    </div>
+  }
+
+  @else {
+    <div class="activity-timeline">
+      @for (
+        activity of recentActivity();
+        track activity.id;
+        let last = $last
+      ) {
+        <a
+          [routerLink]="activity.route"
+          class="activity-item"
+        >
+          <div class="timeline-column">
+            <div
+              [class]="
+                'activity-icon ' +
+                getActivityTypeClass(
+                  activity.type
+                )
+              "
+              aria-hidden="true"
+            >
+              {{ activity.icon }}
+            </div>
+
+            @if (!last) {
+              <span class="timeline-line"></span>
+            }
+          </div>
+
+          <div class="activity-content">
+            <div class="activity-header">
+              <div>
+                <span
+                  [class]="
+                    'activity-type ' +
+                    getActivityTypeClass(
+                      activity.type
+                    )
+                  "
+                >
+                  {{
+                    getActivityTypeLabel(
+                      activity.type
+                    )
+                  }}
+                </span>
+
+                <h3>
+                  {{ activity.title }}
+                </h3>
+              </div>
+
+              <time
+                [attr.datetime]="activity.date"
+              >
+                {{
+                  activity.date
+                    | date:
+                      'dd/MM/yyyy, HH:mm'
+                }}
+              </time>
+            </div>
+
+            <p>
+              {{ activity.description }}
+            </p>
+
+            <span class="activity-link">
+              Ver información →
+            </span>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>
+
+<section
+  class="dashboard-section expirations-section"
+>
+  <header class="section-heading">
+    <div>
+      <span class="section-label">
+        Vigencia
+      </span>
+
+      <h2>
+        Próximos vencimientos
+      </h2>
+
+      <p>
+        Revisa las licencias y garantías que
+        vencerán durante los próximos 30 días.
+      </p>
+    </div>
+
+    <a
+      routerLink="/cliente/licencias"
+      class="section-link"
+    >
+      Ver licencias →
+    </a>
+  </header>
+
+  @if (licensesLoading()) {
+    <div
+      class="expiration-state"
+      aria-live="polite"
+    >
+      <span class="activity-loader"></span>
+
+      <div>
+        <strong>
+          Consultando vigencias
+        </strong>
+
+        <p>
+          Estamos revisando las fechas de tus
+          licencias y garantías.
+        </p>
+      </div>
+    </div>
+  }
+
+  @else if (
+    upcomingExpirations().length === 0
+  ) {
+    <div class="expiration-empty">
+      <div
+        class="expiration-empty-icon"
+        aria-hidden="true"
+      >
+        ✅
+      </div>
+
+      <div>
+        <strong>
+          No hay vencimientos próximos
+        </strong>
+
+        <p>
+          No tienes licencias ni garantías que
+          venzan durante los próximos 30 días.
+        </p>
+      </div>
+    </div>
+  }
+
+  @else {
+    <div class="expirations-grid">
+      @for (
+        expiration of upcomingExpirations();
+        track expiration.id
+      ) {
+        <a
+          [routerLink]="expiration.route"
+          [class]="
+            'expiration-card ' +
+            getExpirationUrgencyClass(
+              expiration.daysRemaining
+            )
+          "
+        >
+          <header class="expiration-header">
+            <div
+              [class]="
+                'expiration-icon ' +
+                getExpirationTypeClass(
+                  expiration.type
+                )
+              "
+              aria-hidden="true"
+            >
+              {{ expiration.icon }}
+            </div>
+
+            <span
+              [class]="
+                'expiration-days ' +
+                getExpirationUrgencyClass(
+                  expiration.daysRemaining
+                )
+              "
+            >
+              {{
+                getDaysRemainingLabel(
+                  expiration.daysRemaining
+                )
+              }}
+            </span>
+          </header>
+
+          <div class="expiration-content">
+            <span
+              [class]="
+                'expiration-type ' +
+                getExpirationTypeClass(
+                  expiration.type
+                )
+              "
+            >
+              {{
+                getExpirationTypeLabel(
+                  expiration.type
+                )
+              }}
+            </span>
+
+            <h3>
+              {{ expiration.title }}
+            </h3>
+
+            <p>
+              {{ expiration.description }}
+            </p>
+          </div>
+
+          <dl class="expiration-details">
+            <div>
+              <dt>
+                Fecha de vencimiento
+              </dt>
+
+              <dd>
+                {{
+                  expiration.expirationDate
+                    | date:
+                      'dd/MM/yyyy'
+                }}
+              </dd>
+            </div>
+
+            <div>
+              <dt>
+                Código de licencia
+              </dt>
+
+              <dd>
+                {{
+                  expiration.licenseCode
+                }}
+              </dd>
+            </div>
+          </dl>
+
+          <footer class="expiration-footer">
+            <span>
+              Consultar detalles
+            </span>
+
+            <span aria-hidden="true">
+              →
+            </span>
+          </footer>
+        </a>
+      }
+    </div>
+  }
+</section>
+  </div>
+</main>

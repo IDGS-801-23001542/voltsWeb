@@ -2,15 +2,16 @@
   class="public-header"
   [class.header-hidden]="headerHidden()"
   [class.header-scrolled]="headerScrolled()"
-  [class.menu-is-open]="menuOpen()"
+  [class.menu-is-open]="
+    menuOpen() || accountMenuOpen()
+  "
 >
   <div class="header-container">
-
     <div class="brand-area">
       <a
         routerLink="/"
         class="brand"
-        (click)="closeMenu()"
+        (click)="closeAllMenus()"
       >
         <img
           src="assets/images/logo_volts.png"
@@ -37,26 +38,139 @@
       </button>
     </div>
 
+    <!-- NAVEGACIÓN DE ESCRITORIO -->
     <nav class="desktop-nav">
-      @for (item of navItems; track item.path) {
+      @for (
+        item of navItems;
+        track item.path
+      ) {
         <a
           [routerLink]="item.path"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{
             exact: item.exact
           }"
+          (click)="closeAccountMenu()"
         >
           {{ item.label }}
         </a>
       }
 
-      <a
-        routerLink="/login"
-        routerLinkActive="login-active"
-        class="login-link"
-      >
-        🔐 Login
-      </a>
+      @if (
+        auth.isAuthenticated() &&
+        auth.hasRole('Client')
+      ) {
+        <div class="account-menu">
+          <button
+            type="button"
+            class="account-button"
+            [class.account-button-open]="
+              accountMenuOpen()
+            "
+            [attr.aria-expanded]="
+              accountMenuOpen()
+            "
+            aria-haspopup="menu"
+            (click)="
+              toggleAccountMenu($event)
+            "
+          >
+            <span
+              class="account-avatar"
+              aria-hidden="true"
+            >
+              👤
+            </span>
+
+            <span class="account-name">
+              {{ customerDisplayName }}
+            </span>
+
+            <span
+              class="account-arrow"
+              [class.account-arrow-open]="
+                accountMenuOpen()
+              "
+              aria-hidden="true"
+            >
+              ▾
+            </span>
+          </button>
+
+          @if (accountMenuOpen()) {
+            <div
+              class="account-dropdown"
+              role="menu"
+            >
+              <div class="account-summary">
+                <span class="account-summary-avatar">
+                  👤
+                </span>
+
+                <div>
+                  <strong>
+                    {{
+                      auth.currentUser()?.fullName
+                    }}
+                  </strong>
+
+                  <small>
+                    {{
+                      auth.currentUser()?.email
+                    }}
+                  </small>
+                </div>
+              </div>
+
+              <div class="account-divider"></div>
+
+              @for (
+                item of clientMenuItems;
+                track item.path
+              ) {
+                <a
+                  [routerLink]="item.path"
+                  routerLinkActive="account-item-active"
+                  [routerLinkActiveOptions]="{
+                    exact: item.exact
+                  }"
+                  role="menuitem"
+                  (click)="closeAccountMenu()"
+                >
+                  <span aria-hidden="true">
+                    {{ item.icon }}
+                  </span>
+
+                  {{ item.label }}
+                </a>
+              }
+
+              <div class="account-divider"></div>
+
+              <button
+                type="button"
+                class="logout-button"
+                role="menuitem"
+                (click)="logout()"
+              >
+                <span aria-hidden="true">
+                  🚪
+                </span>
+
+                Cerrar sesión
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a
+          routerLink="/login"
+          routerLinkActive="login-active"
+          class="login-link"
+        >
+          🔐 Login
+        </a>
+      }
     </nav>
 
     <button
@@ -70,9 +184,13 @@
     </button>
   </div>
 
+  <!-- NAVEGACIÓN MÓVIL -->
   @if (menuOpen()) {
     <nav class="mobile-nav">
-      @for (item of navItems; track item.path) {
+      @for (
+        item of navItems;
+        track item.path
+      ) {
         <a
           [routerLink]="item.path"
           routerLinkActive="active"
@@ -85,14 +203,67 @@
         </a>
       }
 
-      <a
-        routerLink="/login"
-        routerLinkActive="login-active"
-        class="mobile-login"
-        (click)="closeMenu()"
-      >
-        🔐 Login
-      </a>
+      @if (
+        auth.isAuthenticated() &&
+        auth.hasRole('Client')
+      ) {
+        <div class="mobile-account-summary">
+          <span>👤</span>
+
+          <div>
+            <strong>
+              {{
+                auth.currentUser()?.fullName
+              }}
+            </strong>
+
+            <small>
+              {{
+                auth.currentUser()?.email
+              }}
+            </small>
+          </div>
+        </div>
+
+        <div class="mobile-account-links">
+          @for (
+            item of clientMenuItems;
+            track item.path
+          ) {
+            <a
+              [routerLink]="item.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{
+                exact: item.exact
+              }"
+              (click)="closeMenu()"
+            >
+              <span aria-hidden="true">
+                {{ item.icon }}
+              </span>
+
+              {{ item.label }}
+            </a>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="mobile-logout"
+          (click)="logout()"
+        >
+          🚪 Cerrar sesión
+        </button>
+      } @else {
+        <a
+          routerLink="/login"
+          routerLinkActive="login-active"
+          class="mobile-login"
+          (click)="closeMenu()"
+        >
+          🔐 Login
+        </a>
+      }
     </nav>
   }
 </header>
