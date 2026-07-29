@@ -21,6 +21,14 @@ export class LicenseService {
     );
   }
 
+  getMyLicenses():
+  Observable<ApiResponse<License[]>> {
+
+    return this.http.get<ApiResponse<License[]>>(
+      `${this.apiUrl}/my`
+    );
+  }
+
   assign(
     id: string,
     request: {

@@ -40,6 +40,14 @@ export class OrderService {
     );
   }
 
+  getMyOrders():
+  Observable<ApiResponse<Order[]>> {
+
+  return this.http.get<ApiResponse<Order[]>>(
+    `${this.apiUrl}/my`
+  );
+}
+
   confirm(
     id: string
   ): Observable<ApiResponse<Order>> {

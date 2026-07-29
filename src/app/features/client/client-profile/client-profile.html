@@ -1,0 +1,470 @@
+<section class="profile-page">
+  <header class="profile-page-header">
+    <div>
+      <span class="profile-label">
+        Mi cuenta
+      </span>
+
+      <h1>Perfil</h1>
+
+      <p>
+        Consulta y administra tu información
+        personal y de contacto.
+      </p>
+    </div>
+
+    @if (
+      customer() &&
+      !editing()
+    ) {
+      <button
+        type="button"
+        class="primary-button"
+        (click)="startEditing()"
+      >
+        Editar perfil
+      </button>
+    }
+  </header>
+
+  @if (successMessage()) {
+    <div
+      class="message success-message"
+      role="status"
+    >
+      {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div
+      class="message error-message"
+      role="alert"
+    >
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="profile-state">
+      <span class="profile-loader"></span>
+
+      <div>
+        <strong>
+          Cargando perfil
+        </strong>
+
+        <p>
+          Estamos consultando la información
+          de tu cuenta.
+        </p>
+      </div>
+    </div>
+  }
+
+  @else if (customer(); as profile) {
+    <section class="profile-summary">
+      <div class="profile-avatar">
+        {{ initials() }}
+      </div>
+
+      <div class="profile-identity">
+        <span>Cliente</span>
+
+        <h2>
+          {{ profile.fullName }}
+        </h2>
+
+        <p>
+          {{ profile.email }}
+        </p>
+      </div>
+
+      <div
+        [class]="
+          profile.isActive
+            ? 'status-badge active'
+            : 'status-badge inactive'
+        "
+      >
+        {{
+          profile.isActive
+            ? 'Cuenta activa'
+            : 'Cuenta inactiva'
+        }}
+      </div>
+    </section>
+
+    @if (!editing()) {
+      <div class="profile-grid">
+        <section class="profile-card">
+          <header>
+            <div class="card-icon">
+              👤
+            </div>
+
+            <div>
+              <span>Datos generales</span>
+              <h2>Información personal</h2>
+            </div>
+          </header>
+
+          <dl class="profile-details">
+            <div>
+              <dt>Nombre completo</dt>
+              <dd>{{ profile.fullName }}</dd>
+            </div>
+
+            <div>
+              <dt>Correo electrónico</dt>
+              <dd>{{ profile.email }}</dd>
+            </div>
+
+            <div>
+              <dt>Teléfono</dt>
+              <dd>
+                {{
+                  profile.phone ||
+                  'No registrado'
+                }}
+              </dd>
+            </div>
+
+            <div>
+              <dt>Cliente desde</dt>
+              <dd>
+                {{
+                  profile.createdAt
+                    | date:'dd/MM/yyyy'
+                }}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="profile-card">
+          <header>
+            <div class="card-icon">
+              📍
+            </div>
+
+            <div>
+              <span>Ubicación</span>
+              <h2>Dirección</h2>
+            </div>
+          </header>
+
+          @if (profile.address) {
+            <dl class="profile-details">
+              <div>
+                <dt>Calle y número</dt>
+                <dd>
+                  {{ profile.address.street }}
+                  {{
+                    profile.address
+                      .exteriorNumber
+                  }}
+
+                  @if (
+                    profile.address
+                      .interiorNumber
+                  ) {
+                    Int.
+                    {{
+                      profile.address
+                        .interiorNumber
+                    }}
+                  }
+                </dd>
+              </div>
+
+              <div>
+                <dt>Colonia</dt>
+                <dd>
+                  {{
+                    profile.address
+                      .neighborhood
+                  }}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Ciudad y estado</dt>
+                <dd>
+                  {{
+                    profile.address.city
+                  }},
+                  {{
+                    profile.address.state
+                  }}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Código postal</dt>
+                <dd>
+                  {{
+                    profile.address
+                      .postalCode
+                  }}
+                </dd>
+              </div>
+
+              <div>
+                <dt>País</dt>
+                <dd>
+                  {{
+                    profile.address.country
+                  }}
+                </dd>
+              </div>
+
+              @if (
+                profile.address.references
+              ) {
+                <div>
+                  <dt>Referencias</dt>
+                  <dd>
+                    {{
+                      profile.address
+                        .references
+                    }}
+                  </dd>
+                </div>
+              }
+            </dl>
+          }
+
+          @else {
+            <div class="empty-address">
+              <strong>
+                No hay una dirección registrada
+              </strong>
+
+              <p>
+                Edita tu perfil para agregar
+                los datos de tu domicilio.
+              </p>
+            </div>
+          }
+        </section>
+      </div>
+    }
+
+    @else {
+      <form
+        class="profile-form"
+        [formGroup]="profileForm"
+        (ngSubmit)="saveProfile()"
+      >
+        <section class="form-section">
+          <header>
+            <span>Información personal</span>
+            <h2>Datos del cliente</h2>
+          </header>
+
+          <div class="form-grid">
+            <label>
+              <span>Nombres *</span>
+
+              <input
+                type="text"
+                formControlName="firstNames"
+              />
+
+              @if (
+                hasError('firstNames')
+              ) {
+                <small>
+                  Los nombres son obligatorios.
+                </small>
+              }
+            </label>
+
+            <label>
+              <span>
+                Apellido paterno *
+              </span>
+
+              <input
+                type="text"
+                formControlName="paternalLastName"
+              />
+
+              @if (
+                hasError(
+                  'paternalLastName'
+                )
+              ) {
+                <small>
+                  El apellido paterno es
+                  obligatorio.
+                </small>
+              }
+            </label>
+
+            <label>
+              <span>
+                Apellido materno
+              </span>
+
+              <input
+                type="text"
+                formControlName="maternalLastName"
+              />
+            </label>
+
+            <label>
+              <span>
+                Correo electrónico *
+              </span>
+
+              <input
+                type="email"
+                formControlName="email"
+              />
+
+              @if (hasError('email')) {
+                <small>
+                  Ingresa un correo válido.
+                </small>
+              }
+            </label>
+
+            <label>
+              <span>Teléfono</span>
+
+              <input
+                type="tel"
+                formControlName="phone"
+                maxlength="10"
+              />
+
+              @if (hasError('phone')) {
+                <small>
+                  El teléfono debe contener
+                  10 dígitos.
+                </small>
+              }
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <header>
+            <span>Ubicación</span>
+            <h2>Dirección</h2>
+          </header>
+
+          <div class="form-grid">
+            <label class="wide-field">
+              <span>Calle</span>
+              <input
+                type="text"
+                formControlName="street"
+              />
+            </label>
+
+            <label>
+              <span>Número exterior</span>
+              <input
+                type="text"
+                formControlName="exteriorNumber"
+              />
+            </label>
+
+            <label>
+              <span>Número interior</span>
+              <input
+                type="text"
+                formControlName="interiorNumber"
+              />
+            </label>
+
+            <label>
+              <span>Colonia</span>
+              <input
+                type="text"
+                formControlName="neighborhood"
+              />
+            </label>
+
+            <label>
+              <span>Código postal</span>
+              <input
+                type="text"
+                formControlName="postalCode"
+                maxlength="5"
+              />
+
+              @if (
+                hasError('postalCode')
+              ) {
+                <small>
+                  El código postal debe contener
+                  5 dígitos.
+                </small>
+              }
+            </label>
+
+            <label>
+              <span>Ciudad</span>
+              <input
+                type="text"
+                formControlName="city"
+              />
+            </label>
+
+            <label>
+              <span>Estado</span>
+              <input
+                type="text"
+                formControlName="state"
+              />
+            </label>
+
+            <label>
+              <span>País</span>
+              <input
+                type="text"
+                formControlName="country"
+              />
+            </label>
+
+            <label class="full-field">
+              <span>Referencias</span>
+
+              <textarea
+                rows="3"
+                formControlName="references"
+              ></textarea>
+            </label>
+          </div>
+        </section>
+
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="saving()"
+            (click)="cancelEditing()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            {{
+              saving()
+                ? 'Guardando...'
+                : 'Guardar cambios'
+            }}
+          </button>
+        </footer>
+      </form>
+    }
+  }
+</section>

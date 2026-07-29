@@ -1,0 +1,94 @@
+<main class="client-section-page">
+  <section class="client-section-card">
+    <header class="section-header">
+      <a
+        routerLink="/"
+        class="back-site-link"
+      >
+        ← Volver al sitio
+      </a>
+
+      <a
+        routerLink="/cliente"
+        class="back-account-link"
+      >
+        Mi cuenta
+      </a>
+    </header>
+
+    <div class="section-icon">
+      {{ icon() }}
+    </div>
+
+    <span class="section-label">
+      Portal del cliente
+    </span>
+
+    <h1>{{ title() }}</h1>
+
+    <p class="welcome-text">
+      Hola,
+      <strong>
+        {{
+          auth.currentUser()?.firstNames ||
+          auth.currentUser()?.fullName
+        }}
+      </strong>.
+    </p>
+
+    <p class="section-description">
+      {{ description() }}
+    </p>
+
+    <div class="development-notice">
+      <span>🚧</span>
+
+      <div>
+        <strong>
+          Sección preparada
+        </strong>
+
+        <p>
+          La ruta y la navegación ya funcionan.
+          En el siguiente paso esta pantalla se
+          conectará con la información real del
+          cliente.
+        </p>
+      </div>
+    </div>
+
+    <nav class="client-navigation">
+      <a routerLink="/cliente">
+        🏠 Resumen
+      </a>
+
+      <a routerLink="/cliente/compras">
+        🛒 Compras
+      </a>
+
+      <a routerLink="/cliente/productos">
+        📦 Productos
+      </a>
+
+      <a routerLink="/cliente/cotizaciones">
+        📝 Cotizaciones
+      </a>
+
+      <a routerLink="/cliente/comentarios">
+        💬 Comentarios
+      </a>
+
+      <a routerLink="/cliente/licencias">
+        🔑 Licencias
+      </a>
+
+      <a routerLink="/cliente/documentacion">
+        📚 Documentación
+      </a>
+
+      <a routerLink="/cliente/perfil">
+        ⚙️ Perfil
+      </a>
+    </nav>
+  </section>
+</main>

@@ -1,0 +1,369 @@
+<main class="orders-page">
+  <div class="orders-container">
+    <section class="orders-hero">
+      <div>
+        <span class="page-label">
+          Portal del cliente
+        </span>
+
+        <h1>Mis compras</h1>
+
+        <p>
+          Consulta tus pedidos, productos,
+          importes y estado de entrega.
+        </p>
+
+        <a
+          routerLink="/cliente"
+          class="secondary-button"
+        >
+          ← Volver al resumen
+        </a>
+      </div>
+
+      <div
+        class="hero-icon"
+        aria-hidden="true"
+      >
+        🛒
+      </div>
+    </section>
+
+    @if (
+      !loading() &&
+      !errorMessage()
+    ) {
+      <section class="summary-grid">
+        <article class="summary-card">
+          <span>🛒</span>
+
+          <div>
+            <strong>
+              {{ totalOrders() }}
+            </strong>
+
+            <small>
+              Compras
+            </small>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <span>⏳</span>
+
+          <div>
+            <strong>
+              {{ activeOrders() }}
+            </strong>
+
+            <small>
+              En proceso
+            </small>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <span>✅</span>
+
+          <div>
+            <strong>
+              {{ completedOrders() }}
+            </strong>
+
+            <small>
+              Completadas
+            </small>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <span>💰</span>
+
+          <div>
+            <strong>
+              {{
+                totalSpent()
+                  | currency:
+                    'MXN':
+                    'symbol-narrow':
+                    '1.2-2'
+              }}
+            </strong>
+
+            <small>
+              Total acumulado
+            </small>
+          </div>
+        </article>
+      </section>
+    }
+
+    <section class="orders-section">
+      <header class="section-heading">
+        <div>
+          <span class="page-label">
+            Historial
+          </span>
+
+          <h2>
+            Pedidos registrados
+          </h2>
+        </div>
+      </header>
+
+      @if (loading()) {
+        <div class="state-card">
+          <span class="loader"></span>
+
+          <div>
+            <h3>
+              Cargando tus compras
+            </h3>
+
+            <p>
+              Consultando los pedidos
+              asociados a tu cuenta.
+            </p>
+          </div>
+        </div>
+      }
+
+      @else if (errorMessage()) {
+        <div class="state-card error-state">
+          <span>⚠️</span>
+
+          <div>
+            <h3>
+              No fue posible cargar la información
+            </h3>
+
+            <p>
+              {{ errorMessage() }}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            (click)="loadOrders()"
+          >
+            Reintentar
+          </button>
+        </div>
+      }
+
+      @else if (
+        orders().length === 0
+      ) {
+        <div class="empty-state">
+          <span>📭</span>
+
+          <h3>
+            Aún no tienes compras
+          </h3>
+
+          <p>
+            Cuando una cotización sea aprobada
+            y convertida en pedido, aparecerá aquí.
+          </p>
+
+          <a
+            routerLink="/cliente/cotizaciones"
+            class="primary-button"
+          >
+            Ver mis cotizaciones
+          </a>
+        </div>
+      }
+
+      @else {
+        <div class="orders-list">
+          @for (
+            order of orders();
+            track order.id
+          ) {
+            <article class="order-card">
+              <header class="order-header">
+                <div>
+                  <span class="order-caption">
+                    Pedido
+                  </span>
+
+                  <h3>
+                    {{ order.folio }}
+                  </h3>
+
+                  <small>
+                    Cotización:
+                    {{ order.quoteFolio }}
+                  </small>
+                </div>
+
+                <span
+                  class="status-badge"
+                  [class]="
+                    'status-badge ' +
+                    getStatusClass(
+                      order.status
+                    )
+                  "
+                >
+                  {{
+                    getStatusIcon(
+                      order.status
+                    )
+                  }}
+
+                  {{
+                    getStatusLabel(
+                      order.status
+                    )
+                  }}
+                </span>
+              </header>
+
+              <div class="package-box">
+                <span>📦</span>
+
+                <div>
+                  <small>
+                    Paquete comercial
+                  </small>
+
+                  <strong>
+                    {{
+                      order
+                        .commercialPackageName
+                    }}
+                  </strong>
+
+                  <p>
+                    {{
+                      order
+                        .commercialPlanName
+                    }}
+                  </p>
+                </div>
+              </div>
+
+              <dl class="order-details">
+                <div>
+                  <dt>
+                    Fecha de pedido
+                  </dt>
+
+                  <dd>
+                    {{
+                      order.createdAt
+                        | date:
+                          'dd/MM/yyyy'
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>
+                    Productos
+                  </dt>
+
+                  <dd>
+                    {{
+                      order.details.length
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>
+                    Total de unidades
+                  </dt>
+
+                  <dd>
+                    {{
+                      order.details
+                        .reduce(
+                          (
+                            total,
+                            detail
+                          ) =>
+                            total +
+                            detail
+                              .requestedQuantity,
+                          0
+                        )
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>
+                    Total
+                  </dt>
+
+                  <dd>
+                    {{
+                      order.total
+                        | currency:
+                          'MXN':
+                          'symbol-narrow':
+                          '1.2-2'
+                    }}
+                  </dd>
+                </div>
+              </dl>
+
+              <div class="products-list">
+                @for (
+                  detail of order.details;
+                  track detail.productId
+                ) {
+                  <div class="product-row">
+                    <div>
+                      <strong>
+                        {{ detail.productName }}
+                      </strong>
+
+                      <small>
+                        Cantidad:
+                        {{
+                          detail
+                            .requestedQuantity
+                        }}
+                      </small>
+                    </div>
+
+                    <span>
+                      {{
+                        detail.subtotal
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+                    </span>
+                  </div>
+                }
+              </div>
+
+              @if (
+                order.cancellationReason
+              ) {
+                <div class="cancellation-box">
+                  <strong>
+                    Motivo de cancelación
+                  </strong>
+
+                  <p>
+                    {{
+                      order
+                        .cancellationReason
+                    }}
+                  </p>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</main>

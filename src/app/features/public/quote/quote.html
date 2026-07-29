@@ -47,59 +47,136 @@
        PLANES
        ===================================================== -->
   <section class="plans-section">
-    <div class="main-container">
-      <div class="section-heading">
-        <span class="section-kicker">
-          Encuentra tu opción ideal
-        </span>
+  <div class="main-container">
+    <div class="section-heading">
+      <span class="section-kicker">
+        Encuentra tu opción ideal
+      </span>
 
-        <h2>Elige tu plan</h2>
+      <h2>Elige tu paquete</h2>
 
-        <p class="section-description">
-          Compara las opciones disponibles y selecciona la que mejor
-          se adapte a tu hogar, proyecto educativo o institución.
+      <p class="section-description">
+        Consulta los paquetes comerciales disponibles
+        y selecciona el que mejor se adapte a tus necesidades.
+      </p>
+    </div>
+
+    @if (loadingPackages()) {
+      <div class="packages-loading">
+        <span class="button-loader"></span>
+
+        <p>
+          Cargando paquetes comerciales...
         </p>
       </div>
+    }
 
+    @else if (packagesErrorMessage()) {
+      <div
+        class="quote-error packages-error"
+        role="alert"
+      >
+        <span>⚠️</span>
+
+        <div>
+          <p>
+            {{ packagesErrorMessage() }}
+          </p>
+
+          <button
+            type="button"
+            class="retry-packages-button"
+            (click)="loadPackages()"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    }
+
+    @else if (packages().length === 0) {
+      <div class="packages-empty">
+        <span>📦</span>
+
+        <h3>
+          No hay paquetes disponibles
+        </h3>
+
+        <p>
+          Actualmente no existen paquetes comerciales
+          activos para solicitar una cotización.
+        </p>
+      </div>
+    }
+
+    @else {
       <div class="plans-grid">
         @for (
-          plan of plans;
-          track plan.name;
+          package of packages();
+          track package.id;
           let index = $index
         ) {
           <article
             class="plan-card"
-            [class.basic-plan]="plan.colorClass === 'basic-plan'"
-            [class.educator-plan]="plan.colorClass === 'educator-plan'"
-            [class.institution-plan]="plan.colorClass === 'institution-plan'"
-            [class.selected]="selectedIndex() === index"
-            [attr.aria-selected]="selectedIndex() === index"
+            [class.basic-plan]="
+              getPackageClass(index) ===
+              'basic-plan'
+            "
+            [class.educator-plan]="
+              getPackageClass(index) ===
+              'educator-plan'
+            "
+            [class.institution-plan]="
+              getPackageClass(index) ===
+              'institution-plan'
+            "
+            [class.selected]="
+              selectedIndex() === index
+            "
+            [attr.aria-selected]="
+              selectedIndex() === index
+            "
             tabindex="0"
             role="button"
-            (click)="selectPlan(index)"
-            (keydown)="handlePlanKeydown($event, index)"
+            (click)="selectPackage(index)"
+            (keydown)="
+              handlePackageKeydown(
+                $event,
+                index
+              )
+            "
           >
-            @if (plan.badge) {
+            @if (getPackageBadge(index)) {
               <div class="plan-badge">
-                {{ plan.badge }}
+                {{ getPackageBadge(index) }}
               </div>
             }
 
             <header class="plan-header">
               <div class="plan-icon">
-                {{ plan.icon }}
+                {{ getPackageIcon(index) }}
               </div>
 
-              <h3>{{ plan.name }}</h3>
+              <h3>
+                {{ package.name }}
+              </h3>
 
-              <p>{{ plan.description }}</p>
+              <p>
+                {{ package.description }}
+              </p>
 
               <div class="plan-price">
                 <strong>
-                  {{ formatCurrency(plan.price) }}
+                  {{
+                    formatCurrency(
+                      package.price
+                    )
+                  }}
                 </strong>
 
-                <small>MXN por unidad</small>
+                <small>
+                  MXN por paquete
+                </small>
               </div>
             </header>
 
@@ -110,30 +187,50 @@
 
               <ul>
                 @for (
-                  feature of plan.features;
-                  track feature
+                  item of package.items;
+                  track item.productId
                 ) {
                   <li>
                     <b>✓</b>
-                    <span>{{ feature }}</span>
+
+                    <span>
+                      {{ item.quantity }} ×
+                      {{ item.productName }}
+                    </span>
                   </li>
                 }
               </ul>
 
+              @if (package.savings > 0) {
+                <div class="package-savings">
+                  Ahorras
+                  {{
+                    formatCurrency(
+                      package.savings
+                    )
+                  }}
+                </div>
+              }
+
               <button
                 type="button"
                 class="select-plan-button"
-                (click)="selectPlan(index); $event.stopPropagation()"
+                (click)="
+                  selectPackage(index);
+                  $event.stopPropagation()
+                "
               >
                 {{
                   selectedIndex() === index
-                    ? '✓ Plan seleccionado'
-                    : 'Seleccionar plan'
+                    ? '✓ Paquete seleccionado'
+                    : 'Seleccionar paquete'
                 }}
               </button>
             </div>
 
-            @if (selectedIndex() === index) {
+            @if (
+              selectedIndex() === index
+            ) {
               <div class="selected-indicator">
                 ✓
               </div>
@@ -141,8 +238,9 @@
           </article>
         }
       </div>
-    </div>
-  </section>
+    }
+  </div>
+</section>
 
   <!-- =====================================================
        DETALLE DE COTIZACIÓN
@@ -219,82 +317,132 @@
       </article>
 
       <!-- RESUMEN -->
-      <article
-        class="quote-summary"
-        [class.summary-purple]="selectedIndex() === 1"
-        [class.summary-cyan]="selectedIndex() === 2"
-      >
-        <div class="summary-decoration"></div>
+      @if (selectedPackage(); as package) {
+  <article
+    class="quote-summary"
+    [class.summary-purple]="
+      selectedIndex() === 1
+    "
+    [class.summary-cyan]="
+      selectedIndex() === 2
+    "
+  >
+    <div class="summary-decoration"></div>
 
-        <div class="summary-header">
-          <div>
-            <span>Tu selección</span>
-            <h2>Resumen de cotización</h2>
-          </div>
+    <div class="summary-header">
+      <div>
+        <span>Tu selección</span>
 
-          <div class="summary-plan-icon">
-            {{ selectedPlan().icon }}
-          </div>
-        </div>
+        <h2>
+          Resumen de cotización
+        </h2>
+      </div>
 
-        <div class="summary-details">
-          <div class="summary-row">
-            <span>Plan seleccionado</span>
-            <strong>{{ selectedPlan().name }}</strong>
-          </div>
+      <div class="summary-plan-icon">
+        {{
+          getPackageIcon(
+            selectedIndex()
+          )
+        }}
+      </div>
+    </div>
 
-          <div class="summary-row">
-            <span>Precio unitario</span>
-            <strong>
-              {{ formatCurrency(selectedPlan().price) }}
-            </strong>
-          </div>
+    <div class="summary-details">
+      <div class="summary-row">
+        <span>
+          Paquete seleccionado
+        </span>
 
-          <div class="summary-row">
-            <span>Cantidad</span>
-            <strong>
-              {{ quantity() }}
-              {{
-                quantity() === 1
-                  ? 'unidad'
-                  : 'unidades'
-              }}
-            </strong>
-          </div>
+        <strong>
+          {{ package.name }}
+        </strong>
+      </div>
 
-          <div class="summary-row">
-            <span>Subtotal</span>
-            <strong>
-              {{ formatCurrency(subtotal()) }}
-            </strong>
-          </div>
+      <div class="summary-row">
+        <span>
+          Plan comercial
+        </span>
 
-          <div class="summary-row">
-            <span>Envío</span>
+        <strong>
+          {{ package.commercialPlanName }}
+        </strong>
+      </div>
 
-            <strong
-              [class.free-value]="shipping() === 0"
-            >
-              {{
-                shipping() === 0
-                  ? 'GRATIS 🎉'
-                  : formatCurrency(shipping())
-              }}
-            </strong>
-          </div>
-        </div>
+      <div class="summary-row">
+        <span>
+          Precio por paquete
+        </span>
 
-        <div class="summary-total">
-          <div>
-            <span>Total estimado</span>
-            <small>MXN</small>
-          </div>
+        <strong>
+          {{
+            formatCurrency(
+              package.price
+            )
+          }}
+        </strong>
+      </div>
 
-          <strong>
-            {{ formatCurrency(total()) }}
-          </strong>
-        </div>
-      </article>
+      <div class="summary-row">
+        <span>Cantidad</span>
+
+        <strong>
+          {{ quantity() }}
+
+          {{
+            quantity() === 1
+              ? 'paquete'
+              : 'paquetes'
+          }}
+        </strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Subtotal estimado</span>
+
+        <strong>
+          {{
+            formatCurrency(
+              subtotal()
+            )
+          }}
+        </strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Envío estimado</span>
+
+        <strong
+          [class.free-value]="
+            shipping() === 0
+          "
+        >
+          {{
+            shipping() === 0
+              ? 'GRATIS 🎉'
+              : formatCurrency(
+                  shipping()
+                )
+          }}
+        </strong>
+      </div>
+    </div>
+
+    <div class="summary-total">
+      <div>
+        <span>Total estimado</span>
+        <small>MXN</small>
+      </div>
+
+      <strong>
+        {{
+          formatCurrency(
+            total()
+          )
+        }}
+      </strong>
+    </div>
+  </article>
+}
 
       <!-- FORMULARIO -->
       @if (!submitted()) {
@@ -467,13 +615,23 @@
               {{ form.controls.fullName.value }}
             </strong>.
             Registramos correctamente tu solicitud para el plan
-            <strong>{{ selectedPlan().name }}</strong>.
+            @if (selectedPackage(); as package) {
+              <strong>
+                {{ package.name }}
+              </strong>
+            }
           </p>
 
           <div class="success-summary">
             <div>
-              <span>Plan</span>
-              <strong>{{ selectedPlan().name }}</strong>
+              <span>Paquete</span>
+
+              <strong>
+                {{
+                  selectedPackage()?.name ??
+                  'Paquete comercial'
+                }}
+              </strong>
             </div>
 
             <div>
