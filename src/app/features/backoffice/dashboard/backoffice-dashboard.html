@@ -64,6 +64,18 @@
       </article>
 
       <article>
+        <span>Costo de ventas</span>
+        <strong>{{ data.costOfGoodsSold | currency:'MXN':'symbol':'1.2-2' }}</strong>
+        <small>Solo unidades realmente vendidas</small>
+      </article>
+
+      <article>
+        <span>Utilidad bruta</span>
+        <strong>{{ data.grossProfit | currency:'MXN':'symbol':'1.2-2' }}</strong>
+        <small>Margen {{ data.grossMarginPercentage | number:'1.2-2' }}%</small>
+      </article>
+
+      <article>
         <span>Licencias activas</span>
         <strong>{{ data.activeLicenses }}</strong>
         <small>
@@ -248,3 +260,6 @@
     </section>
   }
 </section>
+
+
+

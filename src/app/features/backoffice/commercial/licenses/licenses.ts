@@ -10,6 +10,12 @@ import {
 } from '@angular/core';
 
 import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
+
+import {
   License,
   LicenseStatus
 } from '../../../../core/models/license.model';
@@ -22,7 +28,8 @@ import {
   selector: 'app-licenses',
   standalone: true,
   imports: [
-    DatePipe
+    DatePipe,
+    ReactiveFormsModule
   ],
   templateUrl: './licenses.html',
   styleUrl: './licenses.css'
@@ -31,11 +38,19 @@ export class Licenses implements OnInit {
   private readonly licenseService =
     inject(LicenseService);
 
+  private readonly fb = inject(FormBuilder);
+
   readonly licenses = signal<License[]>([]);
   readonly loading = signal(true);
   readonly actionId = signal<string | null>(null);
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
+  readonly selectedLicense = signal<License | null>(null);
+
+  readonly assignmentForm = this.fb.nonNullable.group({
+    assignedToName: ['', [Validators.required, Validators.maxLength(150)]],
+    assignedToEmail: ['', [Validators.email, Validators.maxLength(180)]]
+  });
 
   ngOnInit(): void {
     this.loadLicenses();
@@ -59,37 +74,48 @@ export class Licenses implements OnInit {
     });
   }
 
-  assign(license: License): void {
-    const name = window.prompt(
-      'Nombre de la persona, grupo o responsable:'
-    );
+  openAssignment(license: License): void {
+    this.errorMessage.set('');
+    this.selectedLicense.set(license);
+    this.assignmentForm.reset({
+      assignedToName: license.assignedToName ?? license.recipientName ?? '',
+      assignedToEmail: license.assignedToEmail ?? license.recipientEmail ?? ''
+    });
+  }
 
-    if (!name?.trim()) {
+  closeAssignment(): void {
+    if (this.actionId()) {
       return;
     }
 
-    const email = window.prompt(
-      'Correo opcional:'
-    );
+    this.selectedLicense.set(null);
+    this.assignmentForm.reset();
+  }
 
-    const serial = window.prompt(
-      'Número de serie del dispositivo opcional:'
-    );
+  saveAssignment(): void {
+    const license = this.selectedLicense();
+
+    if (!license || this.assignmentForm.invalid || this.actionId()) {
+      this.assignmentForm.markAllAsTouched();
+      return;
+    }
+
+    const value = this.assignmentForm.getRawValue();
 
     this.actionId.set(license.id);
+    this.errorMessage.set('');
 
     this.licenseService.assign(
       license.id,
       {
-        assignedToName: name.trim(),
-        assignedToEmail:
-          email?.trim() || null,
-        deviceSerialNumber:
-          serial?.trim() || null
+        assignedToName: value.assignedToName.trim(),
+        assignedToEmail: value.assignedToEmail.trim() || null
       }
     ).subscribe({
       next: response => {
         this.actionId.set(null);
+        this.selectedLicense.set(null);
+        this.assignmentForm.reset();
         this.successMessage.set(response.message);
         this.loadLicenses();
       },
@@ -128,3 +154,5 @@ export class Licenses implements OnInit {
     });
   }
 }
+
+

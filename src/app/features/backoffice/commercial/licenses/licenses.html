@@ -34,11 +34,11 @@
         track license.id
       ) {
         <article class="card">
+          @if (license.productImageUrl) { <img class="license-photo" [src]="license.productImageUrl" [alt]="license.productName" /> }
           <small>{{ license.licenseCode }}</small>
-          <h2>{{ license.productName }}</h2>
+          <h2>{{ license.assignedToName || license.recipientName }}</h2>
           <p>
-            {{ license.recipientName }}
-            · {{ license.commercialPlanName }}
+            {{ license.productName }} · {{ license.commercialPlanName }}
           </p>
 
           <div class="data">
@@ -85,7 +85,7 @@
             ) {
               <button
                 type="button"
-                (click)="assign(license)"
+                (click)="openAssignment(license)"
               >
                 🔗 Asignar
               </button>
@@ -108,4 +108,83 @@
       }
     </div>
   }
+
+  @if (selectedLicense(); as license) {
+    <div
+      class="modal-backdrop"
+      role="presentation"
+      (click)="closeAssignment()"
+    >
+      <section
+        class="assignment-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="assignment-title"
+        (click)="$event.stopPropagation()"
+      >
+        <header>
+          <div>
+            <span>Asignación de licencia</span>
+            <h2 id="assignment-title">{{ license.assignedToName || license.recipientName }}</h2>
+            <p>{{ license.productName }} · {{ license.licenseCode }}</p>
+          </div>
+
+          <button
+            type="button"
+            class="icon-button"
+            aria-label="Cerrar"
+            (click)="closeAssignment()"
+          >
+            ×
+          </button>
+        </header>
+
+        <form [formGroup]="assignmentForm" (ngSubmit)="saveAssignment()">
+          <label>
+            <span>Persona, grupo o responsable *</span>
+            <input
+              type="text"
+              formControlName="assignedToName"
+              maxlength="150"
+              placeholder="Ej. Juan Pérez o Grupo 5A"
+            />
+            @if (assignmentForm.controls.assignedToName.touched && assignmentForm.controls.assignedToName.invalid) {
+              <small>El nombre es obligatorio.</small>
+            }
+          </label>
+
+          <label>
+            <span>Correo electrónico</span>
+            <input
+              type="email"
+              formControlName="assignedToEmail"
+              maxlength="180"
+              placeholder="usuario@ejemplo.com"
+            />
+            @if (assignmentForm.controls.assignedToEmail.touched && assignmentForm.controls.assignedToEmail.invalid) {
+              <small>Ingresa un correo válido.</small>
+            }
+          </label>
+
+          <div class="license-summary"><span>Serie automática</span><strong>{{ license.deviceSerialNumber }}</strong></div>
+
+          <div class="license-summary">
+            <span>Garantía vigente hasta</span>
+            <strong>{{ license.warrantyEndDate | date:'dd/MM/yyyy' }}</strong>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="secondary" (click)="closeAssignment()">
+              Cancelar
+            </button>
+            <button type="submit" [disabled]="assignmentForm.invalid || actionId() === license.id">
+              {{ actionId() === license.id ? 'Guardando...' : 'Asignar y activar' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
 </section>
+
+

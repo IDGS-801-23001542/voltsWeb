@@ -1,8 +1,4 @@
-export type UserRole =
-  | 'Admin'
-  | 'Employee'
-  | 'Client'
-  | 'Institution';
+export type UserRole = string;
 
 export interface LoginRequest {
   email: string;
@@ -31,4 +27,26 @@ export interface LoginResponse {
   userType: string | number;
   profileId?: string | null;
   permissions: string[];
+  mustChangePassword?: boolean;
+  requiresTwoFactor?: boolean;
+  requiresTwoFactorSetup?: boolean;
+  twoFactorChallengeId?: string | null;
+  twoFactorSecret?: string | null;
+  twoFactorProvisioningUri?: string | null;
+  recoveryCodes?: string[];
+  twoFactorMethod?: 'Totp' | 'EmailOtp' | null;
+  profileImageUrl?: string | null;
 }
+
+export interface TwoFactorVerifyRequest {
+  challengeId: string;
+  code: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+

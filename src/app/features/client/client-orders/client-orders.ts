@@ -47,6 +47,8 @@ export class ClientOrders implements OnInit {
 
   readonly errorMessage =
     signal('');
+  readonly payingId = signal<string | null>(null);
+  readonly successMessage = signal('');
 
   readonly totalOrders =
     computed(() =>
@@ -163,4 +165,24 @@ export class ClientOrders implements OnInit {
       )
       .toLowerCase();
   }
+
+  pay(order: Order): void {
+    if (order.paymentStatus === 'Paid' || this.payingId()) return;
+    this.payingId.set(order.id);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+    this.orderService.pay(order.id).subscribe({
+      next: response => {
+        this.payingId.set(null);
+        this.orders.update(items => items.map(item => item.id === order.id ? response.data : item));
+        this.successMessage.set('Pago simulado registrado. Tu pedido ya puede pasar a producción.');
+      },
+      error: error => {
+        this.payingId.set(null);
+        this.errorMessage.set(error?.error?.message ?? 'No fue posible registrar el pago.');
+      }
+    });
+  }
 }
+
+

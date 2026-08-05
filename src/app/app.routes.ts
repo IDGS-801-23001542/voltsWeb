@@ -19,6 +19,7 @@ import {
 import {
   PublicLayout
 } from './layouts/public-layout/public-layout';
+import { institutionGuard } from './core/guards/institution.guard';
 
 export const routes: Routes = [
   // =========================================================
@@ -147,16 +148,6 @@ export const routes: Routes = [
             './features/backoffice/administration/users/users'
           ).then(
             module => module.Users
-          )
-      },
-      {
-        path: 'roles',
-        title: 'VOLTS | Roles y permisos',
-        loadComponent: () =>
-          import(
-            './features/backoffice/administration/roles/roles'
-          ).then(
-            module => module.Roles
           )
       },
       {
@@ -415,16 +406,6 @@ export const routes: Routes = [
               module.DocumentationManagement
           )
       },
-       {
-        path: 'actualizaciones',
-        title: 'VOLTS | Actualizaciones',
-        loadComponent: () =>
-          import(
-            './features/backoffice/support-content/updates/updates'
-          ).then(
-            module => module.Updates
-          )
-       },
       {
   path: 'notificaciones',
   title: 'VOLTS | Notificaciones',
@@ -493,19 +474,9 @@ export const routes: Routes = [
     {
       path: 'comentarios',
       title: 'VOLTS | Mis comentarios',
-      data: {
-        icon: '💬',
-        title: 'Mis comentarios',
-        description:
-          'Consulta los comentarios y opiniones que has registrado.'
-      },
       loadComponent: () =>
-        import(
-          './features/client/client-section-placeholder/client-section-placeholder'
-        ).then(
-          module =>
-            module.ClientSectionPlaceholder
-        )
+        import('./features/client/client-comments/client-comments')
+          .then(module => module.ClientComments)
     },
     {
       path: 'licencias',
@@ -521,19 +492,21 @@ export const routes: Routes = [
     {
       path: 'documentacion',
       title: 'VOLTS | Documentación',
-      data: {
-        icon: '📚',
-        title: 'Documentación',
-        description:
-          'Accede a manuales, guías y recursos relacionados con tus productos.'
-      },
       loadComponent: () =>
         import(
-          './features/client/client-section-placeholder/client-section-placeholder'
+          './features/client/client-documentation/client-documentation'
         ).then(
           module =>
-            module.ClientSectionPlaceholder
+            module.ClientDocumentation
         )
+    },
+    {
+      path: 'soporte', title: 'VOLTS | Soporte',
+      loadComponent: () => import('./features/shared/portal-support/portal-support').then(module => module.PortalSupport)
+    },
+    {
+      path: 'notificaciones', title: 'VOLTS | Notificaciones',
+      loadComponent: () => import('./features/shared/portal-notifications/portal-notifications').then(module => module.PortalNotifications)
     },
     {
   path: 'perfil',
@@ -552,6 +525,26 @@ export const routes: Routes = [
     }
   ]
 },
+
+
+  // =========================================================
+  // PORTAL INSTITUCIONAL
+  // =========================================================
+  {
+    path: 'institucion', canActivate: [authGuard, institutionGuard],
+    loadComponent: () => import('./layouts/institution-layout/institution-layout').then(m => m.InstitutionLayout),
+    children: [
+      { path: '', loadComponent: () => import('./features/institution/dashboard/dashboard').then(m => m.InstitutionDashboard) },
+      { path: 'pedidos', loadComponent: () => import('./features/institution/orders/orders').then(m => m.InstitutionOrders) },
+      { path: 'licencias', loadComponent: () => import('./features/institution/licenses/licenses').then(m => m.InstitutionLicenses) },
+      { path: 'dispositivos', loadComponent: () => import('./features/institution/devices/devices').then(m => m.InstitutionDevices) },
+      { path: 'personas', loadComponent: () => import('./features/institution/members/members').then(m => m.InstitutionMembers) },
+      { path: 'grupos', loadComponent: () => import('./features/institution/groups/groups').then(m => m.InstitutionGroups) }
+      ,{ path: 'recursos', loadComponent: () => import('./features/institution/resources/resources').then(m => m.InstitutionResources) },
+      { path: 'soporte', loadComponent: () => import('./features/shared/portal-support/portal-support').then(m => m.PortalSupport) },
+      { path: 'notificaciones', loadComponent: () => import('./features/shared/portal-notifications/portal-notifications').then(m => m.PortalNotifications) }
+    ]
+  },
 
   // =========================================================
   // REDIRECCIONES DE COMPATIBILIDAD
@@ -575,3 +568,5 @@ export const routes: Routes = [
     redirectTo: ''
   }
 ];
+
+

@@ -44,6 +44,15 @@ export class DocumentationService {
     );
   }
 
+  getMyResources():
+    Observable<ApiResponse<Documentation[]>> {
+    return this.http.get<
+      ApiResponse<Documentation[]>
+    >(
+      `${this.apiUrl}/my-resources`
+    );
+  }
+
   getAll():
     Observable<ApiResponse<Documentation[]>> {
     return this.http.get<

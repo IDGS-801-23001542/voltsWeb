@@ -57,7 +57,7 @@ export class BackofficeSidebar {
 
   readonly expandedGroups =
     signal<Record<string, boolean>>({
-      Administración: false,
+      'Administración': false,
       Principal: true,
       Comercial: false,
       'Producción e inventario': false,
@@ -65,8 +65,7 @@ export class BackofficeSidebar {
     });
 
   readonly menuGroups = computed(() => {
-    const role =
-      this.auth.currentUser()?.roleName;
+    const role = this.auth.currentUser()?.roleName;
 
     if (!role) {
       return [];
@@ -76,7 +75,9 @@ export class BackofficeSidebar {
       .map(group => ({
         ...group,
         items: group.items.filter(item =>
-          item.roles.includes(role)
+          item.permission
+            ? this.auth.hasPermission(item.permission)
+            : item.roles.includes(role)
         )
       }))
       .filter(group =>
@@ -172,3 +173,6 @@ export class BackofficeSidebar {
     }));
   }
 }
+
+
+

@@ -856,3 +856,6 @@ export class Purchases implements OnInit {
     }, 4000);
   }
 }
+
+
+

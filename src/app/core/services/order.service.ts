@@ -57,6 +57,10 @@ export class OrderService {
     );
   }
 
+  pay(id: string): Observable<ApiResponse<Order>> {
+    return this.http.post<ApiResponse<Order>>(`${this.apiUrl}/my/${id}/pay`, {});
+  }
+
   synchronizeStock(
     id: string
   ): Observable<ApiResponse<Order>> {
@@ -78,3 +82,5 @@ export class OrderService {
     );
   }
 }
+
+

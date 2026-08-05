@@ -401,6 +401,17 @@ export class WasteManagement implements OnInit {
     const value =
       this.createForm.getRawValue();
 
+    const material = this.getSelectedCreateMaterial();
+    const quantity = Number(value.quantity);
+    if (material && !this.isValidUnitQuantity(quantity, material)) {
+      this.errorMessage.set(
+        material.unitAllowsDecimals
+          ? `La cantidad de ${material.name} admite máximo ${material.unitDecimalPlaces} decimales.`
+          : `${material.name} se controla en ${material.unitSymbol}; usa una cantidad entera (1, 2, 3...).`
+      );
+      return;
+    }
+
     this.saving.set(true);
     this.errorMessage.set('');
 
@@ -618,6 +629,15 @@ export class WasteManagement implements OnInit {
     ) ?? null;
   }
 
+  createMaterialChanged(): void {
+    const material = this.getSelectedCreateMaterial();
+    if (!material) return;
+    this.createForm.controls.quantity.setValue(
+      material.unitAllowsDecimals ? 1 / 10 ** material.unitDecimalPlaces : 1
+    );
+    this.errorMessage.set('');
+  }
+
   quantityStepFor(
     item: {
       unitAllowsDecimals: boolean;
@@ -691,6 +711,8 @@ export class WasteManagement implements OnInit {
   }
 
 }
+
+
 
 
 

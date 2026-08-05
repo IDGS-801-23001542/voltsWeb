@@ -5,6 +5,7 @@ export interface BackofficeMenuItem {
   icon: string;
   route: string;
   roles: UserRole[];
+  permission?: string;
   exact?: boolean;
 }
 

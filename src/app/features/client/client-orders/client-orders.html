@@ -99,6 +99,7 @@
     }
 
     <section class="orders-section">
+      @if (successMessage()) { <div class="state-card success-state">✅ {{ successMessage() }}</div> }
       <header class="section-heading">
         <div>
           <span class="page-label">
@@ -221,6 +222,18 @@
                 </span>
               </header>
 
+              <div class="payment-box" [class.paid]="order.paymentStatus === 'Paid'">
+                <div>
+                  <strong>{{ order.paymentStatus === 'Paid' ? '✅ Pagado' : '💳 Pago pendiente' }}</strong>
+                  <small>{{ order.paymentStatus === 'Paid' ? ('Referencia: ' + (order.paymentReference || 'SIM')) : 'El admin no iniciará producción hasta registrar el pago.' }}</small>
+                </div>
+                @if (order.status === 'PendingConfirmation' && order.paymentStatus !== 'Paid') {
+                  <button type="button" class="primary-button" (click)="pay(order)" [disabled]="payingId() === order.id">
+                    {{ payingId() === order.id ? 'Procesando...' : 'Pagar (simulado)' }}
+                  </button>
+                }
+              </div>
+
               <div class="package-box">
                 <span>📦</span>
 
@@ -317,6 +330,9 @@
                   track detail.productId
                 ) {
                   <div class="product-row">
+                    @if (detail.productImageUrl) {
+                      <img class="product-thumb" [src]="detail.productImageUrl" [alt]="detail.productName" />
+                    }
                     <div>
                       <strong>
                         {{ detail.productName }}
@@ -367,3 +383,5 @@
     </section>
   </div>
 </main>
+
+

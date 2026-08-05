@@ -1,0 +1,23 @@
+<section class="institution-orders">
+  <header><span>Portal institucional</span><h1>Pedidos</h1><p>Consulta el total, registra el pago simulado y sigue cada pedido.</p></header>
+  @if (message()) { <p class="message">{{ message() }}</p> }
+  <div class="list">
+    @for (order of items(); track order.id) {
+      <article>
+        <div class="order-top"><div><small>{{ order.createdAt | date:'dd/MM/yyyy' }}</small><h2>{{ order.folio }}</h2></div><strong>{{ order.total | currency:'MXN':'symbol-narrow':'1.2-2' }}</strong></div>
+        <p>{{ order.commercialPackageName }} · {{ order.status }}</p>
+        <div class="products">
+          @for (detail of order.details; track detail.productId) {
+            <div>@if (detail.productImageUrl) { <img [src]="detail.productImageUrl" [alt]="detail.productName" /> }<span>{{ detail.requestedQuantity }} × {{ detail.productName }}</span></div>
+          }
+        </div>
+        <div class="payment" [class.paid]="order.paymentStatus === 'Paid'">
+          <strong>{{ order.paymentStatus === 'Paid' ? '✅ Pagado' : '💳 Pago pendiente' }}</strong>
+          @if (order.status === 'PendingConfirmation' && order.paymentStatus !== 'Paid') {
+            <button type="button" (click)="pay(order)" [disabled]="payingId() === order.id">{{ payingId() === order.id ? 'Procesando...' : 'Pagar (simulado)' }}</button>
+          }
+        </div>
+      </article>
+    } @empty { <p>No hay pedidos todavía.</p> }
+  </div>
+</section>

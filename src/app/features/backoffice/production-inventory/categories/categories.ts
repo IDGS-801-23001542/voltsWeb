@@ -394,3 +394,6 @@ export class Categories implements OnInit {
     }, 3500);
   }
 }
+
+
+

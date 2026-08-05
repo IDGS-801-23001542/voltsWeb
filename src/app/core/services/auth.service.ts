@@ -25,6 +25,8 @@ import {
   LoginRequest,
   LoginResponse,
   RegisterClientRequest,
+  TwoFactorVerifyRequest,
+  ChangePasswordRequest,
   UserRole
 } from '../models/auth.model';
 
@@ -74,11 +76,29 @@ export class AuthService {
         tap(response => {
           if (
             response.success &&
-            response.data
+            response.data.token &&
+            !response.data.requiresTwoFactor
           ) {
             this.saveSession(
               response.data
             );
+          }
+        })
+      );
+  }
+
+  verifyTwoFactor(
+    request: TwoFactorVerifyRequest
+  ): Observable<ApiResponse<LoginResponse>> {
+    return this.http
+      .post<ApiResponse<LoginResponse>>(
+        `${environment.apiUrl}/Auth/verify-two-factor`,
+        request
+      )
+      .pipe(
+        tap(response => {
+          if (response.success && response.data?.token) {
+            this.saveSession(response.data);
           }
         })
       );
@@ -98,7 +118,8 @@ export class AuthService {
         tap(response => {
           if (
             response.success &&
-            response.data
+            response.data.token &&
+            !response.data.requiresTwoFactor
           ) {
             this.saveSession(
               response.data
@@ -108,12 +129,53 @@ export class AuthService {
       );
   }
 
+  resendTwoFactor(challengeId: string): Observable<ApiResponse<LoginResponse>> {
+    return this.http.post<ApiResponse<LoginResponse>>(
+      `${environment.apiUrl}/Auth/resend-two-factor`,
+      { challengeId }
+    );
+  }
+
+  googleLogin(credential: string): Observable<ApiResponse<LoginResponse>> {
+    return this.http.post<ApiResponse<LoginResponse>>(
+      `${environment.apiUrl}/Auth/google`,
+      { credential }
+    ).pipe(tap(response => {
+      if (response.success && response.data?.token) this.saveSession(response.data);
+    }));
+  }
+
+  changePassword(request: ChangePasswordRequest): Observable<ApiResponse<string>> {
+    return this.http.post<ApiResponse<string>>(
+      `${environment.apiUrl}/Auth/change-password`, request
+    );
+  }
+
   redirectByRole(
     role?: UserRole
   ): void {
     const resolved =
       role ??
       this.currentUser()?.roleName;
+
+    if (this.isInternalAccount()) {
+      const destination = this.hasPermission('analytics.read')
+        ? '/backoffice'
+        : this.hasPermission('production.read')
+          ? '/backoffice/produccion'
+          : this.hasPermission('inventory.read')
+            ? '/backoffice/productos'
+            : this.hasPermission('commercial.orders.manage')
+              ? '/backoffice/pedidos'
+              : this.hasPermission('commercial.quotes.manage')
+                ? '/backoffice/cotizaciones'
+                : this.hasPermission('support.read')
+                  ? '/backoffice/soporte'
+                  : '/backoffice';
+
+      this.router.navigate([destination]);
+      return;
+    }
 
     switch (resolved) {
       case 'Admin':
@@ -190,6 +252,11 @@ export class AuthService {
     );
   }
 
+  isInternalAccount(): boolean {
+    const type = this.currentUser()?.userType;
+    return type === 1 || type === 'Employee';
+  }
+
   private saveSession(
     user: LoginResponse
   ): void {
@@ -234,3 +301,5 @@ export class AuthService {
     }
   }
 }
+
+

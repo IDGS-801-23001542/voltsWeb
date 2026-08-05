@@ -1,6 +1,7 @@
 <section class="profile-page">
   <header class="profile-page-header">
     <div>
+      <a routerLink="/cliente" class="back-link">← Regresar a mi cuenta</a>
       <span class="profile-label">
         Mi cuenta
       </span>
@@ -65,7 +66,11 @@
   @else if (customer(); as profile) {
     <section class="profile-summary">
       <div class="profile-avatar">
-        {{ initials() }}
+        @if (profile.profileImageUrl) {
+          <img [src]="profile.profileImageUrl" [alt]="profile.fullName" />
+        } @else {
+          {{ initials() }}
+        }
       </div>
 
       <div class="profile-identity">
@@ -140,6 +145,16 @@
               </dd>
             </div>
           </dl>
+        </section>
+
+        <section class="profile-card">
+          <header><div class="card-icon">🔐</div><div><span>Seguridad</span><h2>Cambiar contraseña</h2></div></header>
+          <form class="password-form" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <label>Contraseña actual<input type="password" formControlName="currentPassword" autocomplete="current-password" /></label>
+            <label>Nueva contraseña<input type="password" formControlName="newPassword" autocomplete="new-password" /></label>
+            <label>Confirmar nueva contraseña<input type="password" formControlName="confirmNewPassword" autocomplete="new-password" /></label>
+            <button type="submit" class="primary-button" [disabled]="changingPassword()">{{ changingPassword() ? 'Actualizando...' : 'Cambiar contraseña' }}</button>
+          </form>
         </section>
 
         <section class="profile-card">
@@ -262,6 +277,16 @@
             <span>Información personal</span>
             <h2>Datos del cliente</h2>
           </header>
+
+          <div class="profile-photo-editor">
+            @if (profileForm.controls.profileImageUrl.value) {
+              <img [src]="profileForm.controls.profileImageUrl.value" alt="Foto de perfil" />
+            }
+            <label>Foto de perfil
+              <input type="file" accept="image/png,image/jpeg,image/webp" (change)="uploadProfileImage($event)" [disabled]="uploadingImage()" />
+            </label>
+            <small>{{ uploadingImage() ? 'Subiendo a Cloudinary...' : 'JPG, PNG o WEBP · máximo 8 MB' }}</small>
+          </div>
 
           <div class="form-grid">
             <label>
@@ -468,3 +493,5 @@
     }
   }
 </section>
+
+

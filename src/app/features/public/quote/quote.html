@@ -1,663 +1,539 @@
 <div class="quote-page">
-
-  <!-- =====================================================
-       HERO
-       ===================================================== -->
   <section class="quote-hero">
-    <div
-      class="hero-decoration decoration-one"
-      aria-hidden="true"
-    ></div>
-
-    <div
-      class="hero-decoration decoration-two"
-      aria-hidden="true"
-    ></div>
+    <div class="hero-decoration decoration-one" aria-hidden="true"></div>
+    <div class="hero-decoration decoration-two" aria-hidden="true"></div>
 
     <div class="quote-hero-container">
       <div class="hero-logo-container">
         <div class="hero-logo-glow"></div>
-
-        <img
-          src="assets/images/logo_volts.png"
-          alt="VOLTS"
-        />
+        <img src="assets/images/logo_volts.png" alt="VOLTS" />
       </div>
 
-      <span class="hero-label">
-        Planes para cada necesidad
-      </span>
-
-      <h1>Cotización VOLTS</h1>
-
+      <span class="hero-label">Tu compañero tecnológico</span>
+      <h1>Cotiza tu VOLTS</h1>
       <p>
-        Elige tu plan, ajusta la cantidad y envía tu solicitud.
-        Nuestro equipo podrá revisar la información desde el portal.
+        Elige tu VOLTS, selecciona el paquete que necesitas y configura
+        cómo quieres recibirlo.
       </p>
 
       <div class="hero-benefits">
         <span>✓ Precios en MXN</span>
-        <span>✓ Solicitud sin compromiso</span>
-        <span>✓ Envío gratis desde 3 unidades</span>
+        <span>✓ Cuenta obligatoria para cotizar</span>
+        <span>✓ Envío gratis desde 3 paquetes</span>
       </div>
     </div>
   </section>
 
-  <!-- =====================================================
-       PLANES
-       ===================================================== -->
-  <section class="plans-section">
-  <div class="main-container">
-    <div class="section-heading">
-      <span class="section-kicker">
-        Encuentra tu opción ideal
-      </span>
-
-      <h2>Elige tu paquete</h2>
-
-      <p class="section-description">
-        Consulta los paquetes comerciales disponibles
-        y selecciona el que mejor se adapte a tus necesidades.
-      </p>
-    </div>
-
-    @if (loadingPackages()) {
-      <div class="packages-loading">
-        <span class="button-loader"></span>
-
-        <p>
-          Cargando paquetes comerciales...
+  <section class="volts-section">
+    <div class="main-container">
+      <div class="section-heading">
+        <span class="section-kicker">Paso 1</span>
+        <h2>Elige tu VOLTS</h2>
+        <p class="section-description">
+          Estos son los modelos disponibles actualmente. Cuando agreguemos
+          nuevos VOLTS desde Productos, aparecerán aquí automáticamente.
         </p>
       </div>
-    }
 
-    @else if (packagesErrorMessage()) {
-      <div
-        class="quote-error packages-error"
-        role="alert"
-      >
-        <span>⚠️</span>
-
-        <div>
-          <p>
-            {{ packagesErrorMessage() }}
-          </p>
-
-          <button
-            type="button"
-            class="retry-packages-button"
-            (click)="loadPackages()"
-          >
-            Reintentar
-          </button>
+      @if (loadingCatalog()) {
+        <div class="packages-loading">
+          <span class="button-loader"></span>
+          <p>Cargando VOLTS disponibles...</p>
         </div>
-      </div>
-    }
-
-    @else if (packages().length === 0) {
-      <div class="packages-empty">
-        <span>📦</span>
-
-        <h3>
-          No hay paquetes disponibles
-        </h3>
-
-        <p>
-          Actualmente no existen paquetes comerciales
-          activos para solicitar una cotización.
-        </p>
-      </div>
-    }
-
-    @else {
-      <div class="plans-grid">
-        @for (
-          package of packages();
-          track package.id;
-          let index = $index
-        ) {
-          <article
-            class="plan-card"
-            [class.basic-plan]="
-              getPackageClass(index) ===
-              'basic-plan'
-            "
-            [class.educator-plan]="
-              getPackageClass(index) ===
-              'educator-plan'
-            "
-            [class.institution-plan]="
-              getPackageClass(index) ===
-              'institution-plan'
-            "
-            [class.selected]="
-              selectedIndex() === index
-            "
-            [attr.aria-selected]="
-              selectedIndex() === index
-            "
-            tabindex="0"
-            role="button"
-            (click)="selectPackage(index)"
-            (keydown)="
-              handlePackageKeydown(
-                $event,
-                index
-              )
-            "
-          >
-            @if (getPackageBadge(index)) {
-              <div class="plan-badge">
-                {{ getPackageBadge(index) }}
-              </div>
-            }
-
-            <header class="plan-header">
-              <div class="plan-icon">
-                {{ getPackageIcon(index) }}
-              </div>
-
-              <h3>
-                {{ package.name }}
-              </h3>
-
-              <p>
-                {{ package.description }}
-              </p>
-
-              <div class="plan-price">
-                <strong>
-                  {{
-                    formatCurrency(
-                      package.price
-                    )
-                  }}
-                </strong>
-
-                <small>
-                  MXN por paquete
-                </small>
-              </div>
-            </header>
-
-            <div class="plan-content">
-              <span class="included-label">
-                Incluye:
-              </span>
-
-              <ul>
-                @for (
-                  item of package.items;
-                  track item.productId
-                ) {
-                  <li>
-                    <b>✓</b>
-
-                    <span>
-                      {{ item.quantity }} ×
-                      {{ item.productName }}
-                    </span>
-                  </li>
-                }
-              </ul>
-
-              @if (package.savings > 0) {
-                <div class="package-savings">
-                  Ahorras
-                  {{
-                    formatCurrency(
-                      package.savings
-                    )
-                  }}
-                </div>
-              }
-
-              <button
-                type="button"
-                class="select-plan-button"
-                (click)="
-                  selectPackage(index);
-                  $event.stopPropagation()
-                "
-              >
-                {{
-                  selectedIndex() === index
-                    ? '✓ Paquete seleccionado'
-                    : 'Seleccionar paquete'
-                }}
-              </button>
-            </div>
-
-            @if (
-              selectedIndex() === index
-            ) {
-              <div class="selected-indicator">
-                ✓
-              </div>
-            }
-          </article>
-        }
-      </div>
-    }
-  </div>
-</section>
-
-  <!-- =====================================================
-       DETALLE DE COTIZACIÓN
-       ===================================================== -->
-  <section class="quote-detail-section">
-    <div class="quote-container">
-      <div class="detail-heading">
-        <span class="section-kicker purple-kicker">
-          Personaliza tu solicitud
-        </span>
-
-        <h2>Configura tu cotización</h2>
-
-        <p>
-          Ajusta el número de unidades y revisa el total
-          estimado antes de enviar tus datos.
-        </p>
-      </div>
-
-      <!-- CANTIDAD -->
-      <article class="quantity-card">
-        <div class="quantity-heading">
-          <div class="quantity-icon">
-            📦
-          </div>
-
+      } @else if (catalogErrorMessage()) {
+        <div class="quote-error packages-error" role="alert">
+          <span>⚠️</span>
           <div>
-            <span>Pedido</span>
-            <h3>Cantidad de unidades</h3>
-          </div>
-        </div>
-
-        <div class="quantity-actions">
-          <div
-            class="quantity-control"
-            aria-label="Selector de cantidad"
-          >
-            <button
-              type="button"
-              aria-label="Disminuir cantidad"
-              [disabled]="quantity() === 1"
-              (click)="decrease()"
-            >
-              −
-            </button>
-
-            <strong>{{ quantity() }}</strong>
-
-            <button
-              type="button"
-              aria-label="Aumentar cantidad"
-              (click)="increase()"
-            >
-              +
+            <p>{{ catalogErrorMessage() }}</p>
+            <button type="button" class="retry-packages-button" (click)="loadCatalog()">
+              Reintentar
             </button>
           </div>
-
-          @if (quantity() >= 3) {
-            <span class="free-shipping">
-              🎉 Envío gratis
-            </span>
-          } @else {
-            <span class="shipping-hint">
-              Agrega {{ 3 - quantity() }}
-              {{
-                3 - quantity() === 1
-                  ? 'unidad'
-                  : 'unidades'
-              }}
-              para obtener envío gratis
-            </span>
-          }
         </div>
-      </article>
-
-      <!-- RESUMEN -->
-      @if (selectedPackage(); as package) {
-  <article
-    class="quote-summary"
-    [class.summary-purple]="
-      selectedIndex() === 1
-    "
-    [class.summary-cyan]="
-      selectedIndex() === 2
-    "
-  >
-    <div class="summary-decoration"></div>
-
-    <div class="summary-header">
-      <div>
-        <span>Tu selección</span>
-
-        <h2>
-          Resumen de cotización
-        </h2>
-      </div>
-
-      <div class="summary-plan-icon">
-        {{
-          getPackageIcon(
-            selectedIndex()
-          )
-        }}
-      </div>
-    </div>
-
-    <div class="summary-details">
-      <div class="summary-row">
-        <span>
-          Paquete seleccionado
-        </span>
-
-        <strong>
-          {{ package.name }}
-        </strong>
-      </div>
-
-      <div class="summary-row">
-        <span>
-          Plan comercial
-        </span>
-
-        <strong>
-          {{ package.commercialPlanName }}
-        </strong>
-      </div>
-
-      <div class="summary-row">
-        <span>
-          Precio por paquete
-        </span>
-
-        <strong>
-          {{
-            formatCurrency(
-              package.price
-            )
-          }}
-        </strong>
-      </div>
-
-      <div class="summary-row">
-        <span>Cantidad</span>
-
-        <strong>
-          {{ quantity() }}
-
-          {{
-            quantity() === 1
-              ? 'paquete'
-              : 'paquetes'
-          }}
-        </strong>
-      </div>
-
-      <div class="summary-row">
-        <span>Subtotal estimado</span>
-
-        <strong>
-          {{
-            formatCurrency(
-              subtotal()
-            )
-          }}
-        </strong>
-      </div>
-
-      <div class="summary-row">
-        <span>Envío estimado</span>
-
-        <strong
-          [class.free-value]="
-            shipping() === 0
-          "
-        >
-          {{
-            shipping() === 0
-              ? 'GRATIS 🎉'
-              : formatCurrency(
-                  shipping()
-                )
-          }}
-        </strong>
-      </div>
-    </div>
-
-    <div class="summary-total">
-      <div>
-        <span>Total estimado</span>
-        <small>MXN</small>
-      </div>
-
-      <strong>
-        {{
-          formatCurrency(
-            total()
-          )
-        }}
-      </strong>
-    </div>
-  </article>
-}
-
-      <!-- FORMULARIO -->
-      @if (!submitted()) {
-        <form
-          class="quote-form"
-          [formGroup]="form"
-          (ngSubmit)="submit()"
-        >
-          <div class="form-heading">
-            <div class="form-heading-icon">
-              📝
-            </div>
-
-            <div>
-              <span>Último paso</span>
-              <h2>Solicitar cotización formal</h2>
-              <p>
-                Completa tus datos para registrar la solicitud.
-              </p>
-            </div>
-          </div>
-
-          @if (errorMessage()) {
-            <div
-              class="quote-error"
-              role="alert"
-            >
-              <span>⚠️</span>
-              <p>{{ errorMessage() }}</p>
-            </div>
-          }
-
-          <div class="quote-form-grid">
-            <div class="field">
-              <label for="quote-full-name">
-                Nombre completo *
-              </label>
-
-              <input
-                id="quote-full-name"
-                formControlName="fullName"
-                autocomplete="name"
-                placeholder="Tu nombre completo"
-              />
-
-              @if (
-                form.controls.fullName.touched &&
-                form.controls.fullName.invalid
-              ) {
-                <small>
-                  Ingresa un nombre de al menos 3 caracteres.
-                </small>
-              }
-            </div>
-
-            <div class="field">
-              <label for="quote-email">
-                Correo electrónico *
-              </label>
-
-              <input
-                id="quote-email"
-                type="email"
-                formControlName="email"
-                autocomplete="email"
-                placeholder="correo@ejemplo.com"
-              />
-
-              @if (
-                form.controls.email.touched &&
-                form.controls.email.invalid
-              ) {
-                <small>
-                  Ingresa un correo electrónico válido.
-                </small>
-              }
-            </div>
-
-            <div class="field">
-              <label for="quote-phone">
-                Teléfono
-              </label>
-
-              <input
-                id="quote-phone"
-                type="tel"
-                formControlName="phone"
-                autocomplete="tel"
-                placeholder="+52 477 000 0000"
-              />
-
-              @if (
-                form.controls.phone.touched &&
-                form.controls.phone.invalid
-              ) {
-                <small>
-                  El teléfono no puede exceder 25 caracteres.
-                </small>
-              }
-            </div>
-
-            <div class="field">
-              <label for="quote-institution">
-                Institución o escuela
-              </label>
-
-              <input
-                id="quote-institution"
-                formControlName="institutionName"
-                autocomplete="organization"
-                placeholder="Nombre de la institución"
-              />
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="quote-notes">
-              Comentarios adicionales
-            </label>
-
-            <textarea
-              id="quote-notes"
-              rows="5"
-              formControlName="notes"
-              placeholder="Fecha estimada de compra, dudas o necesidades especiales..."
-            ></textarea>
-
-            <div class="field-helper">
-              Puedes compartir cualquier detalle adicional
-              relacionado con tu solicitud.
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            class="submit-quote-button"
-            [disabled]="loading()"
-          >
-            @if (loading()) {
-              <span class="button-loader"></span>
-              Enviando solicitud...
-            } @else {
-              ¡Enviar cotización! 🐾
-            }
-          </button>
-
-          <p class="form-privacy">
-            🔒 Tus datos serán utilizados únicamente para atender
-            esta solicitud.
-          </p>
-        </form>
+      } @else if (products().length === 0) {
+        <div class="packages-empty">
+          <span>🐾</span>
+          <h3>No hay VOLTS disponibles</h3>
+          <p>Activa un producto disponible y comprable desde el backoffice.</p>
+        </div>
       } @else {
-        <article class="quote-success">
-          <div class="success-decoration success-one"></div>
-          <div class="success-decoration success-two"></div>
+        <div class="volts-grid">
+          @for (product of products(); track product.id) {
+            <article
+              class="volts-card"
+              [class.selected]="selectedProductId() === product.id"
+              [attr.aria-selected]="selectedProductId() === product.id"
+              role="button"
+              tabindex="0"
+              (click)="selectProduct(product)"
+              (keydown)="handleProductKeydown($event, product)"
+            >
+              <div class="volts-image-wrap">
+                @if (product.imageUrl) {
+                  <img [src]="product.imageUrl" [alt]="product.name" />
+                } @else {
+                  <div class="volts-placeholder">
+                    <span>🐕⚡</span>
+                    <small>Agrega su foto desde Productos</small>
+                  </div>
+                }
 
-          <div class="success-icon">
-            ✓
-          </div>
+                <span
+                  class="stock-pill"
+                  [class.no-stock]="product.availableStock <= 0"
+                >
+                  @if (product.availableStock > 0) {
+                    {{ product.availableStock }} disponibles
+                  } @else {
+                    Bajo pedido
+                  }
+                </span>
+              </div>
 
-          <span class="success-label">
-            Solicitud registrada
-          </span>
+              <div class="volts-card-body">
+                <span class="volts-species">{{ product.breed || product.species }}</span>
+                <h3>{{ product.name }}</h3>
+                <p>{{ product.description }}</p>
 
-          <h2>¡Cotización enviada!</h2>
+                <div class="volts-card-footer">
+                  <div>
+                    <small>Precio de referencia</small>
+                    <strong>{{ formatCurrency(product.price) }}</strong>
+                  </div>
 
-          <p>
-            Gracias,
-            <strong>
-              {{ form.controls.fullName.value }}
-            </strong>.
-            Registramos correctamente tu solicitud para el plan
-            @if (selectedPackage(); as package) {
-              <strong>
-                {{ package.name }}
-              </strong>
-            }
-          </p>
-
-          <div class="success-summary">
-            <div>
-              <span>Paquete</span>
-
-              <strong>
-                {{
-                  selectedPackage()?.name ??
-                  'Paquete comercial'
-                }}
-              </strong>
-            </div>
-
-            <div>
-              <span>Unidades</span>
-              <strong>{{ quantity() }}</strong>
-            </div>
-
-            <div>
-              <span>Total estimado</span>
-              <strong>{{ formatCurrency(total()) }}</strong>
-            </div>
-          </div>
-
-          <p class="success-note">
-            El equipo de VOLTS podrá revisar tu solicitud
-            desde el portal administrativo.
-          </p>
-
-          <button
-            type="button"
-            (click)="reset()"
-          >
-            Crear otra cotización
-          </button>
-        </article>
+                  <button
+                    type="button"
+                    (click)="selectProduct(product); $event.stopPropagation()"
+                  >
+                    {{ selectedProductId() === product.id ? '✓ Elegido' : 'Elegir VOLTS' }}
+                  </button>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
       }
     </div>
   </section>
+
+  @if (selectedProduct()) {
+    <section class="plans-section">
+      <div class="main-container">
+        <div class="section-heading">
+          <span class="section-kicker">Paso 2</span>
+          <h2>Elige tu paquete</h2>
+          <p class="section-description">
+            Selecciona la opción que mejor se adapte a lo que necesitas para
+            {{ selectedProduct()?.name }}.
+          </p>
+        </div>
+
+        @if (availablePackages().length === 0) {
+          <div class="packages-empty">
+            <span>📦</span>
+            <h3>No hay paquetes para este VOLTS</h3>
+            <p>El producto está disponible, pero todavía no tiene un paquete comercial activo.</p>
+          </div>
+        } @else {
+          <div class="plans-grid">
+            @for (package of availablePackages(); track package.id; let index = $index) {
+              <article
+                class="plan-card"
+                [class.basic-plan]="getPackageClass(index) === 'basic-plan'"
+                [class.educator-plan]="getPackageClass(index) === 'educator-plan'"
+                [class.institution-plan]="getPackageClass(index) === 'institution-plan'"
+                [class.selected]="selectedPackageId() === package.id"
+                [attr.aria-selected]="selectedPackageId() === package.id"
+                role="button"
+                tabindex="0"
+                (click)="selectPackage(package)"
+                (keydown)="handlePackageKeydown($event, package)"
+              >
+                @if (getPackageBadge(index); as badge) {
+                  <div class="plan-badge">{{ badge }}</div>
+                }
+
+                <header class="plan-header">
+                  <div class="plan-icon">{{ getPackageIcon(index) }}</div>
+                  <h3>{{ package.name }}</h3>
+                  <p>{{ package.description }}</p>
+
+                  <div class="plan-price">
+                    <strong>{{ formatCurrency(package.price) }}</strong>
+                    <small>MXN por paquete</small>
+                  </div>
+                </header>
+
+                <div class="plan-content">
+                  <span class="included-label">Incluye:</span>
+                  <ul>
+                    @for (item of package.items; track item.productId) {
+                      <li>
+                        <b>✓</b>
+                        <span>{{ item.quantity }} × {{ item.productName }}</span>
+                      </li>
+                    }
+                  </ul>
+
+                  @if (package.savings > 0) {
+                    <div class="package-savings">
+                      Ahorras {{ formatCurrency(package.savings) }}
+                    </div>
+                  }
+
+                  <button
+                    type="button"
+                    class="select-plan-button"
+                    (click)="selectPackage(package); $event.stopPropagation()"
+                  >
+                    {{ selectedPackageId() === package.id ? '✓ Paquete seleccionado' : 'Seleccionar paquete' }}
+                  </button>
+                </div>
+
+                @if (selectedPackageId() === package.id) {
+                  <div class="selected-indicator">✓</div>
+                }
+              </article>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  @if (selectedPackage(); as package) {
+    <section class="quote-detail-section">
+      <div class="quote-container">
+        <div class="detail-heading">
+          <span class="section-kicker purple-kicker">Paso 3</span>
+          <h2>Configura tu cotización</h2>
+          <p>Ajusta la cantidad, elige la modalidad y revisa el resumen.</p>
+        </div>
+
+        <article class="quantity-card">
+          <div class="quantity-heading">
+            <div class="quantity-icon">📦</div>
+            <div>
+              <span>Pedido</span>
+              <h3>Cantidad de paquetes</h3>
+            </div>
+          </div>
+
+          <div class="quantity-actions">
+            <div class="quantity-control" aria-label="Selector de cantidad">
+              <button
+                type="button"
+                aria-label="Disminuir cantidad"
+                [disabled]="quantity() === 1"
+                (click)="decrease()"
+              >−</button>
+              <strong>{{ quantity() }}</strong>
+              <button type="button" aria-label="Aumentar cantidad" (click)="increase()">+</button>
+            </div>
+
+            @if (quantity() >= 3) {
+              <span class="free-shipping">🚚 Envío gratis</span>
+            } @else {
+              <span class="shipping-hint">
+                Agrega {{ 3 - quantity() }}
+                {{ 3 - quantity() === 1 ? 'paquete' : 'paquetes' }} para envío gratis
+              </span>
+            }
+          </div>
+        </article>
+
+        <article class="assembly-card">
+          <div class="quantity-heading">
+            <div class="quantity-icon">🛠️</div>
+            <div>
+              <span>Modalidad</span>
+              <h3>¿Cómo quieres recibir tu VOLTS?</h3>
+            </div>
+          </div>
+
+          <div class="assembly-options">
+            <button
+              type="button"
+              [class.selected]="assemblyMode() === 'ReadyToUse'"
+              (click)="setAssemblyMode('ReadyToUse')"
+            >
+              <strong>🐕 Armado y listo</strong>
+              <span>Lo recibes ensamblado y preparado para vincularlo con la app.</span>
+            </button>
+
+            <button
+              type="button"
+              [class.selected]="assemblyMode() === 'DiyKit'"
+              (click)="setAssemblyMode('DiyKit')"
+            >
+              <strong>🧰 Kit DIY</strong>
+              <span>Ármalo tú mismo con manual, diagramas y recursos digitales.</span>
+            </button>
+
+            <button
+              type="button"
+              [class.selected]="assemblyMode() === 'WorkshopAssist'"
+              (click)="setAssemblyMode('WorkshopAssist')"
+            >
+              <strong>🤝 Tráelo y lo armamos contigo</strong>
+              <span>
+                Taller presencial en UTL, edificio CVD, León. Obtienes hasta 15% de
+                descuento sin bajar el margen mínimo del producto.
+              </span>
+            </button>
+          </div>
+        </article>
+
+        <article
+          class="stock-notice"
+          [class.available]="hasImmediateStockPreview()"
+          [class.production]="!hasImmediateStockPreview()"
+        >
+          <span>{{ hasImmediateStockPreview() ? '✓' : '⚙️' }}</span>
+          <div>
+            <strong>{{ hasImmediateStockPreview() ? 'Stock disponible' : 'Requiere preparación o producción' }}</strong>
+            <p>{{ stockPreviewText() }}</p>
+          </div>
+        </article>
+
+        @if (isAuthenticated() && currentUser(); as user) {
+          <article class="account-card">
+            <div class="account-card-head">
+              <div>
+                <span>Cuenta vinculada</span>
+                <strong>{{ user.fullName }}</strong>
+                <small>{{ user.email }}</small>
+              </div>
+              <b>{{ user.roleName === 'Institution' ? 'Institución' : 'Cliente' }}</b>
+            </div>
+
+            @if (user.roleName === 'Client') {
+              @if (loadingProfile()) {
+                <p class="address-message">Cargando dirección...</p>
+              } @else if (hasCompleteAddress()) {
+                <div class="address-ok">
+                  <span>📍 Dirección de entrega</span>
+                  <p>{{ addressLabel() }}</p>
+                </div>
+              } @else {
+                <div class="address-missing">
+                  <div>
+                    <strong>⚠️ Falta tu dirección</strong>
+                    <p>
+                      Debes registrar calle, número, colonia, C.P., ciudad, estado y país
+                      antes de enviar la cotización.
+                    </p>
+                  </div>
+                  <button type="button" (click)="goToProfile()">Completar dirección</button>
+                </div>
+              }
+            } @else {
+              <p class="address-message">
+                📍 El backend usará la dirección registrada de la institución para calcular la entrega.
+              </p>
+            }
+          </article>
+        }
+
+        <article
+          class="quote-summary"
+          [class.summary-purple]="selectedPackageIndex() === 1"
+          [class.summary-cyan]="selectedPackageIndex() === 2"
+        >
+          <div class="summary-decoration"></div>
+
+          <div class="summary-header">
+            <div>
+              <span>Tu selección</span>
+              <h2>Resumen de cotización</h2>
+            </div>
+            <div class="summary-plan-icon">{{ getPackageIcon(selectedPackageIndex()) }}</div>
+          </div>
+
+          <div class="summary-product">
+            @if (selectedProduct()?.imageUrl) {
+              <img [src]="selectedProduct()?.imageUrl" [alt]="selectedProduct()?.name" />
+            }
+            <div>
+              <span>VOLTS elegido</span>
+              <strong>{{ selectedProduct()?.name }}</strong>
+            </div>
+          </div>
+
+          <div class="summary-details">
+            <div class="summary-row">
+              <span>Paquete seleccionado</span>
+              <strong>{{ package.name }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>Plan comercial</span>
+              <strong>{{ package.commercialPlanName }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>Modalidad</span>
+              <strong>{{ getAssemblyLabel() }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>Cantidad</span>
+              <strong>{{ quantity() }} {{ quantity() === 1 ? 'paquete' : 'paquetes' }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>Unidades de {{ selectedProduct()?.name }}</span>
+              <strong>{{ selectedProductRequestedUnits() }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <strong>{{ formatCurrency(subtotal()) }}</strong>
+            </div>
+
+            @if (assemblyMode() === 'WorkshopAssist') {
+              <div class="summary-row discount-row">
+                <span>Descuento taller estimado</span>
+                <strong>Hasta −{{ formatCurrency(assemblyDiscountPreview()) }}</strong>
+              </div>
+            }
+
+            <div class="summary-row">
+              <span>IVA estimado</span>
+              <strong>{{ formatCurrency(taxPreview()) }}</strong>
+            </div>
+            <div class="summary-row">
+              <span>Envío estimado</span>
+              <strong [class.free-value]="shippingPreview() === 0">{{ shippingLabel() }}</strong>
+            </div>
+          </div>
+
+          <div class="summary-total">
+            <div>
+              <span>{{ shippingPreview() === null ? 'Total antes de envío' : 'Total estimado' }}</span>
+              <small>MXN</small>
+            </div>
+            <strong>{{ formatCurrency(totalPreview()) }}</strong>
+          </div>
+
+          @if (assemblyMode() === 'WorkshopAssist') {
+            <p class="summary-disclaimer">
+              El descuento definitivo puede ser menor al 15% si es necesario para proteger
+              el margen mínimo calculado con el costo actual del producto.
+            </p>
+          }
+        </article>
+
+        @if (!submitted()) {
+          @if (!isAuthenticated()) {
+            <article class="auth-gate">
+              <div class="auth-gate-icon">🔐</div>
+              <span>Último paso</span>
+              <h2>Inicia sesión para cotizar</h2>
+              <p>
+                Para enviar una cotización necesitas una cuenta VOLTS. No se enviará ninguna
+                solicitud anónima y conservaremos lo que acabas de seleccionar.
+              </p>
+              <div class="auth-actions">
+                <button type="button" class="primary-auth" (click)="goToLogin()">
+                  Iniciar sesión
+                </button>
+                <button type="button" class="secondary-auth" (click)="goToRegister()">
+                  Crear cuenta gratis
+                </button>
+              </div>
+            </article>
+          } @else {
+            <form class="quote-form" [formGroup]="form" (ngSubmit)="submit()">
+              <div class="form-heading">
+                <div class="form-heading-icon">📝</div>
+                <div>
+                  <span>Último paso</span>
+                  <h2>Solicitar cotización formal</h2>
+                  <p>La solicitud quedará vinculada automáticamente con tu cuenta VOLTS.</p>
+                </div>
+              </div>
+
+              @if (errorMessage()) {
+                <div class="quote-error" role="alert">
+                  <span>⚠️</span>
+                  <p>{{ errorMessage() }}</p>
+                </div>
+              }
+
+              <div class="field">
+                <label for="quote-notes">Comentarios adicionales</label>
+                <textarea
+                  id="quote-notes"
+                  rows="5"
+                  formControlName="notes"
+                  placeholder="Fecha estimada de compra, dudas o necesidades especiales..."
+                ></textarea>
+                @if (form.controls.notes.touched && form.controls.notes.invalid) {
+                  <small>Los comentarios no pueden superar 1000 caracteres.</small>
+                }
+              </div>
+
+              <button
+                type="submit"
+                class="submit-quote-button"
+                [disabled]="
+                  loading() ||
+                  loadingProfile() ||
+                  (currentUser()?.roleName === 'Client' && addressLoaded() && !hasCompleteAddress())
+                "
+              >
+                @if (loading()) {
+                  <span class="button-loader"></span>
+                  Enviando solicitud...
+                } @else {
+                  ¡Enviar cotización! 🐾
+                }
+              </button>
+
+              <p class="form-privacy">
+                🔒 Nombre, correo y dirección se toman de tu cuenta autenticada.
+              </p>
+            </form>
+          }
+        } @else if (createdQuote(); as quote) {
+          <article class="quote-success">
+            <div class="success-decoration success-one"></div>
+            <div class="success-decoration success-two"></div>
+            <div class="success-icon">✓</div>
+            <span class="success-label">Solicitud registrada</span>
+            <h2>¡Cotización enviada!</h2>
+            <p>
+              Folio <strong>{{ quote.folio }}</strong>. La solicitud quedó vinculada con
+              <strong>{{ currentUser()?.fullName }}</strong>.
+            </p>
+
+            <div
+              class="final-stock-message"
+              [class.available]="quote.hasImmediateStock"
+            >
+              {{ quote.stockMessage }}
+            </div>
+
+            <div class="success-summary">
+              <div>
+                <span>Producto</span>
+                <strong>{{ selectedProduct()?.name }}</strong>
+              </div>
+              <div>
+                <span>Entrega</span>
+                <strong>{{ quote.deliveryMethod }}</strong>
+              </div>
+              <div>
+                <span>Envío</span>
+                <strong>{{ quote.shipping === 0 ? 'Gratis' : formatCurrency(quote.shipping) }}</strong>
+              </div>
+              <div>
+                <span>Total</span>
+                <strong>{{ formatCurrency(quote.total) }}</strong>
+              </div>
+            </div>
+
+            <p class="success-note">{{ quote.deliveryEstimate }}</p>
+            <button type="button" (click)="reset()">Crear otra cotización</button>
+          </article>
+        }
+      </div>
+    </section>
+  }
 </div>

@@ -18,7 +18,7 @@
       class="primary-button"
       (click)="openCreateModal()"
     >
-      ＋ Registrar merma manual
+      + Registrar merma manual
     </button>
   </header>
 
@@ -313,7 +313,7 @@
           <div class="form-field full-field">
             <label>Materia prima *</label>
 
-            <select formControlName="rawMaterialId">
+            <select formControlName="rawMaterialId" (change)="createMaterialChanged()">
               <option value="">
                 Selecciona un material
               </option>
@@ -353,6 +353,9 @@
               "
               formControlName="quantity" 
             />
+            @if (getSelectedCreateMaterial(); as material) {
+              <small>{{ material.unitAllowsDecimals ? ('Admite hasta ' + material.unitDecimalPlaces + ' decimales.') : 'Este material se registra en unidades enteras.' }}</small>
+            }
           </div>
 
           <div class="form-field">
@@ -676,4 +679,6 @@
     </section>
   </div>
 }
+
+
 

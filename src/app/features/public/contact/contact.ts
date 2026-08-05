@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 
 import {
   FormBuilder,
@@ -7,6 +7,8 @@ import {
 } from '@angular/forms';
 
 import { ContactService } from '../../../core/services/contact.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { CustomerService } from '../../../core/services/customer.service';
 
 @Component({
   selector: 'app-contact',
@@ -15,9 +17,11 @@ import { ContactService } from '../../../core/services/contact.service';
   templateUrl: './contact.html',
   styleUrl: './contact.css'
 })
-export class Contact {
+export class Contact implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly contactService = inject(ContactService);
+  private readonly auth = inject(AuthService);
+  private readonly customers = inject(CustomerService);
 
   readonly loading = signal(false);
   readonly submitted = signal(false);
@@ -63,6 +67,24 @@ export class Contact {
     ]
   });
 
+  ngOnInit(): void { this.prefillIdentity(); }
+
+  private prefillIdentity(): void {
+    const user = this.auth.currentUser();
+    if (!user) return;
+    this.form.patchValue({ fullName: user.fullName, email: user.email });
+    if (user.roleName === 'Client') {
+      this.customers.getMyProfile().subscribe({
+        next: response => this.form.patchValue({
+          fullName: response.data.fullName,
+          email: response.data.email,
+          phone: response.data.phone ?? ''
+        }),
+        error: () => {}
+      });
+    }
+  }
+
   submit(): void {
     if (this.form.invalid || this.loading()) {
       this.form.markAllAsTouched();
@@ -97,8 +119,11 @@ export class Contact {
   }
 
   sendAnother(): void {
-    this.form.reset();
+    this.form.reset({ fullName: '', email: '', phone: '', subject: '', message: '' });
+    this.prefillIdentity();
     this.submitted.set(false);
     this.errorMessage.set('');
   }
 }
+
+

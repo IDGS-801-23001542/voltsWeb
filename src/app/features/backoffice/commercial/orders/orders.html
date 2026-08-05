@@ -89,6 +89,11 @@
             </strong>
           </div>
 
+          <div class="payment-state" [class.paid]="order.paymentStatus === 'Paid'">
+            <strong>{{ order.paymentStatus === 'Paid' ? '✅ Pago registrado' : '⏳ Esperando pago del cliente' }}</strong>
+            @if (order.paymentReference) { <small>{{ order.paymentReference }}</small> }
+          </div>
+
           @if (order.productionOrderIds.length > 0) {
             <small>
               Producciones vinculadas:
@@ -104,10 +109,10 @@
               <button
                 type="button"
                 class="primary-button"
-                [disabled]="actionId() === order.id"
+                [disabled]="actionId() === order.id || order.paymentStatus !== 'Paid'"
                 (click)="confirm(order)"
               >
-                ✅ Confirmar y reservar
+                {{ order.paymentStatus === 'Paid' ? '✅ Confirmar y reservar' : '🔒 Falta pago' }}
               </button>
             }
 
@@ -144,3 +149,5 @@
     </div>
   }
 </section>
+
+

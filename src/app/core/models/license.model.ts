@@ -1,3 +1,4 @@
+
 export type LicenseStatus =
   | 'Available'
   | 'Active'
@@ -14,6 +15,7 @@ export interface License {
   saleDetailId: string;
   productId: string;
   productName: string;
+  productImageUrl?: string | null;
   commercialPlanId: string;
   commercialPlanName: string;
   commercialPackageId: string;
@@ -22,6 +24,7 @@ export interface License {
   customerId?: string | null;
   institutionId?: string | null;
   recipientName: string;
+  recipientEmail?: string;
   status: LicenseStatus;
   warrantyStartDate: string;
   warrantyEndDate: string;
@@ -32,3 +35,5 @@ export interface License {
   deviceSerialNumber?: string | null;
   createdAt: string;
 }
+
+

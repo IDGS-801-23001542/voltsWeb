@@ -8,7 +8,7 @@
 
     @if (isAdmin()) {
       <button type="button" class="primary-button" (click)="activeTab() === 'plans' ? openCreatePlan() : openCreatePackage()">
-        ＋ {{ activeTab() === 'plans' ? 'Nuevo plan' : 'Nuevo paquete' }}
+        + {{ activeTab() === 'plans' ? 'Nuevo plan' : 'Nuevo paquete' }}
       </button>
     }
   </header>
@@ -41,7 +41,6 @@
           <div class="benefits">
             <span>{{ plan.includesTraining ? '✓' : '—' }} Capacitación</span>
             <span>{{ plan.includesDocumentation ? '✓' : '—' }} Documentación</span>
-            <span>{{ plan.includesUpdates ? '✓' : '—' }} Actualizaciones</span>
           </div>
           @if (isAdmin()) {
             <footer class="card-actions">
@@ -103,7 +102,6 @@
         <div class="switches">
           <label><input type="checkbox" formControlName="includesTraining"> Incluye capacitación</label>
           <label><input type="checkbox" formControlName="includesDocumentation"> Incluye documentación</label>
-          <label><input type="checkbox" formControlName="includesUpdates"> Incluye actualizaciones</label>
           @if (editingPlan()) { <label><input type="checkbox" formControlName="isActive"> Plan activo</label> }
         </div>
         <footer class="form-actions"><button type="button" class="secondary-button" (click)="closePlanForm()">Cancelar</button><button type="submit" class="primary-button" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar plan' }}</button></footer>
@@ -127,7 +125,7 @@
           <label class="wide">Descripción *<textarea rows="4" formControlName="description"></textarea></label>
         </div>
         <section class="items-section" formArrayName="items">
-          <div class="items-heading"><h3>Productos incluidos</h3><button type="button" (click)="addPackageItem()">＋ Agregar producto</button></div>
+          <div class="items-heading"><h3>Productos incluidos</h3><button type="button" (click)="addPackageItem()">+ Agregar producto</button></div>
           @for (group of packageItems.controls; track $index; let index = $index) {
             <div class="item-row" [formGroupName]="index">
               <select formControlName="productId"><option value="">Selecciona producto</option>@for (product of purchasableProducts(); track product.id) {<option [value]="product.id">{{ product.name }} — {{ product.price | currency:'MXN' }}</option>}</select>
@@ -142,3 +140,5 @@
     </section>
   </div>
 }
+
+

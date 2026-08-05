@@ -2,10 +2,13 @@
   <header class="page-heading">
     <div>
       <span>Gestión comercial</span>
+
       <h1>Cotizaciones</h1>
+
       <p>
-        Calcula propuestas desde paquetes reales y
-        conviértelas en pedidos.
+        Calcula propuestas desde paquetes reales,
+        define la modalidad de entrega y conviértelas
+        en pedidos.
       </p>
     </div>
 
@@ -14,7 +17,7 @@
       class="primary-button"
       (click)="openCreate()"
     >
-      ＋ Nueva cotización
+      + Nueva cotización
     </button>
   </header>
 
@@ -33,27 +36,55 @@
   <section class="panel">
     <div class="toolbar">
       <strong>
-        {{ filteredQuotes().length }} cotizaciones
+        {{ filteredQuotes().length }}
+        cotizaciones
       </strong>
 
       <select
         [value]="statusFilter()"
         (change)="updateFilter($event)"
       >
-        <option value="all">Todos los estados</option>
-        <option value="Pending">Pendientes</option>
-        <option value="Approved">Aprobadas</option>
-        <option value="Rejected">Rechazadas</option>
-        <option value="Converted">Convertidas</option>
-        <option value="Cancelled">Canceladas</option>
+        <option value="all">
+          Todos los estados
+        </option>
+
+        <option value="Pending">
+          Pendientes
+        </option>
+
+        <option value="Approved">
+          Aprobadas
+        </option>
+
+        <option value="Rejected">
+          Rechazadas
+        </option>
+
+        <option value="Converted">
+          Convertidas
+        </option>
+
+        <option value="Cancelled">
+          Canceladas
+        </option>
       </select>
     </div>
 
     @if (loading()) {
-      <div class="state">Cargando cotizaciones...</div>
-    } @else if (filteredQuotes().length === 0) {
-      <div class="state">No hay cotizaciones.</div>
-    } @else {
+      <div class="state">
+        Cargando cotizaciones...
+      </div>
+    }
+
+    @else if (
+      filteredQuotes().length === 0
+    ) {
+      <div class="state">
+        No hay cotizaciones.
+      </div>
+    }
+
+    @else {
       <div class="cards">
         @for (
           quote of filteredQuotes();
@@ -62,45 +93,85 @@
           <article class="card">
             <div class="card-heading">
               <div>
-                <small>{{ quote.folio }}</small>
-                <h2>{{ quote.recipientName }}</h2>
+                <small>
+                  {{ quote.folio }}
+                </small>
+
+                <h2>
+                  {{ quote.recipientName }}
+                </h2>
+
                 <p>
-                  {{ quote.commercialPackageName }}
-                  · {{ quote.packageQuantity }} paquete(s)
+                  {{
+                    quote.commercialPackageName
+                  }}
+                  ·
+                  {{ quote.packageQuantity }}
+                  paquete(s)
+                </p>
+
+                <p>
+                  <strong>Modalidad:</strong>
+
+                  {{
+                    assemblyModeLabel(
+                      quote.assemblyMode
+                    )
+                  }}
                 </p>
               </div>
 
               <span class="badge">
-                {{ statusLabel(quote.status) }}
+                {{
+                  statusLabel(
+                    quote.status
+                  )
+                }}
               </span>
             </div>
 
             <div class="numbers">
               <div>
                 <small>Subtotal</small>
+
                 <strong>
-                  {{ quote.subtotal | currency:'MXN' }}
+                  {{
+                    quote.subtotal
+                      | currency:'MXN'
+                  }}
                 </strong>
               </div>
 
               <div>
                 <small>Descuento</small>
+
                 <strong>
-                  {{ quote.discount | currency:'MXN' }}
+                  {{
+                    quote.discount
+                      | currency:'MXN'
+                  }}
                 </strong>
               </div>
 
               <div>
                 <small>IVA</small>
+
                 <strong>
-                  {{ quote.tax | currency:'MXN' }}
+                  {{
+                    quote.tax
+                      | currency:'MXN'
+                  }}
                 </strong>
               </div>
 
               <div>
                 <small>Total</small>
+
                 <strong>
-                  {{ quote.total | currency:'MXN' }}
+                  {{
+                    quote.total
+                      | currency:'MXN'
+                  }}
                 </strong>
               </div>
             </div>
@@ -111,7 +182,8 @@
                 track item.productId
               ) {
                 <span>
-                  {{ item.totalQuantity }} ×
+                  {{ item.totalQuantity }}
+                  ×
                   {{ item.productName }}
                 </span>
               }
@@ -119,11 +191,18 @@
 
             <small>
               Vigente hasta
-              {{ quote.validUntil | date:'dd/MM/yyyy' }}
+
+              {{
+                quote.validUntil
+                  | date:'dd/MM/yyyy'
+              }}
             </small>
 
             <div class="actions">
-              @if (quote.status !== 'Converted') {
+              @if (
+                quote.status !==
+                'Converted'
+              ) {
                 <button
                   type="button"
                   (click)="openPricing(quote)"
@@ -132,27 +211,51 @@
                 </button>
               }
 
-              @if (quote.status === 'Pending') {
+              @if (
+                quote.status ===
+                'Pending'
+              ) {
                 <button
                   type="button"
-                  (click)="updateStatus(quote, 'Approved')"
+                  [disabled]="
+                    actionId() === quote.id
+                  "
+                  (click)="
+                    updateStatus(
+                      quote,
+                      'Approved'
+                    )
+                  "
                 >
                   ✅ Aprobar
                 </button>
 
                 <button
                   type="button"
-                  (click)="updateStatus(quote, 'Rejected')"
+                  [disabled]="
+                    actionId() === quote.id
+                  "
+                  (click)="
+                    updateStatus(
+                      quote,
+                      'Rejected'
+                    )
+                  "
                 >
                   ❌ Rechazar
                 </button>
               }
 
-              @if (quote.status === 'Approved') {
+              @if (
+                quote.status ===
+                'Approved'
+              ) {
                 <button
                   type="button"
                   class="primary-button"
-                  [disabled]="actionId() === quote.id"
+                  [disabled]="
+                    actionId() === quote.id
+                  "
                   (click)="convert(quote)"
                 >
                   📦 Convertir a pedido
@@ -187,6 +290,7 @@
         <button
           type="button"
           (click)="closeForm()"
+          aria-label="Cerrar"
         >
           ✕
         </button>
@@ -198,7 +302,8 @@
       >
         @if (formErrorMessage()) {
           <div class="message error">
-            ⚠ {{ formErrorMessage() }}
+            ⚠
+            {{ formErrorMessage() }}
           </div>
         }
 
@@ -206,41 +311,73 @@
           <div class="grid">
             <label>
               Destinatario
-              <select formControlName="recipientType">
-                <option value="Customer">Cliente</option>
-                <option value="Institution">Institución</option>
+
+              <select
+                formControlName="recipientType"
+              >
+                <option value="Customer">
+                  Cliente
+                </option>
+
+                <option value="Institution">
+                  Institución
+                </option>
               </select>
             </label>
 
             @if (
-              form.controls.recipientType.value ===
+              form.controls
+                .recipientType
+                .value ===
               'Customer'
             ) {
               <label>
                 Cliente
-                <select formControlName="customerId">
-                  <option value="">Selecciona</option>
+
+                <select
+                  formControlName="customerId"
+                >
+                  <option value="">
+                    Selecciona
+                  </option>
+
                   @for (
                     customer of customers();
                     track customer.id
                   ) {
-                    <option [value]="customer.id">
-                      {{ customer.fullName }}
+                    <option
+                      [value]="customer.id"
+                    >
+                      {{
+                        customer.fullName
+                      }}
                     </option>
                   }
                 </select>
               </label>
-            } @else {
+            }
+
+            @else {
               <label>
                 Institución
-                <select formControlName="institutionId">
-                  <option value="">Selecciona</option>
+
+                <select
+                  formControlName="institutionId"
+                >
+                  <option value="">
+                    Selecciona
+                  </option>
+
                   @for (
                     institution of institutions();
                     track institution.id
                   ) {
-                    <option [value]="institution.id">
-                      {{ institution.name }}
+                    <option
+                      [value]="institution.id"
+                    >
+                      {{
+                        institution.name
+                      }}
                     </option>
                   }
                 </select>
@@ -249,13 +386,21 @@
 
             <label>
               Paquete comercial
-              <select formControlName="commercialPackageId">
-                <option value="">Selecciona</option>
+
+              <select
+                formControlName="commercialPackageId"
+              >
+                <option value="">
+                  Selecciona
+                </option>
+
                 @for (
                   item of packages();
                   track item.id
                 ) {
-                  <option [value]="item.id">
+                  <option
+                    [value]="item.id"
+                  >
                     {{ item.name }}
                   </option>
                 }
@@ -263,7 +408,27 @@
             </label>
 
             <label>
+              Modalidad de entrega
+
+              <select
+                formControlName="assemblyMode"
+              >
+                <option value="ReadyToUse">
+                  Armado y listo para usar
+                </option>
+
+                <option value="DiyKit">
+                  Kit DIY para ensamblar
+                </option>
+                <option value="WorkshopAssist">
+                  Tráelo y lo armamos contigo · UTL/CVD
+                </option>
+              </select>
+            </label>
+
+            <label>
               Cantidad de paquetes
+
               <input
                 type="number"
                 min="1"
@@ -273,9 +438,23 @@
           </div>
         }
 
+        @if (pricingQuote()) {
+          <div class="message success">
+            Modalidad:
+            {{
+              assemblyModeLabel(
+                form.controls
+                  .assemblyMode
+                  .value
+              )
+            }}
+          </div>
+        }
+
         <div class="grid">
           <label>
             Descuento
+
             <input
               type="number"
               min="0"
@@ -286,6 +465,7 @@
 
           <label>
             Envío
+
             <input
               type="number"
               min="0"
@@ -296,6 +476,7 @@
 
           <label>
             Vigencia en días
+
             <input
               type="number"
               min="1"
@@ -308,6 +489,7 @@
         @if (!pricingQuote()) {
           <label>
             Notas
+
             <textarea
               rows="3"
               formControlName="notes"
@@ -317,6 +499,7 @@
 
         <label>
           Condiciones
+
           <textarea
             rows="3"
             formControlName="conditions"
@@ -347,3 +530,5 @@
     </section>
   </div>
 }
+
+

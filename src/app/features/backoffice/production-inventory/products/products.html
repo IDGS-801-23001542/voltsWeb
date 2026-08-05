@@ -19,7 +19,7 @@
         class="primary-button"
         (click)="openCreateForm()"
       >
-        ＋ Nuevo producto
+        + Nuevo producto
       </button>
     }
   </header>
@@ -214,6 +214,23 @@
                 </div>
 
                 <div>
+                  <small>Costo promedio terminado</small>
+                  <strong>{{ product.averageFinishedCost | currency:'MXN' }}</strong>
+                </div>
+
+                <div>
+                  <small>Precio sugerido</small>
+                  <strong>{{ product.suggestedPrice | currency:'MXN' }}</strong>
+                </div>
+
+                <div>
+                  <small>Margen actual</small>
+                  <strong [class.low-stock]="product.hasInsufficientMargin">
+                    {{ product.currentMarginPercentage }}%
+                  </strong>
+                </div>
+
+                <div>
                   <small>Stock físico</small>
                   <strong>
                     {{ product.physicalStock }}
@@ -240,6 +257,12 @@
                   </strong>
                 </div>
               </div>
+
+              @if (product.hasInsufficientMargin) {
+                <div class="message error-message">
+                  ⚠ El precio actual no asegura el margen mínimo de {{ product.minimumMarginPercentage }}%.
+                </div>
+              }
 
               <div class="availability-row">
                 <span>
@@ -398,6 +421,16 @@
           </div>
 
           <div class="form-field">
+            <label>Margen objetivo (%)</label>
+            <input type="number" min="0" max="99.99" step="0.01" formControlName="targetMarginPercentage" />
+          </div>
+
+          <div class="form-field">
+            <label>Margen mínimo (%)</label>
+            <input type="number" min="0" max="99.99" step="0.01" formControlName="minimumMarginPercentage" />
+          </div>
+
+          <div class="form-field">
             <label>Especie *</label>
 
             <input
@@ -452,14 +485,17 @@
             />
           </div>
 
-          <div class="form-field full-field">
-            <label>URL de imagen</label>
-
-            <input
-              type="url"
-              formControlName="imageUrl"
-              placeholder="https://..."
-            />
+          <div class="form-field full-field image-upload-field">
+            <label>Foto del VOLTS</label>
+            @if (form.controls.imageUrl.value) {
+              <img class="image-preview" [src]="form.controls.imageUrl.value" alt="Vista previa del producto" />
+            }
+            <input type="file" accept="image/png,image/jpeg,image/webp" (change)="uploadProductImage($event)" [disabled]="uploadingImage()" />
+            <small>JPG, PNG o WEBP · máximo 8 MB. La imagen se sube a Cloudinary.</small>
+            @if (uploadingImage()) { <small>Subiendo imagen...</small> }
+            @if (form.controls.imageUrl.value) {
+              <button type="button" class="secondary-button" (click)="clearProductImage()">Quitar foto</button>
+            }
           </div>
         </div>
 
@@ -586,3 +622,5 @@
     </section>
   </div>
 }
+
+

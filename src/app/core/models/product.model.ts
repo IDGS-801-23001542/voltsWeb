@@ -14,6 +14,16 @@ export interface Product {
   slug: string;
   description: string;
   price: number;
+  estimatedRecipeCost: number;
+  averageFinishedCost: number;
+  lastProductionUnitCost: number;
+  targetMarginPercentage: number;
+  minimumMarginPercentage: number;
+  suggestedPrice: number;
+  estimatedProfit: number;
+  currentMarginPercentage: number;
+  hasInsufficientMargin: boolean;
+  costUpdatedAt?: string | null;
   categoryId: string;
   categoryName: string;
   category?: string | null;
@@ -40,6 +50,8 @@ export interface ProductCreateRequest {
   slug: string;
   description: string;
   price: number;
+  targetMarginPercentage: number;
+  minimumMarginPercentage: number;
   categoryId: string;
   species: string;
   breed: string;

@@ -33,6 +33,14 @@ export interface ProductionOrder {
   quantityDefective: number;
   estimatedMaterialCost: number;
   actualMaterialCost: number;
+  goodUnitsCost: number;
+  defectiveUnitsCost: number;
+  wasteCost: number;
+  recoverableValue: number;
+  netProductionLoss: number;
+  actualGoodUnitCost: number;
+  previousFinishedAverageCost: number;
+  newFinishedAverageCost: number;
   hasShortages: boolean;
   materials: ProductionMaterial[];
   notes: string;

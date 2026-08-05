@@ -45,7 +45,7 @@
             <button
               type="button"
               [disabled]="sellingId() === order.id"
-              (click)="sell(order)"
+              (click)="requestSale(order)"
             >
               {{
                 sellingId() === order.id
@@ -94,4 +94,61 @@
       </div>
     }
   </section>
+
+  @if (pendingSale(); as order) {
+    <div
+      class="modal-backdrop"
+      role="presentation"
+      (click)="closeSaleConfirmation()"
+    >
+      <section
+        class="sale-confirmation"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sale-confirmation-title"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="confirmation-icon">✓</div>
+
+        <span class="confirmation-label">Confirmación de venta</span>
+        <h2 id="sale-confirmation-title">
+          ¿Registrar esta venta?
+        </h2>
+
+        <p>
+          Esta acción descontará el inventario reservado y generará
+          una licencia por cada unidad vendida.
+        </p>
+
+        <div class="confirmation-summary">
+          <span><small>Pedido</small><strong>{{ order.folio }}</strong></span>
+          <span><small>Cliente</small><strong>{{ order.recipientName }}</strong></span>
+          <span><small>Total</small><strong>{{ order.total | currency:'MXN' }}</strong></span>
+        </div>
+
+        <div class="confirmation-actions">
+          <button
+            type="button"
+            class="secondary"
+            [disabled]="sellingId() === order.id"
+            (click)="closeSaleConfirmation()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            class="primary"
+            [disabled]="sellingId() === order.id"
+            (click)="confirmSale()"
+          >
+            {{ sellingId() === order.id ? 'Confirmando...' : 'Sí, confirmar venta' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
 </section>
+
+
+

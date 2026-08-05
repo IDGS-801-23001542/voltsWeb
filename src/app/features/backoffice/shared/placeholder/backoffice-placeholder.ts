@@ -21,3 +21,6 @@ export class BackofficePlaceholder {
     this.route.snapshot.data['description'] ??
     'Este módulo será desarrollado próximamente.';
 }
+
+
+

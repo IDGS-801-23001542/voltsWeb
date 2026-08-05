@@ -1,0 +1,2 @@
+import { Component,inject } from '@angular/core';import { RouterLink,RouterLinkActive,RouterOutlet } from '@angular/router';import { AuthService } from '../../core/services/auth.service';
+@Component({selector:'app-institution-layout',standalone:true,imports:[RouterOutlet,RouterLink,RouterLinkActive],templateUrl:'./institution-layout.html',styleUrl:'./institution-layout.css'}) export class InstitutionLayout{readonly auth=inject(AuthService);}

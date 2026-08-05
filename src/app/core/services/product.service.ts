@@ -42,6 +42,10 @@ export class ProductService {
     );
   }
 
+  getPublic(): Observable<ApiResponse<Product[]>> {
+    return this.http.get<ApiResponse<Product[]>>(this.apiUrl);
+  }
+
   getById(
     id: string
   ): Observable<ApiResponse<Product>> {
@@ -103,3 +107,5 @@ export class ProductService {
     );
   }
 }
+
+

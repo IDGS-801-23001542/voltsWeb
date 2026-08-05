@@ -1,0 +1,4 @@
+<h1>Alumnos y docentes</h1><div class="list">@for(x of items();track x.id){<article><b>{{x.fullName}}</b><span>{{x.memberType}} · {{x.email}} · {{x.groupName || "Sin grupo"}}</span></article>}@empty{<p>No hay registros todavía.</p>}</div>
+
+
+

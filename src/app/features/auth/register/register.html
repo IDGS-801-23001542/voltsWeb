@@ -54,6 +54,21 @@
       </div>
     }
 
+    @if (verificationChallenge()) {
+      <form class="verification-panel" [formGroup]="verificationForm" (ngSubmit)="verifyEmail()">
+        <div class="register-brand">
+          <span class="register-label">✉️ Verifica tu correo</span>
+          <h2>Te enviamos un código de 6 dígitos</h2>
+          <p>Escríbelo aquí para activar tu cuenta e iniciar sesión. Caduca en 5 minutos.</p>
+        </div>
+        <div class="field full-field">
+          <label>Código de verificación *</label>
+          <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" formControlName="code" placeholder="000000" />
+        </div>
+        <button type="submit" class="register-submit" [disabled]="loading()">{{ loading() ? 'Verificando...' : 'Verificar y entrar' }}</button>
+        <button type="button" class="login-link" (click)="resendEmailCode()" [disabled]="loading()">Reenviar código</button>
+      </form>
+    } @else {
     <form
       [formGroup]="form"
       (ngSubmit)="submit()"
@@ -161,6 +176,7 @@
         }}
       </button>
     </form>
+    }
 
     <div class="register-divider">
       <span></span>
@@ -176,3 +192,5 @@
     </a>
   </main>
 </div>
+
+

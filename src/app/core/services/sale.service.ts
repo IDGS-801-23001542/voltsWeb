@@ -12,6 +12,10 @@ export class SaleService {
   private readonly apiUrl =
     `${environment.apiUrl}/Sales`;
 
+  getMine(): Observable<ApiResponse<Sale[]>> {
+    return this.http.get<ApiResponse<Sale[]>>(`${this.apiUrl}/my`);
+  }
+
   getAll(): Observable<ApiResponse<Sale[]>> {
     return this.http.get<ApiResponse<Sale[]>>(
       this.apiUrl

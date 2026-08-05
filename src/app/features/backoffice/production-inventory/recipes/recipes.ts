@@ -249,35 +249,29 @@ export class Recipes implements OnInit {
   }
 
   openEditForm(recipe: Recipe): void {
-    this.editingRecipe.set(recipe);
-    this.form.reset({
-      productId: recipe.productId,
-      version: recipe.version,
-      status: recipe.status,
-      notes: recipe.notes
+    this.errorMessage.set('');
+    this.recipeService.getById(recipe.id).subscribe({
+      next: response => {
+        const full = response.data;
+        this.editingRecipe.set(full);
+        this.form.reset({ productId: full.productId, version: full.version, status: full.status, notes: full.notes ?? '' });
+        this.details.clear();
+        for (const detail of full.details ?? []) {
+          const group = this.createDetailGroup();
+          group.setValue({
+            rawMaterialId: detail.rawMaterialId,
+            quantityRequired: Number(detail.quantityRequired),
+            wastePercentage: Number(detail.wastePercentage),
+            acceptsRecoveredWaste: Boolean(detail.acceptsRecoveredWaste)
+          });
+          this.details.push(group);
+          this.applyQuantityValidators(this.details.length - 1);
+        }
+        if (this.details.length === 0) this.details.push(this.createDetailGroup());
+        this.formOpen.set(true);
+      },
+      error: error => this.errorMessage.set(error?.error?.message ?? 'No fue posible cargar la receta completa para editarla.')
     });
-    this.details.clear();
-
-    for (const detail of recipe.details) {
-      const group = this.createDetailGroup();
-
-      group.patchValue({
-        rawMaterialId: detail.rawMaterialId,
-        quantityRequired:
-          detail.quantityRequired,
-        wastePercentage:
-          detail.wastePercentage,
-        acceptsRecoveredWaste:
-          detail.acceptsRecoveredWaste
-      });
-
-      this.details.push(group);
-      this.applyQuantityValidators(
-        this.details.length - 1
-      );
-    }
-
-    this.formOpen.set(true);
   }
 
   closeForm(): void {
@@ -462,8 +456,10 @@ export class Recipes implements OnInit {
   }
 
   openDetail(recipe: Recipe): void {
-    this.selectedRecipe.set(recipe);
-    this.detailOpen.set(true);
+    this.recipeService.getById(recipe.id).subscribe({
+      next: response => { this.selectedRecipe.set(response.data); this.detailOpen.set(true); },
+      error: error => this.errorMessage.set(error?.error?.message ?? 'No fue posible cargar el detalle de la receta.')
+    });
   }
 
   closeDetail(): void {
@@ -602,3 +598,5 @@ export class Recipes implements OnInit {
     };
   }
 }
+
+

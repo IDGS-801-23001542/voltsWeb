@@ -286,7 +286,7 @@
                   class="product-icon"
                   aria-hidden="true"
                 >
-                  📦
+                  @if (license.productImageUrl) { <img [src]="license.productImageUrl" [alt]="license.productName" /> } @else { 📦 }
                 </span>
 
                 <div>
@@ -513,3 +513,5 @@
     </section>
   </div>
 </main>
+
+

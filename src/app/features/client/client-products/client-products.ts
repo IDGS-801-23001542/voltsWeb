@@ -25,6 +25,7 @@ import {
 interface ClientProduct {
   productId: string;
   productName: string;
+  productImageUrl?: string | null;
   totalQuantity: number;
   ordersCount: number;
   lastPurchaseDate: string;
@@ -81,6 +82,8 @@ export class ClientProducts implements OnInit {
 
                 productName:
                   detail.productName,
+
+                productImageUrl: detail.productImageUrl,
 
                 totalQuantity:
                   detail.requestedQuantity,
@@ -199,3 +202,5 @@ export class ClientProducts implements OnInit {
     return product.productId;
   }
 }
+
+

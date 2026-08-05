@@ -7,7 +7,7 @@ export const employeeGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  if (auth.hasRole('Admin', 'Employee')) {
+  if (auth.isInternalAccount()) {
     return true;
   }
 

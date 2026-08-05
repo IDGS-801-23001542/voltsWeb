@@ -15,6 +15,7 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import {
   Customer,
@@ -24,13 +25,16 @@ import {
 import {
   CustomerService
 } from '../../../core/services/customer.service';
+import { MediaService } from '../../../core/services/media.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-client-profile',
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    RouterLink
   ],
   templateUrl: './client-profile.html',
   styleUrl: './client-profile.css'
@@ -43,6 +47,8 @@ export class ClientProfile
 
   private readonly formBuilder =
     inject(FormBuilder);
+  private readonly mediaService = inject(MediaService);
+  private readonly authService = inject(AuthService);
 
   readonly customer =
     signal<Customer | null>(null);
@@ -52,6 +58,8 @@ export class ClientProfile
 
   readonly saving =
     signal(false);
+  readonly uploadingImage = signal(false);
+  readonly changingPassword = signal(false);
 
   readonly editing =
     signal(false);
@@ -144,7 +152,14 @@ export class ClientProfile
       state: [''],
       country: ['México'],
       references: ['']
+      ,profileImageUrl: ['']
     });
+
+  readonly passwordForm = this.formBuilder.nonNullable.group({
+    currentPassword: ['', [Validators.required, Validators.minLength(8)]],
+    newPassword: ['', [Validators.required, Validators.minLength(8)]],
+    confirmNewPassword: ['', [Validators.required, Validators.minLength(8)]]
+  });
 
   ngOnInit(): void {
     this.loadProfile();
@@ -272,6 +287,8 @@ export class ClientProfile
             formValue.phone
           ),
 
+        profileImageUrl: this.normalizeOptional(formValue.profileImageUrl),
+
         address: hasAddress
           ? {
               street:
@@ -373,6 +390,50 @@ export class ClientProfile
       });
   }
 
+  uploadProfileImage(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    this.errorMessage.set('');
+    this.mediaService.uploadImage(file, 'profiles').subscribe({
+      next: response => {
+        this.uploadingImage.set(false);
+        this.profileForm.controls.profileImageUrl.setValue(response.data.url);
+      },
+      error: error => {
+        this.uploadingImage.set(false);
+        this.errorMessage.set(error?.error?.message ?? 'No fue posible subir la foto.');
+      }
+    });
+  }
+
+  changePassword(): void {
+    if (this.passwordForm.invalid || this.changingPassword()) {
+      this.passwordForm.markAllAsTouched();
+      return;
+    }
+    const value = this.passwordForm.getRawValue();
+    if (value.newPassword !== value.confirmNewPassword) {
+      this.errorMessage.set('La confirmación de la nueva contraseña no coincide.');
+      return;
+    }
+    this.changingPassword.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+    this.authService.changePassword(value).subscribe({
+      next: response => {
+        this.changingPassword.set(false);
+        this.passwordForm.reset();
+        this.successMessage.set(response.message ?? 'Contraseña actualizada correctamente.');
+      },
+      error: error => {
+        this.changingPassword.set(false);
+        this.errorMessage.set(error?.error?.message ?? 'No fue posible cambiar la contraseña.');
+      }
+    });
+  }
+
   hasError(
     controlName: string
   ): boolean {
@@ -446,7 +507,9 @@ export class ClientProfile
 
       references:
         customer.address
-          ?.references ?? ''
+          ?.references ?? '',
+
+      profileImageUrl: customer.profileImageUrl ?? ''
     });
   }
 
@@ -477,3 +540,5 @@ export class ClientProfile
     );
   }
 }
+
+

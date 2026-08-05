@@ -49,13 +49,23 @@
       </article>
 
       <article>
-        <small>Margen comercial bruto</small>
+        <small>Utilidad bruta real</small>
         <strong>
           {{
-            data.grossCommercialMargin
+            data.grossProfit
               | currency:'MXN':'symbol':'1.2-2'
           }}
         </strong>
+      </article>
+
+      <article>
+        <small>Costo de ventas</small>
+        <strong>{{ data.costOfGoodsSold | currency:'MXN':'symbol':'1.2-2' }}</strong>
+      </article>
+
+      <article>
+        <small>Margen bruto</small>
+        <strong>{{ data.grossMarginPercentage | number:'1.2-2' }}%</strong>
       </article>
 
       <article>
@@ -337,3 +347,6 @@
     </section>
   }
 </section>
+
+
+

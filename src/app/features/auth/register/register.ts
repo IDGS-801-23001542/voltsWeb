@@ -19,6 +19,7 @@ import {
 import {
   AuthService
 } from '../../../core/services/auth.service';
+import { LoginResponse } from '../../../core/models/auth.model';
 
 import {
   ThemeService
@@ -67,6 +68,11 @@ export class Register {
   readonly showPassword = signal(false);
   readonly showConfirmPassword =
     signal(false);
+  readonly verificationChallenge = signal<LoginResponse | null>(null);
+
+  readonly verificationForm = this.fb.nonNullable.group({
+    code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
+  });
 
   readonly form =
     this.fb.nonNullable.group(
@@ -167,6 +173,10 @@ export class Register {
     }).subscribe({
       next: response => {
         this.loading.set(false);
+        if (response.data.requiresTwoFactor) {
+          this.verificationChallenge.set(response.data);
+          return;
+        }
         this.auth.redirectByRole(
           response.data.roleName
         );
@@ -180,4 +190,39 @@ export class Register {
       }
     });
   }
+
+  verifyEmail(): void {
+    const challenge = this.verificationChallenge();
+    if (!challenge?.twoFactorChallengeId || this.verificationForm.invalid || this.loading()) {
+      this.verificationForm.markAllAsTouched();
+      return;
+    }
+    this.loading.set(true);
+    this.errorMessage.set('');
+    this.auth.verifyTwoFactor({
+      challengeId: challenge.twoFactorChallengeId,
+      code: this.verificationForm.controls.code.value.trim()
+    }).subscribe({
+      next: response => {
+        this.loading.set(false);
+        this.auth.redirectByRole(response.data.roleName);
+      },
+      error: error => {
+        this.loading.set(false);
+        this.errorMessage.set(error?.error?.message ?? 'El código no es válido.');
+      }
+    });
+  }
+
+  resendEmailCode(): void {
+    const id = this.verificationChallenge()?.twoFactorChallengeId;
+    if (!id || this.loading()) return;
+    this.loading.set(true);
+    this.auth.resendTwoFactor(id).subscribe({
+      next: response => { this.loading.set(false); this.verificationChallenge.set(response.data); },
+      error: error => { this.loading.set(false); this.errorMessage.set(error?.error?.message ?? 'No fue posible reenviar el código.'); }
+    });
+  }
 }
+
+

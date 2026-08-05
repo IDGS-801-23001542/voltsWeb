@@ -158,3 +158,6 @@ export class Learning {
     this.router.navigate(['/cotizacion']);
   }
 }
+
+
+

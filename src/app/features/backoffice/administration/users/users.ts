@@ -137,8 +137,7 @@ export class Users implements OnInit {
     computed(() =>
       this.roles().filter(role =>
         role.isActive &&
-        role.name !== 'Client' &&
-        role.name !== 'Institution'
+        ['Admin', 'Employee'].includes(role.name)
       )
     );
 
@@ -417,3 +416,5 @@ export class Users implements OnInit {
           fallback;
   }
 }
+
+

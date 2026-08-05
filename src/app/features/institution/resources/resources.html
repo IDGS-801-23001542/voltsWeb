@@ -1,0 +1,32 @@
+<section class="page">
+  <header>
+    <span>Portal institucional</span>
+    <h1>Recursos y descargas</h1>
+    <p>APK, firmware, manuales y material educativo disponible para la institución.</p>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="message">⚠ {{ errorMessage() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="empty">Cargando recursos...</div>
+  } @else if (documents().length === 0) {
+    <div class="empty">{{ message() || 'Los recursos aparecerán cuando exista una licencia institucional.' }}</div>
+  } @else {
+    <div class="grid">
+      @for (document of documents(); track document.id) {
+        <article>
+          <div class="icon">{{ icon(document.documentType) }}</div>
+          <small>{{ document.documentType }} · v{{ document.version }}</small>
+          <h2>{{ document.title }}</h2>
+          <p>{{ document.description }}</p>
+          <a [href]="document.fileUrl" target="_blank" rel="noopener noreferrer">Abrir / descargar ↗</a>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+
+

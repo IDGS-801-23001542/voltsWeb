@@ -857,3 +857,6 @@ openDetails(
     );
   }
 }
+
+
+

@@ -58,6 +58,10 @@ export class CommentService {
     );
   }
 
+  getMine(): Observable<ApiResponse<Comment[]>> {
+    return this.http.get<ApiResponse<Comment[]>>(`${this.apiUrl}/my`);
+  }
+
   // =========================================================
   // BACKOFFICE
   // =========================================================
@@ -107,3 +111,6 @@ export class CommentService {
     );
   }
 }
+
+
+

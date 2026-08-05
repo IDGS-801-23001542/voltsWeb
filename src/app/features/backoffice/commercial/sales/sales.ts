@@ -51,6 +51,7 @@ export class Sales implements OnInit {
   readonly readyOrders = signal<Order[]>([]);
   readonly loading = signal(true);
   readonly sellingId = signal<string | null>(null);
+  readonly pendingSale = signal<Order | null>(null);
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
 
@@ -84,10 +85,23 @@ export class Sales implements OnInit {
     });
   }
 
-  sell(order: Order): void {
-    if (!window.confirm(
-      `¿Confirmar la venta del pedido ${order.folio}?`
-    )) {
+  requestSale(order: Order): void {
+    this.errorMessage.set('');
+    this.pendingSale.set(order);
+  }
+
+  closeSaleConfirmation(): void {
+    if (this.sellingId()) {
+      return;
+    }
+
+    this.pendingSale.set(null);
+  }
+
+  confirmSale(): void {
+    const order = this.pendingSale();
+
+    if (!order || this.sellingId()) {
       return;
     }
 
@@ -97,6 +111,7 @@ export class Sales implements OnInit {
     this.saleService.create(order.id).subscribe({
       next: response => {
         this.sellingId.set(null);
+        this.pendingSale.set(null);
         this.successMessage.set(response.message);
         this.loadData();
       },

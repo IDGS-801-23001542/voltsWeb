@@ -90,6 +90,79 @@
       </div>
     }
 
+    @if (recoveryCodes().length > 0) {
+      <section class="two-factor-panel recovery-panel">
+        <span class="two-factor-icon">🛡️</span>
+        <h2>Guarda tus códigos de recuperación</h2>
+        <p>
+          Cada código funciona una sola vez si pierdes acceso a tu aplicación autenticadora.
+        </p>
+
+        <div class="recovery-grid">
+          @for (code of recoveryCodes(); track code) {
+            <code>{{ code }}</code>
+          }
+        </div>
+
+        <button type="button" class="auth-submit" (click)="continueAfterRecovery()">
+          Ya los guardé, continuar
+        </button>
+      </section>
+    } @else if (twoFactorChallenge(); as challenge) {
+      <form
+        class="two-factor-panel"
+        [formGroup]="twoFactorForm"
+        (ngSubmit)="verifyTwoFactor()"
+      >
+        <span class="two-factor-icon">{{ challenge.twoFactorMethod === 'EmailOtp' ? '✉️' : '🔐' }}</span>
+        <h2>
+          {{ challenge.twoFactorMethod === 'EmailOtp' ? 'Revisa tu correo' : (challenge.requiresTwoFactorSetup ? 'Configura tu segundo factor' : 'Verificación en dos pasos') }}
+        </h2>
+
+        @if (challenge.twoFactorMethod === 'EmailOtp') {
+          <p>Te enviamos un código de 6 dígitos a tu correo. Caduca en 5 minutos.</p>
+        } @else if (challenge.requiresTwoFactorSetup) {
+          <p>
+            Agrega una cuenta en Google Authenticator, Microsoft Authenticator o una app TOTP compatible usando esta clave:
+          </p>
+
+          <code class="secret-code">{{ challenge.twoFactorSecret }}</code>
+          <small class="setup-note">Después escribe el código de 6 dígitos que genere tu aplicación.</small>
+        } @else {
+          <p>Escribe el código de 6 dígitos de tu aplicación autenticadora.</p>
+        }
+
+        <div class="field">
+          <label for="two-factor-code">Código de seguridad</label>
+          <input
+            id="two-factor-code"
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            formControlName="code"
+            maxlength="10"
+            placeholder="000000"
+          />
+          @if (twoFactorForm.controls.code.touched && twoFactorForm.controls.code.invalid) {
+            <small>Ingresa un código válido de 6 dígitos.</small>
+          }
+        </div>
+
+        <button type="submit" class="auth-submit" [disabled]="loading()">
+          {{ loading() ? 'Verificando...' : 'Verificar y continuar' }}
+        </button>
+
+        @if (challenge.twoFactorMethod === 'EmailOtp') {
+          <button type="button" class="restart-login" (click)="resendCode()" [disabled]="loading()">
+            Reenviar código
+          </button>
+        }
+
+        <button type="button" class="restart-login" (click)="restartLogin()" [disabled]="loading()">
+          ← Volver al inicio de sesión
+        </button>
+      </form>
+    } @else {
     <form
       [formGroup]="form"
       (ngSubmit)="submit()"
@@ -191,6 +264,8 @@
       <span></span>
     </div>
 
+    <div id="google-sign-in" class="google-sign-in" aria-label="Continuar con Google"></div>
+
     <div class="register-section">
       <p>¿Aún no tienes una cuenta?</p>
 
@@ -202,9 +277,12 @@
         Crear una cuenta
       </a>
     </div>
+    }
 
     <p class="auth-security">
       🔒 Acceso protegido para clientes VOLTS
     </p>
   </main>
 </div>
+
+

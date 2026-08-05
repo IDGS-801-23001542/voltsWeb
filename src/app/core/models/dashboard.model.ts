@@ -23,6 +23,9 @@ export interface DashboardSummary {
   totalSales: number;
   totalRevenue: number;
   currentMonthRevenue: number;
+  costOfGoodsSold: number;
+  grossProfit: number;
+  grossMarginPercentage: number;
 
   totalLicenses: number;
   availableLicenses: number;

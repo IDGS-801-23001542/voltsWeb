@@ -227,7 +227,9 @@
                   class="product-icon"
                   aria-hidden="true"
                 >
-                  📦
+                  @if (product.productImageUrl) {
+                    <img [src]="product.productImageUrl" [alt]="product.productName" />
+                  } @else { 📦 }
                 </div>
 
                 <span class="product-status">
@@ -316,3 +318,5 @@
     </section>
   </div>
 </main>
+
+

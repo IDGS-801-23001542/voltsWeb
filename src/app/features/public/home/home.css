@@ -862,3 +862,12 @@
     0 0 0 4px rgba(196, 181, 253, 0.22),
     0 13px 34px rgba(91, 79, 158, 0.5);
 }
+
+
+.volts-gallery-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.2rem; }
+.volts-gallery-card { overflow:hidden; border:1px solid rgba(22,163,74,.15); border-radius:1.4rem; background:var(--surface,#fff); box-shadow:0 14px 36px rgba(15,23,42,.08); }
+.volts-gallery-card img { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; }
+.volts-gallery-card div { padding:1rem; }
+.volts-gallery-card span { color:var(--purple-main); font-size:.7rem; font-weight:900; text-transform:uppercase; }
+.volts-gallery-card h3 { margin:.3rem 0; color:var(--green-main); }
+.volts-gallery-card p { margin:0; color:var(--text-muted); line-height:1.55; }

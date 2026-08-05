@@ -37,6 +37,7 @@ import {
 import {
   ProductService
 } from '../../../../core/services/product.service';
+import { MediaService } from '../../../../core/services/media.service';
 
 @Component({
   selector: 'app-products',
@@ -57,6 +58,7 @@ export class Products implements OnInit {
 
   private readonly categoryService =
     inject(CategoryService);
+  private readonly mediaService = inject(MediaService);
 
   readonly auth =
     inject(AuthService);
@@ -72,6 +74,7 @@ export class Products implements OnInit {
 
   readonly saving =
     signal(false);
+  readonly uploadingImage = signal(false);
 
   readonly deleting =
     signal(false);
@@ -203,6 +206,9 @@ export class Products implements OnInit {
           Validators.min(0)
         ]
       ],
+
+      targetMarginPercentage: [30, [Validators.required, Validators.min(0), Validators.max(99.99)]],
+      minimumMarginPercentage: [20, [Validators.required, Validators.min(0), Validators.max(99.99)]],
 
       categoryId: [
         '',
@@ -342,6 +348,8 @@ export class Products implements OnInit {
       slug: '',
       description: '',
       price: 0,
+      targetMarginPercentage: 30,
+      minimumMarginPercentage: 20,
       categoryId: '',
       species: 'Perro',
       breed: '',
@@ -391,6 +399,9 @@ export class Products implements OnInit {
 
       price:
         product.price,
+
+      targetMarginPercentage: product.targetMarginPercentage,
+      minimumMarginPercentage: product.minimumMarginPercentage,
 
       categoryId:
         product.categoryId,
@@ -474,6 +485,30 @@ export class Products implements OnInit {
     }
   }
 
+  uploadProductImage(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || this.uploadingImage()) return;
+
+    this.uploadingImage.set(true);
+    this.errorMessage.set('');
+    this.mediaService.uploadImage(file, 'products').subscribe({
+      next: response => {
+        this.uploadingImage.set(false);
+        this.form.controls.imageUrl.setValue(response.data.url);
+      },
+      error: error => {
+        this.uploadingImage.set(false);
+        this.errorMessage.set(error?.error?.message ?? 'No fue posible subir la imagen a Cloudinary.');
+        input.value = '';
+      }
+    });
+  }
+
+  clearProductImage(): void {
+    this.form.controls.imageUrl.setValue('');
+  }
+
   submit(): void {
     if (
       this.form.invalid ||
@@ -506,6 +541,9 @@ export class Products implements OnInit {
 
       price:
         values.price,
+
+      targetMarginPercentage: values.targetMarginPercentage,
+      minimumMarginPercentage: values.minimumMarginPercentage,
 
       categoryId:
         values.categoryId,
@@ -692,3 +730,5 @@ export class Products implements OnInit {
     );
   }
 }
+
+

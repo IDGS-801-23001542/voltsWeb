@@ -104,6 +104,8 @@ export class PublicHeader {
       label: 'Documentación',
       exact: false
     },
+    { path: '/cliente/soporte', icon: '🎧', label: 'Soporte', exact: false },
+    { path: '/cliente/notificaciones', icon: '🔔', label: 'Notificaciones', exact: false },
     {
       path: '/cliente/perfil',
       icon: '⚙️',
@@ -111,6 +113,21 @@ export class PublicHeader {
       exact: false
     }
   ];
+
+  readonly institutionMenuItems = [
+    { path: '/institucion', icon: '🏠', label: 'Resumen', exact: true },
+    { path: '/institucion/pedidos', icon: '🛒', label: 'Pedidos', exact: false },
+    { path: '/institucion/licencias', icon: '🔑', label: 'Licencias', exact: false },
+    { path: '/institucion/dispositivos', icon: '🤖', label: 'Dispositivos', exact: false },
+    { path: '/institucion/personas', icon: '👥', label: 'Personas', exact: false },
+    { path: '/institucion/recursos', icon: '📚', label: 'Recursos', exact: false },
+    { path: '/institucion/soporte', icon: '🎧', label: 'Soporte', exact: false },
+    { path: '/institucion/notificaciones', icon: '🔔', label: 'Notificaciones', exact: false }
+  ];
+
+  get accountMenuItems() {
+    return this.auth.hasRole('Institution') ? this.institutionMenuItems : this.clientMenuItems;
+  }
 
   private touchStartY = 0;
   private accumulatedDirection = 0;
@@ -355,3 +372,5 @@ export class PublicHeader {
     this.auth.logout();
   }
 }
+
+

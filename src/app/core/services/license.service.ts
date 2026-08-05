@@ -34,7 +34,6 @@ export class LicenseService {
     request: {
       assignedToName: string;
       assignedToEmail?: string | null;
-      deviceSerialNumber?: string | null;
     }
   ): Observable<ApiResponse<License>> {
     return this.http.put<ApiResponse<License>>(
@@ -53,3 +52,5 @@ export class LicenseService {
     );
   }
 }
+
+

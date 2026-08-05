@@ -45,6 +45,10 @@ export class SupportTicketService {
     );
   }
 
+  getMine(): Observable<ApiResponse<SupportTicket[]>> {
+    return this.http.get<ApiResponse<SupportTicket[]>>(`${this.apiUrl}/my`);
+  }
+
   getById(
     id: string
   ): Observable<ApiResponse<SupportTicket>> {
@@ -93,3 +97,5 @@ export class SupportTicketService {
     );
   }
 }
+
+

@@ -38,5 +38,8 @@ export interface AnalyticsOverview {
   totalRevenue: number;
   totalPurchases: number;
   grossCommercialMargin: number;
+  costOfGoodsSold: number;
+  grossProfit: number;
+  grossMarginPercentage: number;
   averageTicket: number;
 }

@@ -1,6 +1,7 @@
 import {
   CurrencyPipe,
-  DatePipe
+  DatePipe,
+  DecimalPipe
 } from '@angular/common';
 
 import {
@@ -28,7 +29,8 @@ import {
   standalone: true,
   imports: [
     CurrencyPipe,
-    DatePipe
+    DatePipe,
+    DecimalPipe
   ],
   templateUrl: './backoffice-dashboard.html',
   styleUrl: './backoffice-dashboard.css'

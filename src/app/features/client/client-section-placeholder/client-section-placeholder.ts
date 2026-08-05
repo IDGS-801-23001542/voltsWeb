@@ -62,3 +62,6 @@ export class ClientSectionPlaceholder {
       'Consulta la información de tu cuenta VOLTS.'
     );
 }
+
+
+

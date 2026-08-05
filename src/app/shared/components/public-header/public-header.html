@@ -58,7 +58,7 @@
 
       @if (
         auth.isAuthenticated() &&
-        auth.hasRole('Client')
+        auth.hasRole('Client', 'Institution')
       ) {
         <div class="account-menu">
           <button
@@ -125,7 +125,7 @@
               <div class="account-divider"></div>
 
               @for (
-                item of clientMenuItems;
+                item of accountMenuItems;
                 track item.path
               ) {
                 <a
@@ -205,7 +205,7 @@
 
       @if (
         auth.isAuthenticated() &&
-        auth.hasRole('Client')
+        auth.hasRole('Client', 'Institution')
       ) {
         <div class="mobile-account-summary">
           <span>👤</span>
@@ -227,7 +227,7 @@
 
         <div class="mobile-account-links">
           @for (
-            item of clientMenuItems;
+            item of accountMenuItems;
             track item.path
           ) {
             <a
@@ -267,3 +267,5 @@
     </nav>
   }
 </header>
+
+

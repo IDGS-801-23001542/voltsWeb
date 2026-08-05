@@ -18,7 +18,7 @@
       class="primary-button"
       (click)="openCreateModal()"
     >
-      ＋ Nueva orden
+      + Nueva orden
     </button>
   </header>
 
@@ -465,6 +465,15 @@
             }}
           </strong>
         </div>
+
+        @if (order.status === 'Completed') {
+          <div><small>Costo unidades buenas</small><strong>{{ order.goodUnitsCost | currency:'MXN' }}</strong></div>
+          <div><small>Costo defectuosas</small><strong>{{ order.defectiveUnitsCost | currency:'MXN' }}</strong></div>
+          <div><small>Costo de merma</small><strong>{{ order.wasteCost | currency:'MXN' }}</strong></div>
+          <div><small>Valor recuperable</small><strong>{{ order.recoverableValue | currency:'MXN' }}</strong></div>
+          <div><small>Pérdida neta</small><strong>{{ order.netProductionLoss | currency:'MXN' }}</strong></div>
+          <div><small>Costo unitario bueno</small><strong>{{ order.actualGoodUnitCost | currency:'MXN' }}</strong></div>
+        }
       </div>
 
       <section class="materials-detail">
@@ -627,7 +636,7 @@
               class="add-button"
               (click)="addWaste()"
             >
-              ＋ Agregar merma
+              + Agregar merma
             </button>
           </header>
 
@@ -883,4 +892,6 @@
     </section>
   </div>
 }
+
+
 

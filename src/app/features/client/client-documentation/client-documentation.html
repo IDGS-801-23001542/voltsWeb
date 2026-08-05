@@ -1,0 +1,45 @@
+<main class="resources-page">
+  <header class="resources-header">
+    <div>
+      <a routerLink="/cliente">← Mi cuenta</a>
+      <span>Portal del cliente</span>
+      <h1>Documentación y descargas</h1>
+      <p>Manuales, APK, firmware y recursos asociados a tus productos VOLTS.</p>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="message error">⚠ {{ errorMessage() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="empty">Cargando tus recursos...</div>
+  } @else if (documents().length === 0) {
+    <div class="empty">
+      <span>🔒</span>
+      <h2>Recursos todavía no disponibles</h2>
+      <p>{{ message() || 'Aparecerán aquí cuando tengas una licencia VOLTS activa.' }}</p>
+      <a routerLink="/cliente/licencias">Ver mis licencias</a>
+    </div>
+  } @else {
+    <div class="resource-grid">
+      @for (document of documents(); track document.id) {
+        <article class="resource-card">
+          <div class="resource-icon">{{ icon(document.documentType) }}</div>
+          <div class="resource-meta">
+            <span>{{ document.documentType }}</span>
+            <small>Versión {{ document.version }}</small>
+          </div>
+          <h2>{{ document.title }}</h2>
+          <p>{{ document.description }}</p>
+          <a [href]="document.fileUrl" target="_blank" rel="noopener noreferrer">
+            {{ actionLabel(document.documentType) }} ↗
+          </a>
+        </article>
+      }
+    </div>
+  }
+</main>
+
+
+

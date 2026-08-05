@@ -33,6 +33,7 @@ export interface Customer {
   email: string;
   phone?: string | null;
   address?: Address | null;
+  profileImageUrl?: string | null;
   isActive: boolean;
   isDeleted: boolean;
   createdAt: string;
@@ -47,6 +48,7 @@ export interface CustomerCreateRequest
   email: string;
   phone?: string | null;
   address?: Address | null;
+  profileImageUrl?: string | null;
 }
 
 export interface CustomerUpdateRequest {
@@ -54,5 +56,8 @@ export interface CustomerUpdateRequest {
   email: string;
   phone?: string | null;
   address?: Address | null;
+  profileImageUrl?: string | null;
   isActive: boolean;
 }
+
+
