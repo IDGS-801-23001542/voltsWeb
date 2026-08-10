@@ -1,6 +1,8 @@
+
 export interface CommercialPackageItem {
   productId: string;
   productName: string;
+  productImageUrl?: string | null;
   quantity: number;
   unitPrice: number;
   subtotal: number;
@@ -42,3 +44,6 @@ export interface CommercialPackageCreateRequest {
 export interface CommercialPackageUpdateRequest extends CommercialPackageCreateRequest {
   isActive: boolean;
 }
+
+
+

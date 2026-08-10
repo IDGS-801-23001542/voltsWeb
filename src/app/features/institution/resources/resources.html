@@ -1,1 +1,152 @@
-<section class="portal-page"><header class="page-heading"><div><span class="eyebrow">Portal institucional</span><h1>Recursos y documentación</h1><p>Consulta manuales, guías, firmware y material correspondiente a los productos VOLTS adquiridos por tu institución.</p></div><button type="button" (click)="load()">Actualizar</button></header>@if(error()){<div class="feedback">{{error()}}</div>}@if(loading()){<div class="empty">Cargando recursos...</div>}@else if(documents().length===0){<div class="empty">{{message()||'Los recursos aparecerán cuando tengas licencias de productos con documentación asociada.'}}</div>}@else{<div class="grid">@for(document of documents();track document.id){<article><div class="icon">{{icon(document.documentType)}}</div><small>{{typeLabel(document.documentType)}} · v{{document.version}}</small><h2>{{document.title}}</h2><p>{{document.description}}</p><div class="product-note">@if(document.productIds.length>0){Recurso asociado a productos adquiridos}@else{Recurso general VOLTS}</div><a [href]="document.fileUrl" target="_blank" rel="noopener noreferrer">Abrir recurso →</a></article>}</div>}</section>
+<section class="portal-page">
+
+  <header class="page-heading">
+
+    <div>
+
+      <span class="eyebrow">
+        Portal institucional
+      </span>
+
+      <h1>
+        Recursos y documentaci&oacute;n
+      </h1>
+
+      <p>
+        Consulta manuales, gu&iacute;as,
+        firmware y material correspondiente
+        a los productos VOLTS adquiridos
+        por tu instituci&oacute;n.
+      </p>
+
+    </div>
+
+    <button
+      type="button"
+      (click)="load()"
+    >
+
+      <i class="bi bi-arrow-clockwise"></i>
+
+      Actualizar
+
+    </button>
+
+  </header>
+
+  @if (error()) {
+
+    <div class="feedback">
+
+      <i class="bi bi-exclamation-triangle"></i>
+
+      {{ error() }}
+
+    </div>
+
+  }
+
+  @if (loading()) {
+
+    <div class="empty">
+
+      <i class="bi bi-arrow-repeat"></i>
+
+      <p>
+        Cargando recursos...
+      </p>
+
+    </div>
+
+  } @else if (documents().length === 0) {
+
+    <div class="empty">
+
+      <i class="bi bi-folder2-open"></i>
+
+      <p>
+        {{
+          message() ||
+          'Los recursos aparecerán cuando tengas licencias VOLTS.'
+        }}
+      </p>
+
+    </div>
+
+  } @else {
+
+    <div class="grid">
+
+      @for (
+        document of documents();
+        track document.id
+      ) {
+
+        <article>
+
+          <div class="icon">
+
+            <i
+              [class]="iconClass(document.documentType)"
+            ></i>
+
+          </div>
+
+          <small>
+
+            {{ typeLabel(document.documentType) }}
+
+            &middot;
+
+            v{{ document.version }}
+
+          </small>
+
+          <h2>
+            {{ document.title }}
+          </h2>
+
+          <p>
+            {{ document.description }}
+          </p>
+
+          <div class="product-note">
+
+            @if (
+              document.productIds &&
+              document.productIds.length > 0
+            ) {
+
+              Recurso asociado a productos adquiridos
+
+            } @else {
+
+              Recurso general VOLTS
+
+            }
+
+          </div>
+
+          <a
+            [href]="resourceUrl(document.fileUrl)"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+
+            Ver documento
+
+            <i
+              class="bi bi-box-arrow-up-right"
+            ></i>
+
+          </a>
+
+        </article>
+
+      }
+
+    </div>
+
+  }
+
+</section>

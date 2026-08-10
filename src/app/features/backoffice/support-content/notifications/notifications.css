@@ -1,1 +1,94 @@
 :host{display:block}.page{width:min(100%,1500px);margin:auto}.heading,.panel,.modal{border:1px solid #e2e8f0;border-radius:1.2rem;background:#fff}.heading{margin-bottom:1rem;padding:1.25rem;display:flex;justify-content:space-between;gap:1rem}.heading span{color:#16a34a;font-size:.65rem;font-weight:900;text-transform:uppercase}.heading h1{margin:.25rem 0}.heading p{margin:0;color:#64748b}.panel{padding:1rem}.panel>input,input,select,textarea{width:100%;box-sizing:border-box;padding:.7rem;border:1px solid #cbd5e1;border-radius:.7rem}.panel>input{margin-bottom:1rem}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:.75rem;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:top}td strong,td small{display:block}.primary,button{min-height:40px;padding:.6rem .8rem;border:1px solid #cbd5e1;border-radius:.75rem;background:#fff;font-weight:800;cursor:pointer}.primary{color:#fff;border-color:#16a34a;background:#16a34a}.danger{color:#991b1b;background:#fef2f2}.message{margin-bottom:1rem;padding:.8rem;border-radius:.8rem}.success{color:#166534;background:#f0fdf4}.error{color:#991b1b;background:#fef2f2}.priority{display:inline-block;padding:.25rem .5rem;border-radius:999px;background:#e0f2fe}.priority.high{color:#991b1b;background:#fee2e2}.state{min-height:220px;display:grid;place-items:center}.backdrop{position:fixed;inset:0;z-index:2500;display:grid;place-items:center;padding:1rem;background:rgba(2,6,23,.7)}.modal{width:min(100%,800px);max-height:calc(100dvh - 2rem);overflow:auto}.modal header{padding:1rem;display:flex;justify-content:space-between}.modal form{padding:1rem;display:grid;gap:1rem}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}label{display:grid;gap:.35rem;font-weight:800}footer{display:flex;justify-content:flex-end;gap:.6rem}@media(max-width:700px){.heading,footer{flex-direction:column}.grid{grid-template-columns:1fr}}
+
+:host-context(body.night-mode) .heading,
+:host-context(body.night-mode) .panel,
+:host-context(body.night-mode) .modal {
+  color:#f8fafc;
+  border-color:#2d263d;
+  background:#151519;
+}
+
+:host-context(body.night-mode) .heading h1,
+:host-context(body.night-mode) .modal h2,
+:host-context(body.night-mode) td strong,
+:host-context(body.night-mode) label {
+  color:#f8fafc;
+}
+
+:host-context(body.night-mode) .heading p,
+:host-context(body.night-mode) td small,
+:host-context(body.night-mode) .state {
+  color:#aeb8c8;
+}
+
+:host-context(body.night-mode) th,
+:host-context(body.night-mode) td,
+:host-context(body.night-mode) .modal header {
+  border-color:#2d263d;
+}
+
+:host-context(body.night-mode) th {
+  color:#c4b5fd;
+  background:#101014;
+}
+
+:host-context(body.night-mode) td {
+  color:#e2e8f0;
+}
+
+:host-context(body.night-mode) input,
+:host-context(body.night-mode) select,
+:host-context(body.night-mode) textarea,
+:host-context(body.night-mode) button {
+  color:#f8fafc;
+  border-color:#42376c;
+  background:#101014;
+}
+
+:host-context(body.night-mode) .primary {
+  color:#fff;
+  border-color:#5b4f9e;
+  background:linear-gradient(135deg,#8b7ac8,#5b4f9e);
+}
+
+:host-context(body.night-mode) .danger {
+  color:#fca5a5;
+  border-color:#7f1d1d;
+  background:#2a1014;
+}
+
+:host-context(body.night-mode) .priority {
+  color:#bae6fd;
+  background:#0c2430;
+}
+
+:host-context(body.night-mode) .priority.high {
+  color:#fca5a5;
+  background:#2a1014;
+}
+
+:host-context(body.night-mode) .success {
+  color:#86efac;
+  border:1px solid #214b30;
+  background:#102418;
+}
+
+:host-context(body.night-mode) .error {
+  color:#fca5a5;
+  border:1px solid #7f1d1d;
+  background:#2a1014;
+}
+
+
+
+/* Refuerzo de contraste para listado, filtros y modal. */
+:host-context(body.night-mode) .page { color:#f8fafc; }
+:host-context(body.night-mode) .panel > input,
+:host-context(body.night-mode) .modal input,
+:host-context(body.night-mode) .modal select,
+:host-context(body.night-mode) .modal textarea { color-scheme:dark; }
+:host-context(body.night-mode) tbody tr:hover { background:#1d1a25; }
+:host-context(body.night-mode) option { color:#f8fafc; background:#101014; }
+:host-context(body.night-mode) button:not(.primary):not(.danger) {
+  color:#f8fafc; border-color:#42376c; background:#101014;
+}

@@ -1,3 +1,4 @@
+
 import {
   HttpClient,
   HttpParams
@@ -89,6 +90,16 @@ export class ProductService {
     );
   }
 
+  updateImage(
+    id: string,
+    imageUrl: string | null
+  ): Observable<ApiResponse<Product>> {
+    return this.http.patch<ApiResponse<Product>>(
+      `${this.apiUrl}/${id}/image`,
+      { imageUrl }
+    );
+  }
+
   adjustFinishedStock(
     id: string,
     request: ProductStockAdjustmentRequest
@@ -107,5 +118,6 @@ export class ProductService {
     );
   }
 }
+
 
 

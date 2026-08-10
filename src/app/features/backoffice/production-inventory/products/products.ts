@@ -494,8 +494,43 @@ export class Products implements OnInit {
     this.errorMessage.set('');
     this.mediaService.uploadImage(file, 'products').subscribe({
       next: response => {
-        this.uploadingImage.set(false);
-        this.form.controls.imageUrl.setValue(response.data.url);
+        const imageUrl = response.data.url;
+        this.form.controls.imageUrl.setValue(imageUrl);
+
+        const editing = this.editingProduct();
+
+        if (!editing) {
+          this.uploadingImage.set(false);
+          return;
+        }
+
+        this.productService
+          .updateImage(editing.id, imageUrl)
+          .subscribe({
+            next: productResponse => {
+              this.uploadingImage.set(false);
+
+              this.products.update(products =>
+                products.map(product =>
+                  product.id === editing.id
+                    ? productResponse.data
+                    : product
+                )
+              );
+
+              this.successMessage.set(
+                'Foto del producto guardada correctamente.'
+              );
+              this.clearSuccessMessageLater();
+            },
+            error: error => {
+              this.uploadingImage.set(false);
+              this.errorMessage.set(
+                error?.error?.message ??
+                'La imagen se subió, pero no fue posible asignarla al producto.'
+              );
+            }
+          });
       },
       error: error => {
         this.uploadingImage.set(false);

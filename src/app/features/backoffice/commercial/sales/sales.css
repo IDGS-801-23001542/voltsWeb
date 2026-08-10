@@ -10,3 +10,5 @@
 .confirmation-summary span{display:flex;align-items:center;justify-content:space-between;gap:1rem}.confirmation-summary small{color:#64748b}.confirmation-summary strong{color:#17211a;text-align:right}
 .confirmation-actions{display:flex;justify-content:flex-end;gap:.7rem}.confirmation-actions button{min-height:42px;padding:.65rem 1rem;border:0;border-radius:.8rem;font-weight:900;cursor:pointer}.confirmation-actions .secondary{color:#334155;background:#e2e8f0}.confirmation-actions .primary{color:#fff;background:linear-gradient(135deg,#22c55e,#15803d)}.confirmation-actions button:disabled{opacity:.6;cursor:not-allowed}
 :host-context(body.night-mode) .sale-confirmation{color:#f8fafc;border-color:#2d263d;background:#151519}:host-context(body.night-mode) .sale-confirmation h2,:host-context(body.night-mode) .confirmation-summary strong{color:#f8fafc}:host-context(body.night-mode) .confirmation-summary{background:#101014}:host-context(body.night-mode) .confirmation-actions .secondary{color:#f8fafc;background:#2d263d}:host-context(body.night-mode) .confirmation-actions .primary{background:linear-gradient(135deg,#8b7ac8,#5b4f9e)}
+
+

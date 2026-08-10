@@ -261,6 +261,45 @@
   background: #101014;
 }
 
+:host-context(body.night-mode) .current-date,
+:host-context(body.night-mode) .mini-chart article > div {
+  background: #101014;
+}
+
+:host-context(body.night-mode) .current-date small,
+:host-context(body.night-mode) .dashboard-heading p,
+:host-context(body.night-mode) .main-statistics span,
+:host-context(body.night-mode) .main-statistics small,
+:host-context(body.night-mode) .license-grid small,
+:host-context(body.night-mode) .top-products small,
+:host-context(body.night-mode) .mini-chart small {
+  color: #aeb8c8;
+}
+
+:host-context(body.night-mode) .alert-list article {
+  color: #d1fae5;
+  border-color: #214b30;
+  background: #102418;
+}
+
+:host-context(body.night-mode) .alert-list article.warning {
+  color: #fde68a;
+  border-color: #713f12;
+  background: #24180b;
+}
+
+:host-context(body.night-mode) .top-products b {
+  color: #86efac;
+  background: #102418;
+}
+
+:host-context(body.night-mode) .dashboard-state button {
+  color: #f8fafc;
+  border: 1px solid #42376c;
+  border-radius: 0.7rem;
+  background: #101014;
+}
+
 @media (max-width: 1050px) {
   .main-statistics {
     grid-template-columns:
@@ -291,3 +330,27 @@
     gap: 0.25rem;
   }
 }
+
+
+
+/* Refuerzo de contraste para el dashboard principal. */
+:host-context(body.night-mode) .dashboard-page { color:#f8fafc; }
+:host-context(body.night-mode) .dashboard-heading,
+:host-context(body.night-mode) .main-statistics article,
+:host-context(body.night-mode) .panel,
+:host-context(body.night-mode) .dashboard-state {
+  color:#f8fafc; border-color:#2d263d; background:#151519;
+  box-shadow:0 14px 34px rgba(0,0,0,.28);
+}
+:host-context(body.night-mode) .dashboard-heading h1,
+:host-context(body.night-mode) .panel h2,
+:host-context(body.night-mode) .main-statistics strong,
+:host-context(body.night-mode) .current-date strong { color:#f8fafc; }
+:host-context(body.night-mode) .dashboard-heading p,
+:host-context(body.night-mode) .main-statistics span,
+:host-context(body.night-mode) .main-statistics small,
+:host-context(body.night-mode) .current-date small { color:#aeb8c8; }
+:host-context(body.night-mode) .current-date,
+:host-context(body.night-mode) .chart-track,
+:host-context(body.night-mode) .progress-track,
+:host-context(body.night-mode) .empty-state { background:#101014; }

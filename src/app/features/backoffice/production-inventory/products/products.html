@@ -214,8 +214,15 @@
                 </div>
 
                 <div>
-                  <small>Costo promedio terminado</small>
-                  <strong>{{ product.averageFinishedCost | currency:'MXN' }}</strong>
+                  <small>Costo aplicado</small>
+                  <strong>
+                    {{
+                      (product.averageFinishedCost > 0
+                        ? product.averageFinishedCost
+                        : product.estimatedRecipeCost)
+                        | currency:'MXN'
+                    }}
+                  </strong>
                 </div>
 
                 <div>

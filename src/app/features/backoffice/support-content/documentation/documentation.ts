@@ -1,4 +1,3 @@
-
 import {
   DatePipe
 } from '@angular/common';
@@ -19,14 +18,6 @@ import {
 } from '@angular/forms';
 
 import {
-  toSignal
-} from '@angular/core/rxjs-interop';
-
-import {
-  startWith
-} from 'rxjs';
-
-import {
   Documentation,
   DocumentationCreateRequest,
   DocumentationStatusFilter,
@@ -37,15 +28,16 @@ import {
 } from '../../../../core/models/documentation.model';
 
 import {
-  AuthService
-} from '../../../../core/services/auth.service';
-
-import { Product } from '../../../../core/models/product.model';
-import { ProductService } from '../../../../core/services/product.service';
+  Product
+} from '../../../../core/models/product.model';
 
 import {
   DocumentationService
 } from '../../../../core/services/documentation.service';
+
+import {
+  ProductService
+} from '../../../../core/services/product.service';
 
 @Component({
   selector: 'app-documentation',
@@ -57,27 +49,20 @@ import {
   templateUrl: './documentation.html',
   styleUrl: './documentation.css'
 })
-export class DocumentationManagement
+export class DocumentationComponent
   implements OnInit {
 
-  private readonly documentationService =
+  private readonly service =
     inject(DocumentationService);
 
-  private readonly productService = inject(ProductService);
-
-  readonly products = signal<Product[]>([]);
-
-  readonly auth =
-    inject(AuthService);
+  private readonly productService =
+    inject(ProductService);
 
   readonly documents =
     signal<Documentation[]>([]);
 
-  readonly selectedDocument =
-    signal<Documentation | null>(null);
-
-  readonly editingDocument =
-    signal<Documentation | null>(null);
+  readonly products =
+    signal<Product[]>([]);
 
   readonly loading =
     signal(true);
@@ -85,11 +70,8 @@ export class DocumentationManagement
   readonly saving =
     signal(false);
 
-  readonly detailOpen =
-    signal(false);
-
-  readonly formOpen =
-    signal(false);
+  readonly deletingId =
+    signal<string | null>(null);
 
   readonly errorMessage =
     signal('');
@@ -97,175 +79,61 @@ export class DocumentationManagement
   readonly successMessage =
     signal('');
 
-  readonly searchControl =
-    new FormControl(
-      '',
-      {
-        nonNullable: true
-      }
+  readonly showForm =
+    signal(false);
+
+  readonly editingDocument =
+    signal<Documentation | null>(null);
+
+  readonly detailDocument =
+    signal<Documentation | null>(null);
+
+  readonly search =
+    signal('');
+
+  readonly typeFilter =
+    signal<DocumentationTypeFilter>('all');
+
+  readonly visibilityFilter =
+    signal<DocumentationVisibilityFilter>('all');
+
+  readonly statusFilter =
+    signal<DocumentationStatusFilter>('all');
+
+  readonly totalDocuments =
+    computed(
+      () => this.documents().length
     );
 
-  readonly typeControl =
-    new FormControl<DocumentationTypeFilter>(
-      'all',
-      {
-        nonNullable: true
-      }
+  readonly publicDocuments =
+    computed(
+      () =>
+        this.documents()
+          .filter(item => item.isPublic)
+          .length
     );
 
-  readonly visibilityControl =
-    new FormControl<DocumentationVisibilityFilter>(
-      'all',
-      {
-        nonNullable: true
-      }
+  readonly privateDocuments =
+    computed(
+      () =>
+        this.documents()
+          .filter(item => !item.isPublic)
+          .length
     );
 
-  readonly statusControl =
-    new FormControl<DocumentationStatusFilter>(
-      'all',
-      {
-        nonNullable: true
-      }
-    );
-
-  readonly form =
-    new FormGroup({
-      title:
-        new FormControl(
-          '',
-          {
-            nonNullable: true,
-            validators: [
-              Validators.required,
-              Validators.minLength(3),
-              Validators.maxLength(180)
-            ]
-          }
-        ),
-
-      documentType:
-        new FormControl<DocumentationType>(
-          'Manual',
-          {
-            nonNullable: true,
-            validators: [
-              Validators.required
-            ]
-          }
-        ),
-
-      description:
-        new FormControl(
-          '',
-          {
-            nonNullable: true,
-            validators: [
-              Validators.required,
-              Validators.minLength(10),
-              Validators.maxLength(1500)
-            ]
-          }
-        ),
-
-      fileUrl:
-        new FormControl(
-          '',
-          {
-            nonNullable: true,
-            validators: [
-              Validators.required,
-              Validators.pattern(
-                /^https?:\/\/.+/i
-              )
-            ]
-          }
-        ),
-
-      version:
-        new FormControl(
-          '1.0',
-          {
-            nonNullable: true,
-            validators: [
-              Validators.required,
-              Validators.maxLength(30)
-            ]
-          }
-        ),
-
-      productIds:
-        new FormControl<string[]>([], { nonNullable: true }),
-
-      isPublic:
-        new FormControl(
-          false,
-          {
-            nonNullable: true
-          }
-        ),
-
-      isActive:
-        new FormControl(
-          true,
-          {
-            nonNullable: true
-          }
-        )
-    });
-
-  private readonly searchTerm =
-    toSignal(
-      this.searchControl.valueChanges.pipe(
-        startWith(
-          this.searchControl.value
-        )
-      ),
-      {
-        initialValue: ''
-      }
-    );
-
-  private readonly typeFilter =
-    toSignal(
-      this.typeControl.valueChanges.pipe(
-        startWith(
-          this.typeControl.value
-        )
-      ),
-      {
-        initialValue: 'all'
-      }
-    );
-
-  private readonly visibilityFilter =
-    toSignal(
-      this.visibilityControl.valueChanges.pipe(
-        startWith(
-          this.visibilityControl.value
-        )
-      ),
-      {
-        initialValue: 'all'
-      }
-    );
-
-  private readonly statusFilter =
-    toSignal(
-      this.statusControl.valueChanges.pipe(
-        startWith(
-          this.statusControl.value
-        )
-      ),
-      {
-        initialValue: 'all'
-      }
+  readonly activeDocuments =
+    computed(
+      () =>
+        this.documents()
+          .filter(item => item.isActive)
+          .length
     );
 
   readonly filteredDocuments =
     computed(() => {
-      const term =
-        this.searchTerm()
+
+      const search =
+        this.search()
           .trim()
           .toLowerCase();
 
@@ -280,20 +148,21 @@ export class DocumentationManagement
 
       return this.documents().filter(
         document => {
+
           const matchesSearch =
-            !term ||
+            !search ||
             document.title
               .toLowerCase()
-              .includes(term) ||
+              .includes(search) ||
             document.description
               .toLowerCase()
-              .includes(term) ||
+              .includes(search) ||
             document.version
               .toLowerCase()
-              .includes(term) ||
+              .includes(search) ||
             document.fileUrl
               .toLowerCase()
-              .includes(term);
+              .includes(search);
 
           const matchesType =
             type === 'all' ||
@@ -331,64 +200,113 @@ export class DocumentationManagement
       );
     });
 
-  readonly summary =
-    computed(() => {
-      const documents =
-        this.documents();
+  readonly form =
+    new FormGroup({
 
-      return {
-        total:
-          documents.length,
+      title:
+        new FormControl(
+          '',
+          {
+            nonNullable: true,
+            validators: [
+              Validators.required,
+              Validators.minLength(3),
+              Validators.maxLength(180)
+            ]
+          }
+        ),
 
-        public:
-          documents.filter(
-            document =>
-              document.isPublic
-          ).length,
+      documentType:
+        new FormControl<DocumentationType>(
+          'Manual',
+          {
+            nonNullable: true,
+            validators: [
+              Validators.required
+            ]
+          }
+        ),
 
-        private:
-          documents.filter(
-            document =>
-              !document.isPublic
-          ).length,
+      version:
+        new FormControl(
+          '1.0',
+          {
+            nonNullable: true,
+            validators: [
+              Validators.required,
+              Validators.maxLength(30)
+            ]
+          }
+        ),
 
-        active:
-          documents.filter(
-            document =>
-              document.isActive
-          ).length
-      };
+      fileUrl:
+        new FormControl(
+          '/documents/manual-volts.pdf',
+          {
+            nonNullable: true,
+            validators: [
+              Validators.required,
+              Validators.pattern(
+                /^(\/documents\/[^\s]+|https?:\/\/.+)$/i
+              )
+            ]
+          }
+        ),
+
+      description:
+        new FormControl(
+          '',
+          {
+            nonNullable: true,
+            validators: [
+              Validators.required,
+              Validators.minLength(10),
+              Validators.maxLength(1500)
+            ]
+          }
+        ),
+
+      productIds:
+        new FormControl<string[]>(
+          [],
+          {
+            nonNullable: true
+          }
+        ),
+
+      isPublic:
+        new FormControl(
+          true,
+          {
+            nonNullable: true
+          }
+        ),
+
+      isActive:
+        new FormControl(
+          true,
+          {
+            nonNullable: true
+          }
+        )
     });
-
-  readonly documentTypes:
-    DocumentationType[] = [
-      'Manual',
-      'QuickGuide',
-      'Firmware',
-      'Video',
-      'AndroidApp',
-      'EducationalResource',
-      'Warranty',
-      'Other'
-    ];
 
   ngOnInit(): void {
-    this.loadDocuments();
-    this.productService.getAll().subscribe({
-      next: response => this.products.set((response.data ?? []).filter(product => !product.isDeleted)),
-      error: () => this.products.set([])
-    });
+    this.load();
+    this.loadProducts();
   }
 
-  loadDocuments(): void {
+  load(): void {
+
     this.loading.set(true);
     this.errorMessage.set('');
-    this.successMessage.set('');
 
-    this.documentationService
+    this.service
       .getAll()
       .subscribe({
+
         next: response => {
+
           this.documents.set(
             response.data ?? []
           );
@@ -397,133 +315,154 @@ export class DocumentationManagement
         },
 
         error: error => {
+
           this.loading.set(false);
 
           this.errorMessage.set(
-            this.resolveError(
-              error,
-              'No fue posible cargar la documentación.'
-            )
+            error?.error?.message ??
+            'No fue posible cargar la documentación.'
           );
         }
       });
   }
 
-openDetails(
-  documentItem: Documentation
-): void {
-  this.selectedDocument.set(
-    documentItem
-  );
+  loadProducts(): void {
 
-  this.detailOpen.set(true);
-  this.errorMessage.set('');
-  this.successMessage.set('');
+    this.productService
+      .getAll()
+      .subscribe({
 
-  window.document.body.classList.add(
-    'modal-open'
-  );
-}
-  closeDetails(): void {
-    this.selectedDocument.set(null);
-    this.detailOpen.set(false);
+        next: response => {
 
-    document.body.classList.remove(
-      'modal-open'
+          this.products.set(
+            response.data ?? []
+          );
+        },
+
+        error: () => {
+
+          this.products.set([]);
+        }
+      });
+  }
+
+  setSearch(
+    value: string
+  ): void {
+
+    this.search.set(value);
+  }
+
+  setTypeFilter(
+    value: string
+  ): void {
+
+    this.typeFilter.set(
+      value as DocumentationTypeFilter
     );
   }
 
-  openCreateForm(): void {
-    if (!this.auth.hasRole('Admin')) {
-      return;
-    }
+  setVisibilityFilter(
+    value: string
+  ): void {
+
+    this.visibilityFilter.set(
+      value as DocumentationVisibilityFilter
+    );
+  }
+
+  setStatusFilter(
+    value: string
+  ): void {
+
+    this.statusFilter.set(
+      value as DocumentationStatusFilter
+    );
+  }
+
+  clearFilters(): void {
+
+    this.search.set('');
+    this.typeFilter.set('all');
+    this.visibilityFilter.set('all');
+    this.statusFilter.set('all');
+  }
+
+  openCreate(): void {
 
     this.editingDocument.set(null);
 
     this.form.reset({
       title: '',
       documentType: 'Manual',
-      description: '',
-      fileUrl: '',
       version: '1.0',
+      fileUrl:
+        '/documents/manual-volts.pdf',
+      description: '',
       productIds: [],
-      isPublic: false,
+      isPublic: true,
       isActive: true
     });
 
-    this.formOpen.set(true);
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    document.body.classList.add(
-      'modal-open'
-    );
+    this.showForm.set(true);
   }
 
-  openEditForm(
-    documentItem: Documentation
+  openEdit(
+    document: Documentation
   ): void {
-    if (!this.auth.hasRole('Admin')) {
-      return;
-    }
-
-    this.closeDetails();
 
     this.editingDocument.set(
-      documentItem
+      document
     );
 
     this.form.reset({
       title:
-        documentItem.title,
+        document.title,
 
       documentType:
-        documentItem.documentType,
-
-      description:
-        documentItem.description,
-
-      fileUrl:
-        documentItem.fileUrl,
+        document.documentType,
 
       version:
-        documentItem.version,
+        document.version,
+
+      fileUrl:
+        document.fileUrl,
+
+      description:
+        document.description,
 
       productIds:
-        documentItem.productIds ?? [],
+        document.productIds ?? [],
 
       isPublic:
-        documentItem.isPublic,
+        document.isPublic,
 
       isActive:
-        documentItem.isActive
+        document.isActive
     });
 
-    this.formOpen.set(true);
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    document.body.classList.add(
-      'modal-open'
-    );
+    this.showForm.set(true);
   }
 
   closeForm(): void {
+
     if (this.saving()) {
       return;
     }
 
-    this.formOpen.set(false);
+    this.showForm.set(false);
     this.editingDocument.set(null);
-
-    document.body.classList.remove(
-      'modal-open'
-    );
   }
 
-  saveDocument(): void {
+  save(): void {
+
     if (
-      !this.auth.hasRole('Admin') ||
       this.form.invalid ||
       this.saving()
     ) {
@@ -538,180 +477,217 @@ openDetails(
     const value =
       this.form.getRawValue();
 
+    const baseRequest:
+      DocumentationCreateRequest = {
+
+        title:
+          value.title.trim(),
+
+        documentType:
+          value.documentType,
+
+        version:
+          value.version.trim(),
+
+        /*
+         * Para el manual de VOLTS,
+         * si todavía existe una URL vieja
+         * de example.com, la corregimos
+         * antes de guardarla.
+         */
+        fileUrl:
+          this.normalizeFileUrl(
+            value.fileUrl
+          ),
+
+        description:
+          value.description.trim(),
+
+        productIds:
+          value.productIds ?? [],
+
+        isPublic:
+          value.isPublic
+      };
+
     const editing =
       this.editingDocument();
 
-    const request =
-      editing
-        ? this.documentationService.update(
-            editing.id,
-            {
-              title:
-                value.title.trim(),
+    if (editing) {
 
-              documentType:
-                value.documentType,
+      const request:
+        DocumentationUpdateRequest = {
 
-              description:
-                value.description.trim(),
+          ...baseRequest,
 
-              fileUrl:
-                value.fileUrl.trim(),
+          isActive:
+            value.isActive
+        };
 
-              version:
-                value.version.trim(),
+      this.service
+        .update(
+          editing.id,
+          request
+        )
+        .subscribe({
 
-              productIds:
-                value.productIds,
+          next: response => {
 
-              isPublic:
-                value.isPublic,
+            this.saving.set(false);
 
-              isActive:
-                value.isActive
-            } satisfies
-              DocumentationUpdateRequest
-          )
-        : this.documentationService.create(
-            {
-              title:
-                value.title.trim(),
+            this.successMessage.set(
+              response.message ??
+              'Documento actualizado correctamente.'
+            );
 
-              documentType:
-                value.documentType,
+            this.showForm.set(false);
+            this.editingDocument.set(null);
 
-              description:
-                value.description.trim(),
+            this.load();
+          },
 
-              fileUrl:
-                value.fileUrl.trim(),
+          error: error => {
 
-              version:
-                value.version.trim(),
+            this.saving.set(false);
 
-              productIds:
-                value.productIds,
+            this.errorMessage.set(
+              error?.error?.message ??
+              'No fue posible actualizar el documento.'
+            );
+          }
+        });
 
-              isPublic:
-                value.isPublic
-            } satisfies
-              DocumentationCreateRequest
-          );
-
-    request.subscribe({
-      next: response => {
-        const saved =
-          response.data;
-
-        if (saved) {
-          this.upsertDocument(
-            saved
-          );
-        }
-
-        this.saving.set(false);
-        this.closeForm();
-      },
-
-      error: error => {
-        this.saving.set(false);
-
-        this.errorMessage.set(
-          this.resolveError(
-            error,
-            'No fue posible guardar el documento.'
-          )
-        );
-      }
-    });
-  }
-
-  toggleVisibility(
-    documentItem: Documentation
-  ): void {
-    this.updateDocumentFlags(
-      documentItem,
-      !documentItem.isPublic,
-      documentItem.isActive
-    );
-  }
-
-  toggleStatus(
-    documentItem: Documentation
-  ): void {
-    this.updateDocumentFlags(
-      documentItem,
-      documentItem.isPublic,
-      !documentItem.isActive
-    );
-  }
-
-  deleteDocument(
-    documentItem: Documentation
-  ): void {
-    if (
-      !this.auth.hasRole('Admin') ||
-      this.saving()
-    ) {
       return;
     }
 
+    this.service
+      .create(baseRequest)
+      .subscribe({
+
+        next: response => {
+
+          this.saving.set(false);
+
+          this.successMessage.set(
+            response.message ??
+            'Documento creado correctamente.'
+          );
+
+          this.showForm.set(false);
+
+          this.load();
+        },
+
+        error: error => {
+
+          this.saving.set(false);
+
+          this.errorMessage.set(
+            error?.error?.message ??
+            'No fue posible crear el documento.'
+          );
+        }
+      });
+  }
+
+  deleteDocument(
+    document: Documentation
+  ): void {
+
     const confirmed =
       window.confirm(
-        `¿Seguro que deseas eliminar "${documentItem.title}"?`
+        `¿Eliminar el recurso "${document.title}"?`
       );
 
     if (!confirmed) {
       return;
     }
 
-    this.saving.set(true);
-    this.errorMessage.set('');
+    this.deletingId.set(
+      document.id
+    );
 
-    this.documentationService
-      .delete(documentItem.id)
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    this.service
+      .delete(document.id)
       .subscribe({
-        next: () => {
-          this.documents.update(
-            current =>
-              current.filter(
-                item =>
-                  item.id !==
-                  documentItem.id
-              )
+
+        next: response => {
+
+          this.deletingId.set(null);
+
+          this.successMessage.set(
+            response.message ??
+            'Documento eliminado correctamente.'
           );
 
-          this.saving.set(false);
-          this.closeDetails();
+          this.load();
         },
 
         error: error => {
-          this.saving.set(false);
+
+          this.deletingId.set(null);
 
           this.errorMessage.set(
-            this.resolveError(
-              error,
-              'No fue posible eliminar el documento.'
-            )
+            error?.error?.message ??
+            'No fue posible eliminar el documento.'
           );
         }
       });
   }
 
-  clearFilters(): void {
-    this.searchControl.setValue('');
-    this.typeControl.setValue('all');
-    this.visibilityControl.setValue(
-      'all'
+  openDetail(
+    document: Documentation
+  ): void {
+
+    this.detailDocument.set(
+      document
     );
-    this.statusControl.setValue('all');
+  }
+
+  closeDetail(): void {
+
+    this.detailDocument.set(null);
+  }
+
+  resourceUrl(
+    document: Documentation
+  ): string {
+
+    /*
+     * Si es el manual VOLTS,
+     * siempre utilizamos el PDF real
+     * que está dentro del backend.
+     *
+     * Esto evita definitivamente
+     * example.com aunque el registro
+     * viejo de Mongo no se haya editado.
+     */
+    if (
+      document.documentType ===
+        'Manual'
+    ) {
+      return this.service
+        .resolveResourceUrl(
+          '/documents/manual-volts.pdf'
+        );
+    }
+
+    return this.service
+      .resolveResourceUrl(
+        document.fileUrl
+      );
   }
 
   typeLabel(
     type: DocumentationType
   ): string {
+
     const labels:
       Record<DocumentationType, string> = {
+
         Manual:
           'Manual',
 
@@ -740,148 +716,87 @@ openDetails(
     return labels[type];
   }
 
-  typeIcon(
+  iconClass(
     type: DocumentationType
   ): string {
+
     const icons:
       Record<DocumentationType, string> = {
-        Manual: '📘',
-        QuickGuide: '📄',
-        Firmware: '⚙️',
-        Video: '🎬',
-        AndroidApp: '📱',
-        EducationalResource: '🎓',
-        Warranty: '🛡️',
-        Other: '📎'
+
+        Manual:
+          'bi bi-book',
+
+        QuickGuide:
+          'bi bi-file-earmark-text',
+
+        Firmware:
+          'bi bi-cpu',
+
+        Video:
+          'bi bi-play-btn',
+
+        AndroidApp:
+          'bi bi-phone',
+
+        EducationalResource:
+          'bi bi-mortarboard',
+
+        Warranty:
+          'bi bi-shield-check',
+
+        Other:
+          'bi bi-paperclip'
       };
 
     return icons[type];
   }
 
-  private updateDocumentFlags(
-    documentItem: Documentation,
-    isPublic: boolean,
-    isActive: boolean
-  ): void {
-    if (
-      !this.auth.hasRole('Admin') ||
-      this.saving()
-    ) {
-      return;
-    }
-
-    this.saving.set(true);
-    this.errorMessage.set('');
-    this.successMessage.set('');
-
-    const request:
-      DocumentationUpdateRequest = {
-        title:
-          documentItem.title,
-
-        documentType:
-          documentItem.documentType,
-
-        description:
-          documentItem.description,
-
-        fileUrl:
-          documentItem.fileUrl,
-
-        version:
-          documentItem.version,
-
-        productIds:
-          documentItem.productIds ?? [],
-
-        isPublic,
-        isActive
-      };
-
-    this.documentationService
-      .update(
-        documentItem.id,
-        request
-      )
-      .subscribe({
-        next: response => {
-          if (response.data) {
-            this.upsertDocument(
-              response.data
-            );
-
-            if (
-              this.selectedDocument()?.id ===
-              response.data.id
-            ) {
-              this.selectedDocument.set(
-                response.data
-              );
-            }
-          }
-
-          this.saving.set(false);
-        },
-
-        error: error => {
-          this.saving.set(false);
-
-          this.errorMessage.set(
-            this.resolveError(
-              error,
-              'No fue posible actualizar el documento.'
-            )
-          );
-        }
-      });
-  }
-
-  private upsertDocument(
-    saved: Documentation
-  ): void {
-    this.documents.update(
-      current => {
-        const exists =
-          current.some(
-            document =>
-              document.id === saved.id
-          );
-
-        if (exists) {
-          return current.map(
-            document =>
-              document.id === saved.id
-                ? saved
-                : document
-          );
-        }
-
-        return [
-          saved,
-          ...current
-        ];
-      }
-    );
-  }
-
-  private resolveError(
-    error: any,
-    fallback: string
+  productNames(
+    document: Documentation
   ): string {
-    if (
-      Array.isArray(
-        error?.error?.errors
-      ) &&
-      error.error.errors.length > 0
-    ) {
-      return error.error.errors.join(
-        ' '
-      );
+
+    const ids =
+      document.productIds ?? [];
+
+    if (ids.length === 0) {
+      return 'Todos los productos VOLTS';
     }
 
-    return (
-      error?.error?.message ??
-      fallback
-    );
+    const names =
+      this.products()
+        .filter(product =>
+          ids.includes(product.id)
+        )
+        .map(product =>
+          product.name
+        );
+
+    return names.length > 0
+      ? names.join(', ')
+      : 'Productos asociados';
+  }
+
+  private normalizeFileUrl(
+    fileUrl: string
+  ): string {
+
+    const value =
+      fileUrl.trim();
+
+    const lower =
+      value.toLowerCase();
+
+    if (
+      lower.includes(
+        'example.com/manual-volts.pdf'
+      ) ||
+      lower.includes(
+        'manual-ensamble-volts-v1.pdf'
+      )
+    ) {
+      return '/documents/manual-volts.pdf';
+    }
+
+    return value;
   }
 }

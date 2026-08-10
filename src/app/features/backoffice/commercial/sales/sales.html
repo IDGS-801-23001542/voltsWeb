@@ -11,13 +11,13 @@
 
   @if (successMessage()) {
     <div class="message success">
-      ✓ {{ successMessage() }}
+      <i class="bi bi-check-circle" aria-hidden="true"></i> {{ successMessage() }}
     </div>
   }
 
   @if (errorMessage()) {
     <div class="message error">
-      ⚠ {{ errorMessage() }}
+      <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ errorMessage() }}
     </div>
   }
 
@@ -47,11 +47,12 @@
               [disabled]="sellingId() === order.id"
               (click)="requestSale(order)"
             >
-              {{
-                sellingId() === order.id
-                  ? 'Vendiendo...'
-                  : '💰 Confirmar venta'
-              }}
+              @if (sellingId() === order.id) {
+                Vendiendo...
+              } @else {
+                <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                Confirmar venta
+              }
             </button>
           </article>
         }
@@ -86,7 +87,8 @@
             </strong>
 
             <span>
-              🔑 {{ sale.licenseIds.length }}
+              <i class="bi bi-key" aria-hidden="true"></i>
+              {{ sale.licenseIds.length }}
               licencias generadas
             </span>
           </article>
@@ -108,7 +110,7 @@
         aria-labelledby="sale-confirmation-title"
         (click)="$event.stopPropagation()"
       >
-        <div class="confirmation-icon">✓</div>
+        <div class="confirmation-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></div>
 
         <span class="confirmation-label">Confirmación de venta</span>
         <h2 id="sale-confirmation-title">
@@ -149,6 +151,3 @@
     </div>
   }
 </section>
-
-
-

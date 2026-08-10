@@ -1,157 +1,307 @@
-
 <section class="documentation-page">
-  <header class="page-heading">
+
+  <header class="page-header">
+
     <div>
-      <span class="page-label">
-        Atención y contenido
+
+      <span class="eyebrow">
+        Atenci&oacute;n y contenido
       </span>
 
       <h1>
-        Documentación
+        Documentaci&oacute;n
       </h1>
 
       <p>
-        Administra manuales, guías,
+        Administra manuales, gu&iacute;as,
         aplicaciones, firmware, videos y
         recursos del ecosistema VOLTS.
       </p>
+
     </div>
 
-    <div class="heading-actions">
+    <div class="header-actions">
+
       <button
         type="button"
-        class="refresh-button"
-        [disabled]="loading()"
-        (click)="loadDocuments()"
+        class="secondary-button"
+        (click)="load()"
       >
-        ↻ Actualizar
+
+        <i class="bi bi-arrow-clockwise"></i>
+
+        Actualizar
+
       </button>
 
-      @if (auth.hasRole('Admin')) {
-        <button
-          type="button"
-          class="primary-button"
-          (click)="openCreateForm()"
-        >
-          + Nuevo recurso
-        </button>
-      }
+      <button
+        type="button"
+        class="primary-button"
+        (click)="openCreate()"
+      >
+
+        <i class="bi bi-plus-lg"></i>
+
+        Nuevo recurso
+
+      </button>
+
     </div>
+
   </header>
 
-  <section class="summary-grid">
-    <article class="summary-card">
-      <span class="summary-icon">
-        📚
-      </span>
+  @if (errorMessage()) {
+
+    <div class="feedback error">
+
+      <i class="bi bi-exclamation-triangle"></i>
+
+      {{ errorMessage() }}
+
+    </div>
+
+  }
+
+  @if (successMessage()) {
+
+    <div class="feedback success">
+
+      <i class="bi bi-check-circle"></i>
+
+      {{ successMessage() }}
+
+    </div>
+
+  }
+
+  <section class="stats-grid">
+
+    <article class="stat-card">
+
+      <div class="stat-icon">
+
+        <i class="bi bi-files"></i>
+
+      </div>
 
       <div>
-        <small>Total</small>
-        <strong>{{ summary().total }}</strong>
-        <p>Recursos registrados</p>
+
+        <span>
+          Total
+        </span>
+
+        <strong>
+          {{ totalDocuments() }}
+        </strong>
+
+        <small>
+          Recursos registrados
+        </small>
+
       </div>
+
     </article>
 
-    <article class="summary-card">
-      <span class="summary-icon public-icon">
-        🌐
-      </span>
+    <article class="stat-card">
+
+      <div class="stat-icon">
+
+        <i class="bi bi-globe2"></i>
+
+      </div>
 
       <div>
-        <small>Públicos</small>
-        <strong>{{ summary().public }}</strong>
-        <p>Visibles para usuarios</p>
+
+        <span>
+          P&uacute;blicos
+        </span>
+
+        <strong>
+          {{ publicDocuments() }}
+        </strong>
+
+        <small>
+          Visibles para usuarios
+        </small>
+
       </div>
+
     </article>
 
-    <article class="summary-card">
-      <span class="summary-icon private-icon">
-        🔒
-      </span>
+    <article class="stat-card">
+
+      <div class="stat-icon">
+
+        <i class="bi bi-lock"></i>
+
+      </div>
 
       <div>
-        <small>Privados</small>
-        <strong>{{ summary().private }}</strong>
-        <p>Uso interno o restringido</p>
+
+        <span>
+          Privados
+        </span>
+
+        <strong>
+          {{ privateDocuments() }}
+        </strong>
+
+        <small>
+          Uso interno o restringido
+        </small>
+
       </div>
+
     </article>
 
-    <article class="summary-card">
-      <span class="summary-icon active-icon">
-        ✅
-      </span>
+    <article class="stat-card">
+
+      <div class="stat-icon">
+
+        <i class="bi bi-check-circle"></i>
+
+      </div>
 
       <div>
-        <small>Activos</small>
-        <strong>{{ summary().active }}</strong>
-        <p>Recursos disponibles</p>
+
+        <span>
+          Activos
+        </span>
+
+        <strong>
+          {{ activeDocuments() }}
+        </strong>
+
+        <small>
+          Recursos disponibles
+        </small>
+
       </div>
+
     </article>
+
   </section>
 
-  <section class="content-panel">
-    <div class="filters">
-      <label class="search-field">
-        <span>Buscar recurso</span>
+  <section class="content-card">
 
-        <div class="input-wrapper">
-          <span>🔎</span>
+    <div class="filters">
+
+      <label class="search-field">
+
+        <span>
+          Buscar recurso
+        </span>
+
+        <div class="input-with-icon">
+
+          <i class="bi bi-search"></i>
 
           <input
-            type="search"
-            [formControl]="searchControl"
+            type="text"
+            [value]="search()"
             placeholder="Título, descripción, versión o URL..."
+            (input)="setSearch($any($event.target).value)"
           />
+
         </div>
+
       </label>
 
-      <label class="filter-field">
-        <span>Tipo</span>
+      <label>
+
+        <span>
+          Tipo
+        </span>
 
         <select
-          [formControl]="typeControl"
+          [value]="typeFilter()"
+          (change)="setTypeFilter(
+            $any($event.target).value
+          )"
         >
+
           <option value="all">
             Todos
           </option>
 
-          @for (
-            type of documentTypes;
-            track type
-          ) {
-            <option [value]="type">
-              {{ typeLabel(type) }}
-            </option>
-          }
+          <option value="Manual">
+            Manual
+          </option>
+
+          <option value="QuickGuide">
+            Guía rápida
+          </option>
+
+          <option value="Firmware">
+            Firmware
+          </option>
+
+          <option value="Video">
+            Video
+          </option>
+
+          <option value="AndroidApp">
+            Aplicación Android
+          </option>
+
+          <option value="EducationalResource">
+            Recurso educativo
+          </option>
+
+          <option value="Warranty">
+            Garantía
+          </option>
+
+          <option value="Other">
+            Otro
+          </option>
+
         </select>
+
       </label>
 
-      <label class="filter-field">
-        <span>Visibilidad</span>
+      <label>
+
+        <span>
+          Visibilidad
+        </span>
 
         <select
-          [formControl]="visibilityControl"
+          [value]="visibilityFilter()"
+          (change)="setVisibilityFilter(
+            $any($event.target).value
+          )"
         >
+
           <option value="all">
             Todas
           </option>
 
           <option value="public">
-            Públicos
+            Público
           </option>
 
           <option value="private">
-            Privados
+            Privado
           </option>
+
         </select>
+
       </label>
 
-      <label class="filter-field">
-        <span>Estado</span>
+      <label>
+
+        <span>
+          Estado
+        </span>
 
         <select
-          [formControl]="statusControl"
+          [value]="statusFilter()"
+          (change)="setStatusFilter(
+            $any($event.target).value
+          )"
         >
+
           <option value="all">
             Todos
           </option>
@@ -163,7 +313,9 @@
           <option value="inactive">
             Inactivos
           </option>
+
         </select>
+
       </label>
 
       <button
@@ -173,554 +325,659 @@
       >
         Limpiar
       </button>
+
     </div>
 
-    @if (
-      errorMessage() &&
-      !detailOpen() &&
-      !formOpen()
-    ) {
-      <div class="feedback error-feedback">
-        ⚠️ {{ errorMessage() }}
-      </div>
-    }
+    <div class="results-header">
+
+      <strong>
+        {{ filteredDocuments().length }}
+        recursos
+      </strong>
+
+      <span>
+        de {{ totalDocuments() }}
+        registrados
+      </span>
+
+    </div>
 
     @if (loading()) {
-      <div class="state-container">
-        <span class="loader"></span>
 
-        <strong>
-          Cargando documentación...
-        </strong>
+      <div class="empty-state">
+
+        <i class="bi bi-arrow-repeat"></i>
+
+        <h2>
+          Cargando documentaci&oacute;n
+        </h2>
+
+        <p>
+          Obteniendo los recursos de VOLTS...
+        </p>
+
       </div>
+
     } @else if (
       filteredDocuments().length === 0
     ) {
-      <div class="state-container">
-        <span class="state-icon">📚</span>
 
-        <strong>
-          No se encontraron recursos
-        </strong>
+      <div class="empty-state">
+
+        <i class="bi bi-folder2-open"></i>
+
+        <h2>
+          No hay recursos
+        </h2>
 
         <p>
-          Ajusta los filtros o registra
-          un nuevo documento.
+          No encontramos documentaci&oacute;n
+          con los filtros seleccionados.
         </p>
+
       </div>
+
     } @else {
-      <div class="results-heading">
-        <strong>
-          {{ filteredDocuments().length }}
-          recursos
-        </strong>
 
-        <span>
-          de {{ summary().total }}
-          registrados
-        </span>
-      </div>
+      <div class="resources-grid">
 
-      <div class="documents-grid">
         @for (
-          documentItem of filteredDocuments();
-          track documentItem.id
+          document of filteredDocuments();
+          track document.id
         ) {
-          <article class="document-card">
-            <div class="document-card-heading">
-              <span class="document-icon">
-                {{
-                  typeIcon(
-                    documentItem.documentType
-                  )
-                }}
-              </span>
 
-              <div class="document-badges">
+          <article class="resource-card">
+
+            <header>
+
+              <div class="resource-icon">
+
+                <i
+                  [class]="iconClass(
+                    document.documentType
+                  )"
+                ></i>
+
+              </div>
+
+              <div class="badges">
+
                 <span
-                  class="visibility-chip"
-                  [class.public-chip]="
-                    documentItem.isPublic
-                  "
-                  [class.private-chip]="
-                    !documentItem.isPublic
+                  class="badge"
+                  [class.public]="
+                    document.isPublic
                   "
                 >
+
                   {{
-                    documentItem.isPublic
+                    document.isPublic
                       ? 'Público'
                       : 'Privado'
                   }}
+
                 </span>
 
                 <span
-                  class="status-chip"
-                  [class.active-chip]="
-                    documentItem.isActive
+                  class="badge"
+                  [class.active]="
+                    document.isActive
                   "
-                  [class.inactive-chip]="
-                    !documentItem.isActive
+                  [class.inactive]="
+                    !document.isActive
                   "
                 >
+
                   {{
-                    documentItem.isActive
+                    document.isActive
                       ? 'Activo'
                       : 'Inactivo'
                   }}
+
                 </span>
+
               </div>
+
+            </header>
+
+            <span class="document-type">
+
+              {{
+                typeLabel(
+                  document.documentType
+                )
+              }}
+
+            </span>
+
+            <h2>
+              {{ document.title }}
+            </h2>
+
+            <p class="description">
+              {{ document.description }}
+            </p>
+
+            <div class="product-reference">
+
+              <i class="bi bi-box"></i>
+
+              {{
+                productNames(document)
+              }}
+
             </div>
 
-            <div class="document-content">
-              <span class="document-type">
-                {{
-                  typeLabel(
-                    documentItem.documentType
-                  )
-                }}
-              </span>
+            <div class="resource-meta">
 
-              <h2>
-                {{ documentItem.title }}
-              </h2>
-
-              <p>
-                {{ documentItem.description }}
-              </p>
-            </div>
-
-            <div class="document-meta">
               <span>
-                Versión
+
+                Versi&oacute;n
+
                 <strong>
-                  {{ documentItem.version }}
+                  {{ document.version }}
                 </strong>
+
               </span>
 
               <span>
+
                 {{
-                  documentItem.createdAt
-                    | date:'dd/MM/yyyy'
+                  document.createdAt |
+                  date:'dd/MM/yyyy'
                 }}
+
               </span>
+
             </div>
 
-            <footer class="document-actions">
+            <footer>
+
               <button
                 type="button"
-                class="view-button"
-                (click)="openDetails(documentItem)"
+                class="detail-button"
+                (click)="openDetail(document)"
               >
+
+                <i class="bi bi-eye"></i>
+
                 Ver detalle
+
               </button>
 
               <a
-                class="open-button"
-                [href]="documentItem.fileUrl"
+                class="resource-button"
+                [href]="resourceUrl(document)"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Abrir recurso ↗
-              </a>
-            </footer>
-          </article>
-        }
-      </div>
-    }
-  </section>
-</section>
 
-@if (
-  detailOpen() &&
-  selectedDocument();
-  as documentItem
-) {
-  <div
-    class="modal-backdrop"
-    (click)="closeDetails()"
-  ></div>
+                <i class="bi bi-box-arrow-up-right"></i>
 
-  <aside class="detail-drawer">
-    <header class="drawer-heading">
-      <div>
-        <span class="page-label">
-          Detalle del recurso
-        </span>
-
-        <h2>
-          {{ documentItem.title }}
-        </h2>
-      </div>
-
-      <button
-        type="button"
-        class="close-button"
-        (click)="closeDetails()"
-      >
-        ×
-      </button>
-    </header>
-
-    <div class="drawer-content">
-      @if (errorMessage()) {
-        <div class="feedback error-feedback">
-          ⚠️ {{ errorMessage() }}
-        </div>
-      }
-
-      <section class="resource-profile">
-        <span class="resource-icon">
-          {{
-            typeIcon(
-              documentItem.documentType
-            )
-          }}
-        </span>
-
-        <div>
-          <strong>
-            {{
-              typeLabel(
-                documentItem.documentType
-              )
-            }}
-          </strong>
-
-          <span>
-            Versión
-            {{ documentItem.version }}
-          </span>
-        </div>
-      </section>
-
-      <section class="detail-section">
-        <h3>Descripción</h3>
-
-        <p class="description-content">
-          {{ documentItem.description }}
-        </p>
-      </section>
-
-      <section class="detail-section">
-        <h3>Información</h3>
-
-        <dl class="detail-grid">
-          <div>
-            <dt>Visibilidad</dt>
-            <dd>
-              {{
-                documentItem.isPublic
-                  ? 'Público'
-                  : 'Privado'
-              }}
-            </dd>
-          </div>
-
-          <div>
-            <dt>Estado</dt>
-            <dd>
-              {{
-                documentItem.isActive
-                  ? 'Activo'
-                  : 'Inactivo'
-              }}
-            </dd>
-          </div>
-
-          <div>
-            <dt>Creado</dt>
-            <dd>
-              {{
-                documentItem.createdAt
-                  | date:'dd/MM/yyyy HH:mm'
-              }}
-            </dd>
-          </div>
-
-          <div>
-            <dt>Actualizado</dt>
-            <dd>
-              @if (documentItem.updatedAt) {
                 {{
-                  documentItem.updatedAt
-                    | date:'dd/MM/yyyy HH:mm'
+                  document.documentType ===
+                    'AndroidApp'
+                    ? 'Descargar'
+                    : 'Abrir recurso'
                 }}
-              } @else {
-                Sin actualizaciones
-              }
-            </dd>
+
+              </a>
+
+            </footer>
+
+          </article>
+
+        }
+
+      </div>
+
+    }
+
+  </section>
+
+  @if (showForm()) {
+
+    <div
+      class="modal-backdrop"
+      (click)="closeForm()"
+    >
+
+      <section
+        class="resource-modal"
+        role="dialog"
+        aria-modal="true"
+        (click)="$event.stopPropagation()"
+      >
+
+        <header class="modal-header">
+
+          <div>
+
+            <span class="eyebrow">
+
+              {{
+                editingDocument()
+                  ? 'Editar recurso'
+                  : 'Nuevo recurso'
+              }}
+
+            </span>
+
+            <h2>
+
+              {{
+                editingDocument()
+                  ? 'Actualizar documentación'
+                  : 'Registrar documentación'
+              }}
+
+            </h2>
+
           </div>
 
-          <div class="full-detail">
-            <dt>URL</dt>
-            <dd class="url-value">
-              {{ documentItem.fileUrl }}
-            </dd>
+          <button
+            type="button"
+            class="close-button"
+            aria-label="Cerrar"
+            (click)="closeForm()"
+          >
+
+            <i class="bi bi-x-lg"></i>
+
+          </button>
+
+        </header>
+
+        <form
+          [formGroup]="form"
+          (ngSubmit)="save()"
+        >
+
+          <div class="form-grid">
+
+            <label>
+
+              <span>
+                T&iacute;tulo
+              </span>
+
+              <input
+                type="text"
+                formControlName="title"
+                maxlength="180"
+                placeholder="Ej. Manual de ensamble VOLTS"
+              />
+
+            </label>
+
+            <label>
+
+              <span>
+                Tipo
+              </span>
+
+              <select
+                formControlName="documentType"
+              >
+
+                <option value="Manual">
+                  Manual
+                </option>
+
+                <option value="QuickGuide">
+                  Guía rápida
+                </option>
+
+                <option value="Firmware">
+                  Firmware
+                </option>
+
+                <option value="Video">
+                  Video
+                </option>
+
+                <option value="AndroidApp">
+                  Aplicación Android
+                </option>
+
+                <option value="EducationalResource">
+                  Recurso educativo
+                </option>
+
+                <option value="Warranty">
+                  Garantía
+                </option>
+
+                <option value="Other">
+                  Otro
+                </option>
+
+              </select>
+
+            </label>
+
+            <label>
+
+              <span>
+                Versi&oacute;n
+              </span>
+
+              <input
+                type="text"
+                formControlName="version"
+                maxlength="30"
+                placeholder="1.0"
+              />
+
+            </label>
+
+            <label class="full-field">
+
+              <span>
+                Productos asociados
+              </span>
+
+              <select
+                formControlName="productIds"
+                multiple
+              >
+
+                @for (
+                  product of products();
+                  track product.id
+                ) {
+
+                  <option
+                    [value]="product.id"
+                  >
+                    {{ product.name }}
+                  </option>
+
+                }
+
+              </select>
+
+              <small>
+                Si no seleccionas ninguno,
+                el recurso se considera general
+                para cualquier usuario con
+                licencia VOLTS.
+              </small>
+
+            </label>
+
+            <label class="full-field">
+
+              <span>
+                Ruta o URL del recurso
+              </span>
+
+              <input
+                type="text"
+                formControlName="fileUrl"
+                placeholder="/documents/manual-volts.pdf"
+              />
+
+              <small>
+                Para el manual usa:
+                /documents/manual-volts.pdf
+              </small>
+
+            </label>
+
+            <label class="full-field">
+
+              <span>
+                Descripci&oacute;n
+              </span>
+
+              <textarea
+                rows="6"
+                formControlName="description"
+                placeholder="Describe el contenido y propósito del recurso..."
+              ></textarea>
+
+            </label>
+
           </div>
-        </dl>
+
+          <div class="toggle-grid">
+
+            <label class="toggle-option">
+
+              <input
+                type="checkbox"
+                formControlName="isPublic"
+              />
+
+              <span>
+
+                <strong>
+                  Recurso p&uacute;blico
+                </strong>
+
+                <small>
+                  Visible para usuarios autorizados.
+                </small>
+
+              </span>
+
+            </label>
+
+            @if (editingDocument()) {
+
+              <label class="toggle-option">
+
+                <input
+                  type="checkbox"
+                  formControlName="isActive"
+                />
+
+                <span>
+
+                  <strong>
+                    Recurso activo
+                  </strong>
+
+                  <small>
+                    Disponible dentro del ecosistema.
+                  </small>
+
+                </span>
+
+              </label>
+
+            }
+
+          </div>
+
+          <footer class="form-footer">
+
+            <button
+              type="button"
+              class="cancel-button"
+              [disabled]="saving()"
+              (click)="closeForm()"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+              [disabled]="saving()"
+            >
+
+              {{
+                saving()
+                  ? 'Guardando...'
+                  : editingDocument()
+                    ? 'Guardar cambios'
+                    : 'Crear recurso'
+              }}
+
+            </button>
+
+          </footer>
+
+        </form>
+
       </section>
 
-      @if (auth.hasRole('Admin')) {
-        <section class="detail-section">
-          <h3>Administración</h3>
-
-          <div class="management-actions">
-            <button
-              type="button"
-              (click)="
-                toggleVisibility(
-                  documentItem
-                )
-              "
-              [disabled]="saving()"
-            >
-              {{
-                documentItem.isPublic
-                  ? '🔒 Hacer privado'
-                  : '🌐 Publicar'
-              }}
-            </button>
-
-            <button
-              type="button"
-              (click)="
-                toggleStatus(
-                  documentItem
-                )
-              "
-              [disabled]="saving()"
-            >
-              {{
-                documentItem.isActive
-                  ? '⏸ Desactivar'
-                  : '▶ Activar'
-              }}
-            </button>
-          </div>
-        </section>
-      }
     </div>
 
-    <footer class="drawer-footer">
-      <a
-        class="primary-link"
-        [href]="documentItem.fileUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Abrir recurso ↗
-      </a>
+  }
 
-      @if (auth.hasRole('Admin')) {
-        <button
-          type="button"
-          class="edit-button"
-          (click)="
-            openEditForm(
-              documentItem
-            )
-          "
-        >
-          ✏️ Editar
-        </button>
+  @if (detailDocument(); as document) {
 
-        <button
-          type="button"
-          class="delete-button"
-          [disabled]="saving()"
-          (click)="
-            deleteDocument(
-              documentItem
-            )
-          "
-        >
-          🗑️ Eliminar
-        </button>
-      }
-    </footer>
-  </aside>
-}
-
-@if (formOpen()) {
-  <div
-    class="modal-backdrop"
-    (click)="closeForm()"
-  ></div>
-
-  <section class="form-modal">
-    <header class="drawer-heading">
-      <div>
-        <span class="page-label">
-          {{
-            editingDocument()
-              ? 'Editar recurso'
-              : 'Nuevo recurso'
-          }}
-        </span>
-
-        <h2>
-          {{
-            editingDocument()
-              ? 'Actualizar documentación'
-              : 'Registrar documentación'
-          }}
-        </h2>
-      </div>
-
-      <button
-        type="button"
-        class="close-button"
-        [disabled]="saving()"
-        (click)="closeForm()"
-      >
-        ×
-      </button>
-    </header>
-
-    <form
-      class="document-form"
-      [formGroup]="form"
-      (ngSubmit)="saveDocument()"
+    <div
+      class="modal-backdrop"
+      (click)="closeDetail()"
     >
-      @if (errorMessage()) {
-        <div class="feedback error-feedback">
-          ⚠️ {{ errorMessage() }}
-        </div>
-      }
 
-      <div class="form-grid">
-        <label class="full-field">
-          <span>Título</span>
+      <section
+        class="resource-modal"
+        role="dialog"
+        aria-modal="true"
+        (click)="$event.stopPropagation()"
+      >
 
-          <input
-            type="text"
-            formControlName="title"
-            placeholder="Ej. Manual de usuario VOLTS"
-          />
-        </label>
+        <header class="modal-header">
 
-        <label>
-          <span>Tipo de recurso</span>
+          <div>
 
-          <select
-            formControlName="documentType"
-          >
-            @for (
-              type of documentTypes;
-              track type
-            ) {
-              <option [value]="type">
-                {{ typeLabel(type) }}
-              </option>
-            }
-          </select>
-        </label>
-
-        <label>
-          <span>Versión</span>
-
-          <input
-            type="text"
-            formControlName="version"
-            placeholder="1.0"
-          />
-        </label>
-
-        <label class="full-field">
-          <span>Productos asociados</span>
-          <select formControlName="productIds" multiple size="5">
-            @for (product of products(); track product.id) {
-              <option [value]="product.id">{{ product.name }}</option>
-            }
-          </select>
-          <small>
-            Selecciona uno o varios productos. Si no seleccionas ninguno, el recurso se considera general para cualquier usuario con licencia VOLTS.
-          </small>
-        </label>
-
-        <label class="full-field">
-          <span>URL del recurso</span>
-
-          <input
-            type="url"
-            formControlName="fileUrl"
-            placeholder="https://..."
-          />
-
-          <small>
-            Debe comenzar con http://
-            o https://
-          </small>
-        </label>
-
-        <label class="full-field">
-          <span>Descripción</span>
-
-          <textarea
-            rows="6"
-            formControlName="description"
-            placeholder="Describe el contenido y propósito del recurso..."
-          ></textarea>
-        </label>
-      </div>
-
-      <div class="toggle-grid">
-        <label class="toggle-option">
-          <input
-            type="checkbox"
-            formControlName="isPublic"
-          />
-
-          <span>
-            <strong>Recurso público</strong>
-            <small>
-              Visible para clientes y visitantes
-              autorizados.
-            </small>
-          </span>
-        </label>
-
-        @if (editingDocument()) {
-          <label class="toggle-option">
-            <input
-              type="checkbox"
-              formControlName="isActive"
-            />
-
-            <span>
-              <strong>Recurso activo</strong>
-              <small>
-                Disponible dentro del ecosistema.
-              </small>
+            <span class="eyebrow">
+              Detalle del recurso
             </span>
-          </label>
-        }
-      </div>
 
-      <footer class="form-footer">
-        <button
-          type="button"
-          class="cancel-button"
-          [disabled]="saving()"
-          (click)="closeForm()"
-        >
-          Cancelar
-        </button>
+            <h2>
+              {{ document.title }}
+            </h2>
 
-        <button
-          type="submit"
-          class="primary-button"
-          [disabled]="saving()"
-        >
-          {{
-            saving()
-              ? 'Guardando...'
-              : editingDocument()
-                ? 'Guardar cambios'
-                : 'Crear recurso'
-          }}
-        </button>
-      </footer>
-    </form>
-  </section>
-}
+          </div>
+
+          <button
+            type="button"
+            class="close-button"
+            (click)="closeDetail()"
+          >
+
+            <i class="bi bi-x-lg"></i>
+
+          </button>
+
+        </header>
+
+        <div class="detail-content">
+
+          <p>
+            {{ document.description }}
+          </p>
+
+          <dl>
+
+            <div>
+              <dt>Tipo</dt>
+              <dd>
+                {{
+                  typeLabel(
+                    document.documentType
+                  )
+                }}
+              </dd>
+            </div>
+
+            <div>
+              <dt>Versi&oacute;n</dt>
+              <dd>
+                {{ document.version }}
+              </dd>
+            </div>
+
+            <div>
+              <dt>Productos</dt>
+              <dd>
+                {{ productNames(document) }}
+              </dd>
+            </div>
+
+            <div>
+              <dt>Visibilidad</dt>
+              <dd>
+                {{
+                  document.isPublic
+                    ? 'Público'
+                    : 'Privado'
+                }}
+              </dd>
+            </div>
+
+            <div>
+              <dt>Estado</dt>
+              <dd>
+                {{
+                  document.isActive
+                    ? 'Activo'
+                    : 'Inactivo'
+                }}
+              </dd>
+            </div>
+
+          </dl>
+
+        </div>
+
+        <footer class="form-footer">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="openEdit(document);
+                     closeDetail()"
+          >
+
+            <i class="bi bi-pencil"></i>
+
+            Editar
+
+          </button>
+
+          <a
+            class="primary-button"
+            [href]="resourceUrl(document)"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+
+            <i class="bi bi-box-arrow-up-right"></i>
+
+            Abrir recurso
+
+          </a>
+
+          <button
+            type="button"
+            class="danger-button"
+            [disabled]="
+              deletingId() === document.id
+            "
+            (click)="
+              deleteDocument(document);
+              closeDetail()
+            "
+          >
+
+            <i class="bi bi-trash"></i>
+
+            Eliminar
+
+          </button>
+
+        </footer>
+
+      </section>
+
+    </div>
+
+  }
+
+</section>
