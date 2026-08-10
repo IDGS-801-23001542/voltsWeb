@@ -214,12 +214,40 @@
                 </div>
 
                 <div>
+                  <small>Costo materiales</small>
+                  <strong>
+                    {{ product.estimatedRecipeCost | currency:'MXN' }}
+                  </strong>
+                </div>
+
+                <div>
+                  <small>Mano de obra</small>
+                  <strong>
+                    {{ product.laborCost | currency:'MXN' }}
+                  </strong>
+                </div>
+
+                <div>
+                  <small>Costos indirectos</small>
+                  <strong>
+                    {{ product.indirectCost | currency:'MXN' }}
+                  </strong>
+                </div>
+
+                <div>
+                  <small>Costo total estimado</small>
+                  <strong>
+                    {{ product.estimatedTotalCost | currency:'MXN' }}
+                  </strong>
+                </div>
+
+                <div>
                   <small>Costo aplicado</small>
                   <strong>
                     {{
                       (product.averageFinishedCost > 0
                         ? product.averageFinishedCost
-                        : product.estimatedRecipeCost)
+                        : product.estimatedTotalCost)
                         | currency:'MXN'
                     }}
                   </strong>
@@ -424,6 +452,28 @@
               min="0"
               step="0.01"
               formControlName="price"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Mano de obra por unidad</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="laborCost"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Costos indirectos por unidad</label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              formControlName="indirectCost"
             />
           </div>
 

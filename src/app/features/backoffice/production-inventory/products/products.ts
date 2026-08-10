@@ -209,6 +209,8 @@ export class Products implements OnInit {
 
       targetMarginPercentage: [30, [Validators.required, Validators.min(0), Validators.max(99.99)]],
       minimumMarginPercentage: [20, [Validators.required, Validators.min(0), Validators.max(99.99)]],
+      laborCost: [120, [Validators.required, Validators.min(0)]],
+      indirectCost: [35, [Validators.required, Validators.min(0)]],
 
       categoryId: [
         '',
@@ -350,6 +352,8 @@ export class Products implements OnInit {
       price: 0,
       targetMarginPercentage: 30,
       minimumMarginPercentage: 20,
+      laborCost: 120,
+      indirectCost: 35,
       categoryId: '',
       species: 'Perro',
       breed: '',
@@ -402,6 +406,8 @@ export class Products implements OnInit {
 
       targetMarginPercentage: product.targetMarginPercentage,
       minimumMarginPercentage: product.minimumMarginPercentage,
+      laborCost: product.laborCost ?? 120,
+      indirectCost: product.indirectCost ?? 35,
 
       categoryId:
         product.categoryId,
@@ -579,6 +585,8 @@ export class Products implements OnInit {
 
       targetMarginPercentage: values.targetMarginPercentage,
       minimumMarginPercentage: values.minimumMarginPercentage,
+      laborCost: values.laborCost,
+      indirectCost: values.indirectCost,
 
       categoryId:
         values.categoryId,

@@ -15,6 +15,9 @@ export interface Product {
   description: string;
   price: number;
   estimatedRecipeCost: number;
+  laborCost: number;
+  indirectCost: number;
+  estimatedTotalCost: number;
   averageFinishedCost: number;
   lastProductionUnitCost: number;
   targetMarginPercentage: number;
@@ -52,6 +55,8 @@ export interface ProductCreateRequest {
   price: number;
   targetMarginPercentage: number;
   minimumMarginPercentage: number;
+  laborCost: number;
+  indirectCost: number;
   categoryId: string;
   species: string;
   breed: string;

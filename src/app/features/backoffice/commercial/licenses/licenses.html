@@ -1,10 +1,7 @@
 <section class="licenses-page">
-
-  <header class="page-header">
-
+  <header class="page-heading">
     <div>
-
-      <span class="eyebrow">
+      <span class="page-label">
         Comercial
       </span>
 
@@ -13,404 +10,597 @@
       </h1>
 
       <p>
-        Consulta, asigna y administra las
-        licencias generadas por las ventas
-        de productos VOLTS.
+        Consulta las licencias generadas por ventas,
+        administra su asignación y controla su estado.
       </p>
-
     </div>
 
     <button
       type="button"
-      class="secondary"
+      class="refresh-button"
       (click)="loadLicenses()"
+      [disabled]="loading()"
     >
-
-      <i class="bi bi-arrow-clockwise"></i>
+      <i
+        class="bi bi-arrow-clockwise"
+        [class.spinning]="loading()"
+      ></i>
 
       Actualizar
-
     </button>
-
   </header>
 
-  @if (errorMessage()) {
-
-    <div class="feedback error">
-
-      <i class="bi bi-exclamation-triangle"></i>
-
-      {{ errorMessage() }}
-
-    </div>
-
-  }
-
   @if (successMessage()) {
-
     <div class="feedback success">
+      <i class="bi bi-check-circle-fill"></i>
 
-      <i class="bi bi-check-circle"></i>
-
-      {{ successMessage() }}
-
+      <span>
+        {{ successMessage() }}
+      </span>
     </div>
-
   }
 
-  @if (loading()) {
+  @if (errorMessage()) {
+    <div class="feedback error">
+      <i class="bi bi-exclamation-triangle-fill"></i>
 
-    <div class="empty-state">
+      <span>
+        {{ errorMessage() }}
+      </span>
+    </div>
+  }
 
-      <i class="bi bi-arrow-repeat"></i>
+  <section
+    class="summary-grid"
+    aria-label="Resumen de licencias"
+  >
+    <article class="summary-card">
+      <div class="summary-icon">
+        <i class="bi bi-key-fill"></i>
+      </div>
 
-      <p>
-        Cargando licencias...
-      </p>
+      <div>
+        <small>
+          Total
+        </small>
 
+        <strong>
+          {{ totalCount() }}
+        </strong>
+
+        <span>
+          Licencias registradas
+        </span>
+      </div>
+    </article>
+
+    <article class="summary-card active-card">
+      <div class="summary-icon">
+        <i class="bi bi-shield-check"></i>
+      </div>
+
+      <div>
+        <small>
+          Activas
+        </small>
+
+        <strong>
+          {{ activeCount() }}
+        </strong>
+
+        <span>
+          En uso actualmente
+        </span>
+      </div>
+    </article>
+
+    <article class="summary-card available-card">
+      <div class="summary-icon">
+        <i class="bi bi-unlock"></i>
+      </div>
+
+      <div>
+        <small>
+          Disponibles
+        </small>
+
+        <strong>
+          {{ availableCount() }}
+        </strong>
+
+        <span>
+          Pendientes de asignación
+        </span>
+      </div>
+    </article>
+
+    <article class="summary-card revoked-card">
+      <div class="summary-icon">
+        <i class="bi bi-slash-circle"></i>
+      </div>
+
+      <div>
+        <small>
+          Revocadas
+        </small>
+
+        <strong>
+          {{ revokedCount() }}
+        </strong>
+
+        <span>
+          Sin acceso
+        </span>
+      </div>
+    </article>
+  </section>
+
+  <section class="licenses-panel">
+    <div class="panel-toolbar">
+      <div class="search-control">
+        <i class="bi bi-search"></i>
+
+        <input
+          type="search"
+          placeholder="Buscar código, producto, persona, correo o serie..."
+          [value]="searchTerm()"
+          (input)="updateSearch($event)"
+        />
+      </div>
+
+      <select
+        class="status-filter"
+        [value]="statusFilter()"
+        (change)="updateStatusFilter($event)"
+      >
+        <option value="all">
+          Todos los estados
+        </option>
+
+        <option value="Active">
+          Activas
+        </option>
+
+        <option value="Available">
+          Disponibles
+        </option>
+
+        <option value="Expired">
+          Vencidas
+        </option>
+
+        <option value="Revoked">
+          Revocadas
+        </option>
+      </select>
     </div>
 
-  } @else if (licenses().length === 0) {
+    <div class="panel-meta">
+      <span>
+        {{
+          filteredLicenses().length === 1
+            ? '1 licencia encontrada'
+            : filteredLicenses().length +
+              ' licencias encontradas'
+        }}
+      </span>
 
-    <div class="empty-state">
-
-      <i class="bi bi-key"></i>
-
-      <h2>
-        No hay licencias registradas
-      </h2>
-
-      <p>
-        Las licencias se generan al confirmar
-        una venta de productos VOLTS.
-      </p>
-
-    </div>
-
-  } @else {
-
-    <div class="license-grid">
-
-      @for (
-        license of licenses();
-        track license.id
+      @if (
+        searchTerm() ||
+        statusFilter() !== 'all'
       ) {
+        <button
+          type="button"
+          class="clear-button"
+          (click)="clearFilters()"
+        >
+          Limpiar filtros
+        </button>
+      }
+    </div>
 
-        <article class="license-card">
+    @if (loading()) {
+      <div class="state-container">
+        <span class="loader"></span>
 
-          <header class="card-header">
+        <strong>
+          Cargando licencias
+        </strong>
 
-            <div class="license-icon">
+        <p>
+          Consultando la información comercial...
+        </p>
+      </div>
+    } @else if (
+      licenses().length === 0
+    ) {
+      <div class="state-container">
+        <i class="bi bi-key state-icon"></i>
 
-              <i class="bi bi-key"></i>
+        <strong>
+          No hay licencias registradas
+        </strong>
 
-            </div>
+        <p>
+          Las licencias se generan automáticamente
+          al confirmar una venta de productos VOLTS.
+        </p>
+      </div>
+    } @else if (
+      filteredLicenses().length === 0
+    ) {
+      <div class="state-container">
+        <i class="bi bi-search state-icon"></i>
 
-            <div>
+        <strong>
+          No encontramos coincidencias
+        </strong>
 
-              <span class="status-badge"
-                [class.available]="license.status === 'Available'"
-                [class.active]="license.status === 'Active'"
-                [class.expired]="license.status === 'Expired'"
-                [class.revoked]="license.status === 'Revoked'"
+        <p>
+          Prueba con otro término o cambia el filtro.
+        </p>
+
+        <button
+          type="button"
+          class="clear-button"
+          (click)="clearFilters()"
+        >
+          Mostrar todas
+        </button>
+      </div>
+    } @else {
+      <div class="license-grid">
+        @for (
+          license of filteredLicenses();
+          track license.id
+        ) {
+          <article
+            class="license-card"
+            [class.is-active]="
+              license.status === 'Active'
+            "
+            [class.is-available]="
+              license.status === 'Available'
+            "
+            [class.is-expired]="
+              license.status === 'Expired'
+            "
+            [class.is-revoked]="
+              license.status === 'Revoked'
+            "
+          >
+            <div class="product-visual">
+              @if (license.productImageUrl) {
+                <img
+                  [src]="license.productImageUrl"
+                  [alt]="license.productName"
+                />
+              } @else {
+                <div class="product-placeholder">
+                  <i class="bi bi-robot"></i>
+                </div>
+              }
+
+              <span
+                class="status-badge"
+                [class.available]="
+                  license.status === 'Available'
+                "
+                [class.active]="
+                  license.status === 'Active'
+                "
+                [class.expired]="
+                  license.status === 'Expired'
+                "
+                [class.revoked]="
+                  license.status === 'Revoked'
+                "
               >
-
-                @switch (license.status) {
-
-                  @case ('Available') {
-                    Disponible
-                  }
-
-                  @case ('Active') {
-                    Activa
-                  }
-
-                  @case ('Expired') {
-                    Vencida
-                  }
-
-                  @case ('Revoked') {
-                    Revocada
-                  }
-
-                  @default {
-                    {{ license.status }}
-                  }
-
-                }
-
-              </span>
-
-            </div>
-
-          </header>
-
-          <div class="license-content">
-
-            <span class="product-label">
-              Producto
-            </span>
-
-            <h2>
-              {{ license.productName }}
-            </h2>
-
-            <div class="license-code">
-
-              <span>
-                Código de licencia
-              </span>
-
-              <strong>
-                {{ license.licenseCode }}
-              </strong>
-
-            </div>
-
-            <dl>
-
-              <div>
-
-                <dt>
-                  Destinatario
-                </dt>
-
-                <dd>
-                  {{
-                    license.recipientName ||
-                    'Sin destinatario'
-                  }}
-                </dd>
-
-              </div>
-
-              <div>
-
-                <dt>
-                  Tipo
-                </dt>
-
-                <dd>
-                  {{
-                    license.recipientType ===
-                    'Institution'
-                      ? 'Institución'
-                      : 'Cliente'
-                  }}
-                </dd>
-
-              </div>
-
-              <div>
-
-                <dt>
-                  Serie
-                </dt>
-
-                <dd>
-                  {{
-                    license.deviceSerialNumber ||
-                    'Pendiente'
-                  }}
-                </dd>
-
-              </div>
-
-              <div>
-
-                <dt>
-                  Activación
-                </dt>
-
-                <dd>
-                  {{
-                    license.activationDate
-                      ? (
-                          license.activationDate |
-                          date:'dd/MM/yyyy'
-                        )
-                      : 'Sin activar'
-                  }}
-                </dd>
-
-              </div>
-
-              <div>
-
-                <dt>
-                  Garantía
-                </dt>
-
-                <dd>
-                  {{
-                    license.warrantyEndDate
-                      ? (
-                          license.warrantyEndDate |
-                          date:'dd/MM/yyyy'
-                        )
-                      : 'Sin fecha'
-                  }}
-                </dd>
-
-              </div>
-
-            </dl>
-
-            @if (
-              license.assignedToName ||
-              license.assignedToEmail
-            ) {
-
-              <div class="assignment-info">
-
-                <strong>
-
-                  <i class="bi bi-person-check"></i>
-
-                  Asignación
-
-                </strong>
-
-                @if (license.assignedToName) {
-
-                  <span>
-                    {{ license.assignedToName }}
-                  </span>
-
-                }
-
-                @if (license.assignedToEmail) {
-
-                  <small>
-
-                    <i class="bi bi-envelope"></i>
-
-                    {{ license.assignedToEmail }}
-
-                  </small>
-
-                }
-
-              </div>
-
-            }
-
-          </div>
-
-          <footer class="card-actions">
-
-            @if (
-              license.status !== 'Expired' &&
-              license.status !== 'Revoked'
-            ) {
-
-              <button
-                type="button"
-                class="secondary"
-                (click)="openAssignment(license)"
-              >
-
-                <i class="bi bi-person-plus"></i>
+                <i
+                  class="bi"
+                  [class.bi-check-circle-fill]="
+                    license.status === 'Active'
+                  "
+                  [class.bi-unlock-fill]="
+                    license.status === 'Available'
+                  "
+                  [class.bi-clock-history]="
+                    license.status === 'Expired'
+                  "
+                  [class.bi-slash-circle-fill]="
+                    license.status === 'Revoked'
+                  "
+                ></i>
 
                 {{
-                  license.status === 'Active'
-                    ? 'Editar asignación'
-                    : 'Asignar'
+                  statusLabel(
+                    license.status
+                  )
                 }}
+              </span>
+            </div>
 
-              </button>
+            <div class="license-content">
+              <div class="product-heading">
+                <span>
+                  Producto VOLTS
+                </span>
 
-            }
+                <h2>
+                  {{ license.productName }}
+                </h2>
 
-            @if (
-              license.status === 'Available'
-            ) {
+                @if (license.commercialPlanName) {
+                  <small>
+                    {{ license.commercialPlanName }}
 
-              <button
-                type="button"
-                (click)="changeStatus(
-                  license,
-                  'Active'
-                )"
-                [disabled]="
-                  actionId() === license.id
-                "
-              >
+                    @if (
+                      license.commercialPackageName
+                    ) {
+                      ·
+                      {{
+                        license.commercialPackageName
+                      }}
+                    }
+                  </small>
+                }
+              </div>
 
-                <i class="bi bi-check-circle"></i>
+              <div class="license-code">
+                <span>
+                  Código de licencia
+                </span>
 
-                Activar
+                <strong>
+                  {{ license.licenseCode }}
+                </strong>
+              </div>
 
-              </button>
+              <dl class="license-data">
+                <div>
+                  <dt>
+                    <i class="bi bi-person"></i>
+                    Destinatario
+                  </dt>
 
-            }
+                  <dd>
+                    {{
+                      license.recipientName ||
+                      'Sin destinatario'
+                    }}
+                  </dd>
+                </div>
 
-            @if (
-              license.status === 'Active'
-            ) {
+                <div>
+                  <dt>
+                    <i class="bi bi-building"></i>
+                    Tipo
+                  </dt>
 
-              <button
-                type="button"
-                class="secondary"
-                (click)="changeStatus(
-                  license,
-                  'Available'
-                )"
-                [disabled]="
-                  actionId() === license.id
-                "
-              >
+                  <dd>
+                    {{
+                      recipientTypeLabel(
+                        license.recipientType
+                      )
+                    }}
+                  </dd>
+                </div>
 
-                <i class="bi bi-arrow-counterclockwise"></i>
+                <div>
+                  <dt>
+                    <i class="bi bi-upc-scan"></i>
+                    Serie
+                  </dt>
 
-                Disponible
+                  <dd class="mono-value">
+                    {{
+                      license.deviceSerialNumber ||
+                      'Pendiente'
+                    }}
+                  </dd>
+                </div>
 
-              </button>
+                <div>
+                  <dt>
+                    <i class="bi bi-calendar-check"></i>
+                    Activación
+                  </dt>
 
-            }
+                  <dd>
+                    {{
+                      license.activationDate
+                        ? (
+                            license.activationDate |
+                            date:'dd/MM/yyyy'
+                          )
+                        : 'Sin activar'
+                    }}
+                  </dd>
+                </div>
 
-            @if (
-              license.status !== 'Revoked'
-            ) {
+                <div>
+                  <dt>
+                    <i class="bi bi-shield-check"></i>
+                    Garantía
+                  </dt>
 
-              <button
-                type="button"
-                class="danger"
-                (click)="changeStatus(
-                  license,
-                  'Revoked'
-                )"
-                [disabled]="
-                  actionId() === license.id
-                "
-              >
+                  <dd>
+                    {{
+                      license.warrantyEndDate
+                        ? (
+                            license.warrantyEndDate |
+                            date:'dd/MM/yyyy'
+                          )
+                        : 'Sin fecha'
+                    }}
+                  </dd>
+                </div>
 
-                <i class="bi bi-x-circle"></i>
+                <div>
+                  <dt>
+                    <i class="bi bi-receipt"></i>
+                    Venta
+                  </dt>
 
-                Revocar
+                  <dd class="mono-value">
+                    {{
+                      license.saleFolio ||
+                      'Sin folio'
+                    }}
+                  </dd>
+                </div>
+              </dl>
 
-              </button>
+              @if (
+                license.assignedToName ||
+                license.assignedToEmail
+              ) {
+                <div class="assignment-info">
+                  <div class="assignment-icon">
+                    <i class="bi bi-person-check-fill"></i>
+                  </div>
 
-            }
+                  <div>
+                    <span>
+                      Asignada a
+                    </span>
 
-          </footer>
+                    <strong>
+                      {{
+                        license.assignedToName ||
+                        'Responsable'
+                      }}
+                    </strong>
 
-        </article>
+                    @if (
+                      license.assignedToEmail
+                    ) {
+                      <small>
+                        {{
+                          license.assignedToEmail
+                        }}
+                      </small>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="assignment-info pending">
+                  <div class="assignment-icon">
+                    <i class="bi bi-person-dash"></i>
+                  </div>
 
-      }
+                  <div>
+                    <span>
+                      Asignación
+                    </span>
 
-    </div>
+                    <strong>
+                      Sin responsable asignado
+                    </strong>
 
-  }
+                    <small>
+                      Lista para asignarse.
+                    </small>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <footer class="card-actions">
+              @if (
+                license.status !== 'Expired' &&
+                license.status !== 'Revoked'
+              ) {
+                <button
+                  type="button"
+                  class="action-button secondary"
+                  (click)="openAssignment(license)"
+                  [disabled]="
+                    actionId() === license.id
+                  "
+                >
+                  <i class="bi bi-person-plus"></i>
+
+                  {{
+                    license.assignedToName
+                      ? 'Editar asignación'
+                      : 'Asignar'
+                  }}
+                </button>
+              }
+
+              @if (
+                license.status === 'Available'
+              ) {
+                <button
+                  type="button"
+                  class="action-button primary"
+                  (click)="changeStatus(
+                    license,
+                    'Active'
+                  )"
+                  [disabled]="
+                    actionId() === license.id
+                  "
+                >
+                  <i class="bi bi-check-circle"></i>
+
+                  Activar
+                </button>
+              }
+
+              @if (
+                license.status === 'Active'
+              ) {
+                <button
+                  type="button"
+                  class="action-button secondary"
+                  (click)="changeStatus(
+                    license,
+                    'Available'
+                  )"
+                  [disabled]="
+                    actionId() === license.id
+                  "
+                >
+                  <i class="bi bi-arrow-counterclockwise"></i>
+
+                  Disponible
+                </button>
+              }
+
+              @if (
+                license.status !== 'Revoked'
+              ) {
+                <button
+                  type="button"
+                  class="action-button danger"
+                  (click)="changeStatus(
+                    license,
+                    'Revoked'
+                  )"
+                  [disabled]="
+                    actionId() === license.id
+                  "
+                >
+                  <i class="bi bi-x-circle"></i>
+
+                  Revocar
+                </button>
+              }
+            </footer>
+          </article>
+        }
+      </div>
+    }
+  </section>
 
   @if (selectedLicense(); as license) {
-
     <div
       class="modal-backdrop"
       role="presentation"
       (click)="closeAssignment()"
     >
-
       <section
         class="assignment-modal"
         role="dialog"
@@ -418,32 +608,19 @@
         aria-labelledby="assignment-title"
         (click)="$event.stopPropagation()"
       >
-
-        <header>
-
+        <header class="modal-header">
           <div>
-
-            <span>
+            <span class="page-label">
               Asignación de licencia
             </span>
 
             <h2 id="assignment-title">
-              {{
-                license.assignedToName ||
-                license.recipientName
-              }}
+              {{ license.productName }}
             </h2>
 
             <p>
-
-              {{ license.productName }}
-
-              &middot;
-
               {{ license.licenseCode }}
-
             </p>
-
           </div>
 
           <button
@@ -452,20 +629,42 @@
             aria-label="Cerrar"
             (click)="closeAssignment()"
           >
-
             <i class="bi bi-x-lg"></i>
-
           </button>
-
         </header>
+
+        <div class="modal-license-preview">
+          <div class="preview-icon">
+            <i class="bi bi-key-fill"></i>
+          </div>
+
+          <div>
+            <span>
+              Destinatario original
+            </span>
+
+            <strong>
+              {{
+                license.recipientName ||
+                'Sin destinatario'
+              }}
+            </strong>
+
+            <small>
+              {{
+                recipientTypeLabel(
+                  license.recipientType
+                )
+              }}
+            </small>
+          </div>
+        </div>
 
         <form
           [formGroup]="assignmentForm"
           (ngSubmit)="saveAssignment()"
         >
-
-          <label>
-
+          <label class="form-field">
             <span>
               Persona, grupo o responsable *
             </span>
@@ -483,17 +682,13 @@
               assignmentForm.controls
                 .assignedToName.invalid
             ) {
-
-              <small>
+              <small class="field-error">
                 El nombre es obligatorio.
               </small>
-
             }
-
           </label>
 
-          <label>
-
+          <label class="form-field">
             <span>
               Correo electrónico
             </span>
@@ -511,53 +706,50 @@
               assignmentForm.controls
                 .assignedToEmail.invalid
             ) {
-
-              <small>
+              <small class="field-error">
                 Ingresa un correo válido.
               </small>
-
             }
-
           </label>
 
-          <div class="license-summary">
+          <div class="modal-summary-grid">
+            <div class="license-summary">
+              <span>
+                Serie
+              </span>
 
-            <span>
-              Serie automática
-            </span>
+              <strong>
+                {{
+                  license.deviceSerialNumber ||
+                  'Pendiente'
+                }}
+              </strong>
+            </div>
 
-            <strong>
-              {{
-                license.deviceSerialNumber ||
-                'Pendiente'
-              }}
-            </strong>
+            <div class="license-summary">
+              <span>
+                Garantía hasta
+              </span>
 
+              <strong>
+                {{
+                  license.warrantyEndDate
+                    ? (
+                        license.warrantyEndDate |
+                        date:'dd/MM/yyyy'
+                      )
+                    : 'Sin fecha'
+                }}
+              </strong>
+            </div>
           </div>
 
-          <div class="license-summary">
-
-            <span>
-              Garantía vigente hasta
-            </span>
-
-            <strong>
-
-              {{
-                license.warrantyEndDate
-                  ? (
-                      license.warrantyEndDate |
-                      date:'dd/MM/yyyy'
-                    )
-                  : 'Sin fecha'
-              }}
-
-            </strong>
-
-          </div>
+          <p class="modal-help">
+            Al guardar la asignación, la licencia
+            quedará activa para el responsable indicado.
+          </p>
 
           <div class="modal-actions">
-
             <button
               type="button"
               class="secondary"
@@ -568,28 +760,25 @@
 
             <button
               type="submit"
+              class="primary"
               [disabled]="
                 assignmentForm.invalid ||
                 actionId() === license.id
               "
             >
-
-              {{
+              @if (
                 actionId() === license.id
-                  ? 'Guardando...'
-                  : 'Asignar y activar'
-              }}
-
+              ) {
+                <span class="button-loader"></span>
+                Guardando...
+              } @else {
+                <i class="bi bi-person-check"></i>
+                Guardar asignación
+              }
             </button>
-
           </div>
-
         </form>
-
       </section>
-
     </div>
-
   }
-
 </section>
