@@ -1,3 +1,4 @@
+
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -11,7 +12,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class ClientComments implements OnInit {
  private fb=inject(FormBuilder); private commentsApi=inject(CommentService); private salesApi=inject(SaleService); private auth=inject(AuthService);
  readonly comments=signal<Comment[]>([]); readonly sales=signal<Sale[]>([]); readonly loading=signal(true); readonly saving=signal(false); readonly message=signal(''); readonly error=signal('');
- readonly form=this.fb.nonNullable.group({saleId:[''],productId:[''],rating:[5,[Validators.required,Validators.min(1),Validators.max(5)]],message:['',[Validators.required,Validators.minLength(10),Validators.maxLength(1500)]]});
+ readonly form=this.fb.nonNullable.group({saleId:['',Validators.required],productId:['',Validators.required],rating:[5,[Validators.required,Validators.min(1),Validators.max(5)]],message:['',[Validators.required,Validators.minLength(10),Validators.maxLength(1500)]]});
  ngOnInit(){this.load();}
  load(){this.loading.set(true); this.commentsApi.getMine().subscribe({next:r=>{this.comments.set(r.data??[]);this.loading.set(false)},error:e=>{this.error.set(e?.error?.message??'No fue posible cargar tus comentarios.');this.loading.set(false)}}); this.salesApi.getMine().subscribe({next:r=>this.sales.set(r.data??[])});}
  selectedSale(){return this.sales().find(x=>x.id===this.form.controls.saleId.value)??null;}
@@ -20,5 +21,3 @@ export class ClientComments implements OnInit {
  remove(id:string){if(!confirm('¿Eliminar este comentario?'))return;this.commentsApi.delete(id).subscribe({next:()=>this.load(),error:e=>this.error.set(e?.error?.message??'No fue posible eliminarlo.')});}
   modeLabel(v?:string|null){return v==='DiyKit'?'Kit DIY':v==='WorkshopAssist'?'Armado contigo en UTL':'Armado y listo';}
 }
-
-

@@ -485,6 +485,3 @@ export class Comments
     );
   }
 }
-
-
-

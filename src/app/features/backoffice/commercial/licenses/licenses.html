@@ -11,13 +11,13 @@
 
   @if (successMessage()) {
     <div class="message success">
-      ✓ {{ successMessage() }}
+      <i class="bi bi-check-circle" aria-hidden="true"></i> {{ successMessage() }}
     </div>
   }
 
   @if (errorMessage()) {
     <div class="message error">
-      ⚠ {{ errorMessage() }}
+      <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ errorMessage() }}
     </div>
   }
 
@@ -87,7 +87,7 @@
                 type="button"
                 (click)="openAssignment(license)"
               >
-                🔗 Asignar
+                <i class="bi bi-link-45deg" aria-hidden="true"></i> Asignar
               </button>
             }
 
@@ -135,7 +135,7 @@
             aria-label="Cerrar"
             (click)="closeAssignment()"
           >
-            ×
+            &times;
           </button>
         </header>
 
@@ -186,5 +186,3 @@
     </div>
   }
 </section>
-
-

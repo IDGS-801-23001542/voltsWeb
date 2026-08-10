@@ -762,3 +762,57 @@ td {
     border-color: #2d263d;
   }
 }
+
+
+
+
+/* Iconos vectoriales estables: evita emojis dependientes del sistema. */
+.summary-card i,
+.search-control i,
+.feature-badges i,
+.actions-cell i,
+.message i,
+.state-icon i,
+.close-button i,
+.confirmation-card > span i {
+  font-size: inherit;
+  line-height: 1;
+}
+
+.feature-badges span,
+.message {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+
+
+/* QA FIX: iconos/símbolos visibles en modo oscuro */
+:host-context(body.night-mode) .summary-card > span,
+:host-context(body.night-mode) .state-icon,
+:host-context(body.night-mode) .movement-icon,
+:host-context(body.night-mode) .unit-symbol,
+:host-context(body.night-mode) i.bi {
+  color: #ddd6fe !important;
+  opacity: 1 !important;
+}
+
+
+/* Contraste de iconos/indicadores en modo oscuro */
+:host-context(body.night-mode) .material-icon,
+:host-context(body.night-mode) .movement-icon,
+:host-context(body.night-mode) .entry-movement {
+  color: #bbf7d0 !important;
+  border-color: #245c39 !important;
+  background: #102319 !important;
+}
+:host-context(body.night-mode) .exit-movement {
+  color: #fecaca !important;
+  border-color: #7f1d1d !important;
+  background: #2b1115 !important;
+}
+:host-context(body.night-mode) .actions-cell i,
+:host-context(body.night-mode) button i {
+  color: currentColor;
+}

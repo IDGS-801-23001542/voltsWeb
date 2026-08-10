@@ -106,6 +106,3 @@ export interface RecipeRequest {
 
   details: RecipeDetailRequest[];
 }
-
-
-

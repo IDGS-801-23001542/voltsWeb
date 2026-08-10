@@ -25,6 +25,7 @@ import {
   LoginRequest,
   LoginResponse,
   RegisterClientRequest,
+  RegisterInstitutionRequest,
   TwoFactorVerifyRequest,
   ChangePasswordRequest,
   UserRole
@@ -124,6 +125,27 @@ export class AuthService {
             this.saveSession(
               response.data
             );
+          }
+        })
+      );
+  }
+
+  registerInstitution(
+    request: RegisterInstitutionRequest
+  ): Observable<ApiResponse<LoginResponse>> {
+    return this.http
+      .post<ApiResponse<LoginResponse>>(
+        `${environment.apiUrl}/Auth/register-institution`,
+        request
+      )
+      .pipe(
+        tap(response => {
+          if (
+            response.success &&
+            response.data.token &&
+            !response.data.requiresTwoFactor
+          ) {
+            this.saveSession(response.data);
           }
         })
       );
@@ -301,5 +323,3 @@ export class AuthService {
     }
   }
 }
-
-

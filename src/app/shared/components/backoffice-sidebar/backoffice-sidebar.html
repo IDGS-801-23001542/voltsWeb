@@ -25,7 +25,7 @@
       aria-label="Cerrar menú"
       (click)="close()"
     >
-      ✕
+      <i class="bi bi-x-lg" aria-hidden="true"></i>
     </button>
   </div>
 
@@ -117,11 +117,8 @@
                 class="menu-link"
                 (click)="closeAfterNavigation()"
               >
-                <span
-                  class="menu-icon"
-                  aria-hidden="true"
-                >
-                  {{ item.icon }}
+                <span class="menu-icon" aria-hidden="true">
+                  <i [class]="item.icon"></i>
                 </span>
 
                 <span class="menu-label">
@@ -141,7 +138,7 @@
       class="site-link"
       (click)="closeAfterNavigation()"
     >
-      <span>🌐</span>
+      <i class="bi bi-globe-americas" aria-hidden="true"></i>
       Ir al sitio público
     </a>
 
@@ -150,11 +147,8 @@
       class="logout-button"
       (click)="auth.logout()"
     >
-      <span>🚪</span>
+      <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
       Cerrar sesión
     </button>
   </div>
 </aside>
-
-
-

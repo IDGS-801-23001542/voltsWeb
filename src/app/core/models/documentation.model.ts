@@ -1,3 +1,4 @@
+
 export type DocumentationType =
   | 'Manual'
   | 'QuickGuide'
@@ -31,6 +32,7 @@ export interface Documentation {
 
   fileUrl: string;
   version: string;
+  productIds: string[];
 
   isPublic: boolean;
   isActive: boolean;
@@ -50,6 +52,7 @@ export interface DocumentationCreateRequest {
   description: string;
   fileUrl: string;
   version: string;
+  productIds: string[];
   isPublic: boolean;
 }
 

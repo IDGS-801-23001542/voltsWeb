@@ -51,12 +51,22 @@ export const routes: Routes = [
       },
       {
         path: 'cotizacion',
-        title: 'VOLTS | Cotización',
+        title: 'VOLTS | Cotizacion',
         loadComponent: () =>
           import(
             './features/public/quote/quote'
           ).then(
             module => module.Quote
+          )
+      },
+      {
+        path: 'donaciones',
+        title: 'VOLTS | Donaciones',
+        loadComponent: () =>
+          import(
+            './features/public/donations/donation-form'
+          ).then(
+            module => module.DonationForm
           )
       },
       {
@@ -93,6 +103,16 @@ export const routes: Routes = [
         './features/auth/login/login'
       ).then(
         module => module.Login
+      )
+  },
+  {
+    path: 'registro',
+    title: 'VOLTS | Crear cuenta',
+    loadComponent: () =>
+      import(
+        './features/auth/register/register'
+      ).then(
+        module => module.Register
       )
   },
   {
@@ -361,6 +381,16 @@ export const routes: Routes = [
             module => module.WasteManagement
           )
       },
+      {
+        path: 'donaciones',
+        title: 'VOLTS | Donaciones',
+        loadComponent: () =>
+          import(
+            './features/backoffice/production-inventory/donations/donations'
+          ).then(
+            module => module.Donations
+          )
+      },
 
       // =====================================================
       // ATENCIÓN Y CONTENIDO
@@ -428,6 +458,9 @@ export const routes: Routes = [
     authGuard,
     clientGuard
   ],
+  loadComponent: () =>
+    import('./layouts/client-layout/client-layout')
+      .then(module => module.ClientLayout),
   children: [
     {
       path: '',
@@ -542,7 +575,6 @@ export const routes: Routes = [
       { path: 'grupos', loadComponent: () => import('./features/institution/groups/groups').then(m => m.InstitutionGroups) }
       ,{ path: 'recursos', loadComponent: () => import('./features/institution/resources/resources').then(m => m.InstitutionResources) },
       { path: 'soporte', loadComponent: () => import('./features/shared/portal-support/portal-support').then(m => m.PortalSupport) },
-      { path: 'notificaciones', loadComponent: () => import('./features/shared/portal-notifications/portal-notifications').then(m => m.PortalNotifications) }
     ]
   },
 
@@ -568,5 +600,6 @@ export const routes: Routes = [
     redirectTo: ''
   }
 ];
+
 
 

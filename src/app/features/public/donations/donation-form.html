@@ -1,0 +1,852 @@
+<div
+  class="donation-page"
+  id="donaciones"
+>
+
+  <!-- =====================================================
+       HERO
+       ===================================================== -->
+
+  <section class="donation-hero">
+
+    <div
+      class="hero-decoration decoration-one"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="hero-decoration decoration-two"
+      aria-hidden="true"
+    ></div>
+
+    <div class="hero-container">
+
+      <div class="donation-logo-container">
+
+        <div class="donation-logo-glow"></div>
+
+        <img
+          src="assets/images/logo_volts.png"
+          alt="VOLTS"
+        />
+
+      </div>
+
+      <span class="hero-label">
+        Economía circular y tecnología responsable
+      </span>
+
+      <h1>
+        <i
+          class="bi bi-recycle"
+          aria-hidden="true"
+        ></i>
+
+        Dona y transforma
+      </h1>
+
+      <p>
+        Dale una segunda vida a los componentes que ya no utilizas.
+        Con VOLTS, una pieza que parecía un residuo puede volver
+        al ciclo productivo y convertirse en parte de una nueva
+        experiencia tecnológica.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       IMPACTO
+       ===================================================== -->
+
+  <section class="donation-section impact-section">
+
+    <div class="container">
+
+      <div class="section-heading">
+
+        <span class="section-kicker">
+          Tu aportación sí cuenta
+        </span>
+
+        <h2>
+          Menos residuos, más posibilidades
+        </h2>
+
+        <p class="section-description">
+          La donación de materiales forma parte del compromiso
+          sustentable de VOLTS: reutilizar componentes funcionales,
+          reducir desperdicios y aprovechar mejor los recursos.
+        </p>
+
+      </div>
+
+
+      <div class="impact-grid">
+
+        <article class="impact-card impact-green">
+
+          <span class="impact-icon">
+            <i
+              class="bi bi-leaf"
+              aria-hidden="true"
+            ></i>
+          </span>
+
+          <div>
+            <h3>Menos residuos</h3>
+
+            <p>
+              Evitamos que componentes todavía útiles terminen
+              prematuramente como desecho.
+            </p>
+          </div>
+
+        </article>
+
+
+        <article class="impact-card impact-purple">
+
+          <span class="impact-icon">
+            <i
+              class="bi bi-arrow-repeat"
+              aria-hidden="true"
+            ></i>
+          </span>
+
+          <div>
+            <h3>Reutilización</h3>
+
+            <p>
+              Los materiales recibidos pueden regresar al ciclo
+              productivo cuando cumplen las condiciones necesarias.
+            </p>
+          </div>
+
+        </article>
+
+
+        <article class="impact-card impact-cyan">
+
+          <span class="impact-icon">
+            <i
+              class="bi bi-box-seam"
+              aria-hidden="true"
+            ></i>
+          </span>
+
+          <div>
+            <h3>Inventario verificable</h3>
+
+            <p>
+              Una donación únicamente aumenta las existencias
+              después de ser recibida físicamente por VOLTS.
+            </p>
+          </div>
+
+        </article>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       FORMULARIO
+       ===================================================== -->
+
+  <section class="donation-section form-section">
+
+    <div class="container">
+
+      <div class="section-heading">
+
+        <span class="section-kicker purple-kicker">
+          Registra tu aportación
+        </span>
+
+        <h2>
+          ¿Qué materiales quieres donar?
+        </h2>
+
+        <p class="section-description">
+          Indica quién realiza la donación y selecciona los
+          componentes que deseas entregar. El inventario no se
+          modificará hasta que VOLTS confirme su recepción.
+        </p>
+
+      </div>
+
+
+      @if (successMessage()) {
+
+        <div
+          class="donation-message success"
+          role="status"
+        >
+
+          <span class="message-icon">
+            <i
+              class="bi bi-check-lg"
+              aria-hidden="true"
+            ></i>
+          </span>
+
+          <div>
+
+            <strong>
+              Donación registrada
+            </strong>
+
+            <p>
+              {{ successMessage() }}
+            </p>
+
+            @if (createdFolio()) {
+
+              <small>
+                Folio:
+                <b>
+                  {{ createdFolio() }}
+                </b>
+              </small>
+
+            }
+
+          </div>
+
+        </div>
+
+      }
+
+
+      @if (errorMessage()) {
+
+        <div
+          class="donation-message error"
+          role="alert"
+        >
+
+          <span class="message-icon">
+            <i
+              class="bi bi-exclamation-triangle"
+              aria-hidden="true"
+            ></i>
+          </span>
+
+          <div>
+
+            <strong>
+              No pudimos completar la solicitud
+            </strong>
+
+            <p>
+              {{ errorMessage() }}
+            </p>
+
+          </div>
+
+        </div>
+
+      }
+
+
+      <form
+        class="donation-form"
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
+
+        <div class="donation-layout">
+
+
+          <!-- =================================================
+               PRINCIPAL
+               ================================================= -->
+
+          <main class="donation-main">
+
+
+            <!-- ===============================================
+                 DATOS DEL DONANTE
+                 =============================================== -->
+
+            <section class="form-panel">
+
+              <div class="block-heading">
+
+                <div class="step-heading">
+
+                  <span class="step-number">
+                    1
+                  </span>
+
+                  <div>
+
+                    <span class="step-label">
+                      Paso 1
+                    </span>
+
+                    <h3>
+                      Datos del donante
+                    </h3>
+
+                    <p>
+                      Información necesaria para identificar
+                      y dar seguimiento a la aportación.
+                    </p>
+
+                  </div>
+
+                </div>
+
+
+                @if (isAuthenticated()) {
+
+                  <b class="account-badge">
+
+                    <i
+                      class="bi bi-person-check"
+                      aria-hidden="true"
+                    ></i>
+
+                    Cuenta VOLTS
+
+                  </b>
+
+                } @else {
+
+                  <b class="account-badge guest">
+
+                    <i
+                      class="bi bi-person"
+                      aria-hidden="true"
+                    ></i>
+
+                    Invitado
+
+                  </b>
+
+                }
+
+              </div>
+
+
+              <div class="identity-grid">
+
+                <label class="field-group">
+
+                  <span>
+                    Nombre completo
+                  </span>
+
+                  <input
+                    type="text"
+                    formControlName="donorName"
+                    placeholder="Tu nombre completo"
+                    autocomplete="name"
+                  />
+
+                  @if (
+                    form.controls.donorName.touched &&
+                    form.controls.donorName.invalid
+                  ) {
+
+                    <small class="field-error">
+                      Ingresa un nombre válido de al menos
+                      3 caracteres.
+                    </small>
+
+                  }
+
+                </label>
+
+
+                <label class="field-group">
+
+                  <span>
+                    Correo electrónico
+                  </span>
+
+                  <input
+                    type="email"
+                    formControlName="donorEmail"
+                    placeholder="correo@ejemplo.com"
+                    autocomplete="email"
+                  />
+
+                  @if (
+                    form.controls.donorEmail.touched &&
+                    form.controls.donorEmail.invalid
+                  ) {
+
+                    <small class="field-error">
+                      Ingresa un correo electrónico válido.
+                    </small>
+
+                  }
+
+                </label>
+
+
+                <label class="field-group">
+
+                  <span>
+                    Teléfono
+                    <small>(opcional)</small>
+                  </span>
+
+                  <input
+                    type="tel"
+                    formControlName="donorPhone"
+                    placeholder="477..."
+                    autocomplete="tel"
+                  />
+
+                </label>
+
+              </div>
+
+            </section>
+
+
+            <!-- ===============================================
+                 MATERIALES
+                 =============================================== -->
+
+            <section class="form-panel">
+
+              <div class="block-heading materials-heading">
+
+                <div class="step-heading">
+
+                  <span class="step-number">
+                    2
+                  </span>
+
+                  <div>
+
+                    <span class="step-label">
+                      Paso 2
+                    </span>
+
+                    <h3>
+                      Materiales que deseas donar
+                    </h3>
+
+                    <p>
+                      Selecciona cada materia prima e indica
+                      la cantidad que entregarás.
+                    </p>
+
+                  </div>
+
+                </div>
+
+
+                <button
+                  type="button"
+                  class="add-material-button"
+                  [disabled]="
+                    !canAddMore() ||
+                    loadingCatalog()
+                  "
+                  (click)="addItem()"
+                >
+
+                  <i
+                    class="bi bi-plus-lg"
+                    aria-hidden="true"
+                  ></i>
+
+                  Agregar material
+
+                </button>
+
+              </div>
+
+
+              @if (loadingCatalog()) {
+
+                <div class="catalog-state">
+
+                  <span class="loading-spinner"></span>
+
+                  <p>
+                    Cargando materias primas disponibles...
+                  </p>
+
+                </div>
+
+              } @else if (
+                materials().length === 0
+              ) {
+
+                <div class="catalog-state empty">
+
+                  <i
+                    class="bi bi-inbox"
+                    aria-hidden="true"
+                  ></i>
+
+                  <strong>
+                    No hay materiales disponibles
+                  </strong>
+
+                  <p>
+                    Por el momento no existen materias primas
+                    activas que puedan seleccionarse.
+                  </p>
+
+                </div>
+
+              } @else {
+
+                <div
+                  class="material-list"
+                  formArrayName="items"
+                >
+
+                  @for (
+                    group of items.controls;
+                    track group;
+                    let index = $index
+                  ) {
+
+                    <article
+                      class="material-line"
+                      [formGroupName]="index"
+                    >
+
+                      <div class="material-index">
+                        {{ index + 1 }}
+                      </div>
+
+
+                      <label
+                        class="field-group material-field"
+                      >
+
+                        <span>
+                          Materia prima
+                        </span>
+
+                        <select
+                          formControlName="rawMaterialId"
+                        >
+
+                          @for (
+                            material of materials();
+                            track material.id
+                          ) {
+
+                            <option
+                              [value]="material.id"
+                            >
+                              {{ material.name }}
+                              ·
+                              {{ material.unitSymbol }}
+                            </option>
+
+                          }
+
+                        </select>
+
+                      </label>
+
+
+                      <label
+                        class="field-group quantity-field"
+                      >
+
+                        <span>
+                          Cantidad
+                        </span>
+
+                        <div class="quantity-input">
+
+                          <input
+                            type="number"
+                            formControlName="quantity"
+                            [step]="quantityStep(index)"
+                            [placeholder]="quantityPlaceholder(index)"
+                            min="0.0001"
+                          />
+
+                          <strong>
+                            {{
+                              materialFor(index)?.unitSymbol ||
+                              'unidad'
+                            }}
+                          </strong>
+
+                        </div>
+
+
+                        @if (
+                          materialFor(index);
+                          as material
+                        ) {
+
+                          <small class="quantity-help">
+
+                            @if (
+                              material.unitAllowsDecimals
+                            ) {
+
+                              Permite hasta
+                              {{
+                                material.unitDecimalPlaces
+                              }}
+                              decimales
+
+                            } @else {
+
+                              Solo permite cantidades enteras
+
+                            }
+
+                          </small>
+
+                        }
+
+                      </label>
+
+
+                      <button
+                        type="button"
+                        class="remove-button"
+                        [disabled]="items.length === 1"
+                        (click)="removeItem(index)"
+                        aria-label="Quitar material"
+                        title="Quitar material"
+                      >
+
+                        <i
+                          class="bi bi-trash3"
+                          aria-hidden="true"
+                        ></i>
+
+                      </button>
+
+                    </article>
+
+                  }
+
+                </div>
+
+              }
+
+            </section>
+
+          </main>
+
+
+          <!-- =================================================
+               LATERAL
+               ================================================= -->
+
+          <aside class="donation-sidebar">
+
+
+            <section class="form-panel notes-panel">
+
+              <div class="sidebar-heading">
+
+                <span class="sidebar-icon">
+
+                  <i
+                    class="bi bi-chat-left-text"
+                    aria-hidden="true"
+                  ></i>
+
+                </span>
+
+                <div>
+
+                  <span>
+                    Información adicional
+                  </span>
+
+                  <h3>
+                    Notas de la donación
+                  </h3>
+
+                </div>
+
+              </div>
+
+
+              <label class="field-group">
+
+                <span>
+                  Observaciones
+                  <small>(opcional)</small>
+                </span>
+
+                <textarea
+                  formControlName="notes"
+                  rows="6"
+                  placeholder="Ej. Los servos están usados, pero funcionan correctamente..."
+                ></textarea>
+
+                <small class="character-help">
+                  Puedes explicar el estado físico,
+                  funcionamiento o alguna condición especial.
+                </small>
+
+              </label>
+
+            </section>
+
+
+            <section class="form-panel confirmation-panel">
+
+              <div class="confirmation-icon">
+
+                <i
+                  class="bi bi-shield-check"
+                  aria-hidden="true"
+                ></i>
+
+              </div>
+
+              <span class="confirmation-kicker">
+                Proceso seguro
+              </span>
+
+              <h3>
+                ¿Qué sucede después?
+              </h3>
+
+              <ol class="process-list">
+
+                <li>
+                  <span>1</span>
+                  Registramos tu solicitud.
+                </li>
+
+                <li>
+                  <span>2</span>
+                  VOLTS verifica la recepción física.
+                </li>
+
+                <li>
+                  <span>3</span>
+                  El material aceptado se agrega al inventario.
+                </li>
+
+                <li>
+                  <span>4</span>
+                  La entrada se registra con costo de adquisición $0.
+                </li>
+
+              </ol>
+
+
+              <div class="donation-info">
+
+                <i
+                  class="bi bi-info-circle"
+                  aria-hidden="true"
+                ></i>
+
+                <p>
+                  Enviar este formulario todavía no modifica
+                  existencias. El movimiento ocurre únicamente
+                  cuando VOLTS confirma que recibió los materiales.
+                </p>
+
+              </div>
+
+
+              <button
+                type="submit"
+                class="donate-button"
+                [disabled]="
+                  saving() ||
+                  loadingCatalog() ||
+                  materials().length === 0
+                "
+              >
+
+                @if (saving()) {
+
+                  <span class="button-spinner"></span>
+
+                  Registrando donación...
+
+                } @else {
+
+                  <i
+                    class="bi bi-recycle"
+                    aria-hidden="true"
+                  ></i>
+
+                  Registrar mi donación
+
+                }
+
+              </button>
+
+            </section>
+
+          </aside>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       CIERRE
+       ===================================================== -->
+
+  <section class="donation-section closing-section">
+
+    <div class="container">
+
+      <div class="closing-card">
+
+        <div class="closing-icon">
+
+          <i
+            class="bi bi-heart"
+            aria-hidden="true"
+          ></i>
+
+        </div>
+
+        <div>
+
+          <span>
+            Tecnología con impacto
+          </span>
+
+          <h2>
+            Una pieza puede tener más de una historia
+          </h2>
+
+          <p>
+            Reutilizar también es innovar. Cada componente recuperado
+            ayuda a reducir residuos y fortalece una forma más
+            responsable de construir tecnología.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</div>

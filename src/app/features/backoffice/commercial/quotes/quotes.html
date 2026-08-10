@@ -23,13 +23,13 @@
 
   @if (successMessage()) {
     <div class="message success">
-      ✓ {{ successMessage() }}
+      <i class="bi bi-check-circle" aria-hidden="true"></i> {{ successMessage() }}
     </div>
   }
 
   @if (errorMessage()) {
     <div class="message error">
-      ⚠ {{ errorMessage() }}
+      <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ errorMessage() }}
     </div>
   }
 
@@ -183,7 +183,7 @@
               ) {
                 <span>
                   {{ item.totalQuantity }}
-                  ×
+                  &times;
                   {{ item.productName }}
                 </span>
               }
@@ -207,7 +207,7 @@
                   type="button"
                   (click)="openPricing(quote)"
                 >
-                  💵 Importes
+                  <i class="bi bi-cash-stack" aria-hidden="true"></i> Importes
                 </button>
               }
 
@@ -227,7 +227,7 @@
                     )
                   "
                 >
-                  ✅ Aprobar
+                  <i class="bi bi-check-circle" aria-hidden="true"></i> Aprobar
                 </button>
 
                 <button
@@ -242,7 +242,7 @@
                     )
                   "
                 >
-                  ❌ Rechazar
+                  <i class="bi bi-x-circle" aria-hidden="true"></i> Rechazar
                 </button>
               }
 
@@ -258,7 +258,7 @@
                   "
                   (click)="convert(quote)"
                 >
-                  📦 Convertir a pedido
+                  <i class="bi bi-box-seam" aria-hidden="true"></i> Convertir a pedido
                 </button>
               }
             </div>
@@ -292,7 +292,7 @@
           (click)="closeForm()"
           aria-label="Cerrar"
         >
-          ✕
+          &times;
         </button>
       </header>
 
@@ -302,7 +302,7 @@
       >
         @if (formErrorMessage()) {
           <div class="message error">
-            ⚠
+            <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
             {{ formErrorMessage() }}
           </div>
         }
@@ -530,5 +530,3 @@
     </section>
   </div>
 }
-
-

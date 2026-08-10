@@ -1,3 +1,4 @@
+
 import {
   DatePipe
 } from '@angular/common';
@@ -75,6 +76,8 @@ export class Support
 
   readonly successMessage =
     signal('');
+
+  readonly responseDraft = signal('');
 
   readonly searchControl =
     new FormControl(
@@ -269,6 +272,7 @@ export class Support
 
     this.errorMessage.set('');
     this.successMessage.set('');
+    this.responseDraft.set(ticket.response ?? '');
 
     document.body.classList.add(
       'modal-open'
@@ -357,6 +361,32 @@ export class Support
       });
   }
 
+  saveResponse(): void {
+    const ticket = this.selectedTicket();
+    const response = this.responseDraft().trim();
+    if (!ticket || response.length < 3 || this.saving()) return;
+
+    this.saving.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    this.supportService.updateResponse(ticket.id, response).subscribe({
+      next: result => {
+        this.saving.set(false);
+        if (result.data) {
+          this.replaceTicket(result.data);
+          this.selectedTicket.set(result.data);
+          this.responseDraft.set(result.data.response ?? response);
+        }
+        this.successMessage.set(result.message ?? 'Respuesta guardada correctamente.');
+      },
+      error: error => {
+        this.saving.set(false);
+        this.errorMessage.set(this.resolveError(error, 'No fue posible guardar la respuesta.'));
+      }
+    });
+  }
+
   deleteTicket(): void {
     const ticket =
       this.selectedTicket();
@@ -371,7 +401,7 @@ export class Support
 
     const confirmed =
       window.confirm(
-        `¿Seguro que deseas eliminar el ticket "${ticket.subject}"?`
+        `Â¿Seguro que deseas eliminar el ticket "${ticket.subject}"?`
       );
 
     if (!confirmed) {
@@ -481,6 +511,3 @@ export class Support
     );
   }
 }
-
-
-

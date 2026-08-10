@@ -184,5 +184,3 @@ export class ClientOrders implements OnInit {
     });
   }
 }
-
-

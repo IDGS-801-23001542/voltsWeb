@@ -618,6 +618,3 @@ export class Customers implements OnInit {
           fallback;
   }
 }
-
-
-

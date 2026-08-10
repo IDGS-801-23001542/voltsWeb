@@ -12,13 +12,13 @@
 
   @if (successMessage()) {
     <div class="message success">
-      ✓ {{ successMessage() }}
+      <i class="bi bi-check-circle" aria-hidden="true"></i> {{ successMessage() }}
     </div>
   }
 
   @if (errorMessage()) {
     <div class="message error">
-      ⚠ {{ errorMessage() }}
+      <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ errorMessage() }}
     </div>
   }
 
@@ -90,7 +90,7 @@
           </div>
 
           <div class="payment-state" [class.paid]="order.paymentStatus === 'Paid'">
-            <strong>{{ order.paymentStatus === 'Paid' ? '✅ Pago registrado' : '⏳ Esperando pago del cliente' }}</strong>
+            <strong>{{ order.paymentStatus === 'Paid' ? 'Pago registrado' : 'Esperando pago del cliente' }}</strong>
             @if (order.paymentReference) { <small>{{ order.paymentReference }}</small> }
           </div>
 
@@ -112,7 +112,7 @@
                 [disabled]="actionId() === order.id || order.paymentStatus !== 'Paid'"
                 (click)="confirm(order)"
               >
-                {{ order.paymentStatus === 'Paid' ? '✅ Confirmar y reservar' : '🔒 Falta pago' }}
+                {{ order.paymentStatus === 'Paid' ? 'Confirmar y reservar' : 'Falta pago' }}
               </button>
             }
 
@@ -126,7 +126,7 @@
                 [disabled]="actionId() === order.id"
                 (click)="synchronize(order)"
               >
-                🔄 Sincronizar stock
+                <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Sincronizar stock
               </button>
             }
 
@@ -149,5 +149,3 @@
     </div>
   }
 </section>
-
-

@@ -231,3 +231,94 @@ body.night-mode .bottom-cta,
 body.night-mode .dark-cta {
   background: #050507 !important;
 }
+
+/* Cotización pública: los bloques de catálogo se agregaron después del
+   tema original, así que se cubren aquí para no inflar el CSS del componente. */
+body.night-mode app-quote :is(.quote-page,.volts-section,.plans-section,.quote-detail-section) {
+  color: #f8fafc;
+  background: #000;
+}
+
+body.night-mode app-quote :is(.volts-card,.assembly-card,.account-card,.auth-gate) {
+  color: #f8fafc;
+  border-color: #2d263d;
+  background: #101014;
+  box-shadow: 0 14px 34px rgba(0,0,0,.42);
+}
+
+body.night-mode app-quote :is(.volts-card.selected,.assembly-card) { border-color: #42376c; }
+body.night-mode app-quote .volts-image-wrap { background: linear-gradient(145deg,#102418,#17131f); }
+
+body.night-mode app-quote :is(.volts-card-body h3,.assembly-card h3,.account-card-head strong,.auth-gate h2,.stock-notice strong) {
+  color: #86efac;
+}
+
+body.night-mode app-quote :is(.volts-card-body>p,.volts-placeholder small,.volts-card-footer small,.assembly-options span,.account-card-head small,.address-ok p,.address-message,.address-missing p,.auth-gate>p,.stock-notice p) {
+  color: #aeb8c8;
+}
+
+body.night-mode app-quote .assembly-options button {
+  color: #f8fafc;
+  border-color: #31294f;
+  background: #17131f;
+}
+
+body.night-mode app-quote .assembly-options button.selected {
+  border-color: #4ade80;
+  background: #102418;
+  box-shadow: 0 0 0 3px rgba(74,222,128,.1);
+}
+
+body.night-mode app-quote .volts-card-footer button {
+  color: #86efac;
+  border-color: #4ade80;
+  background: #102418;
+}
+
+body.night-mode app-quote .volts-card.selected .volts-card-footer button {
+  color: #07130a;
+  background: #4ade80;
+}
+
+body.night-mode app-quote .volts-card-footer button:disabled {
+  color: #64748b;
+  border-color: #2d263d;
+  background: #151519;
+}
+
+body.night-mode app-quote .stock-notice {
+  color: #f8fafc;
+  border-color: #713f12;
+  background: #24180b;
+}
+
+body.night-mode app-quote .stock-notice.available {
+  border-color: #214b30;
+  background: #102418;
+}
+
+body.night-mode app-quote .account-card { border-color: #214b30; }
+body.night-mode app-quote :is(.address-ok,.address-missing,.address-message) { border-top-color: #2d263d; }
+
+body.night-mode app-quote :is(.account-card-head b,.stock-pill) {
+  color: #86efac;
+  background: #102418;
+}
+
+body.night-mode app-quote .stock-pill.no-stock,
+body.night-mode app-quote .final-stock-message {
+  color: #fcd34d;
+  background: #24180b;
+}
+
+body.night-mode app-quote .auth-gate-icon { background: #211b35; }
+body.night-mode app-quote .auth-actions .secondary-auth {
+  color: #86efac;
+  border-color: #4ade80;
+  background: #101014;
+}
+
+body.night-mode app-quote .final-stock-message.available {
+  color: #86efac;
+  background: #102418;
+}

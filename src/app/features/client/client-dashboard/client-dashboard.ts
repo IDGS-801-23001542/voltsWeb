@@ -748,6 +748,3 @@ getActivityTypeClass(
 
 
 }
-
-
-

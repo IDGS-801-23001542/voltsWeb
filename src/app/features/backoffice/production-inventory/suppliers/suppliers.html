@@ -24,19 +24,19 @@
 
   @if (successMessage()) {
     <div class="message success-message">
-      ✓ {{ successMessage() }}
+      <i class="bi bi-check-circle" aria-hidden="true"></i> {{ successMessage() }}
     </div>
   }
 
   @if (errorMessage()) {
     <div class="message error-message">
-      ⚠ {{ errorMessage() }}
+      <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ errorMessage() }}
     </div>
   }
 
   <div class="summary-grid">
     <article class="summary-card">
-      <span>🚚</span>
+      <span><i class="bi bi-truck" aria-hidden="true"></i></span>
       <div>
         <small>Total</small>
         <strong>{{ suppliers().length }}</strong>
@@ -44,7 +44,7 @@
     </article>
 
     <article class="summary-card">
-      <span>✅</span>
+      <span><i class="bi bi-check-circle" aria-hidden="true"></i></span>
       <div>
         <small>Activos</small>
         <strong>{{ activeCount() }}</strong>
@@ -52,7 +52,7 @@
     </article>
 
     <article class="summary-card">
-      <span>⏸️</span>
+      <span><i class="bi bi-pause-circle" aria-hidden="true"></i></span>
       <div>
         <small>Inactivos</small>
         <strong>{{ inactiveCount() }}</strong>
@@ -63,7 +63,7 @@
   <section class="panel">
     <div class="toolbar">
       <div class="search-control">
-        <span>🔎</span>
+        <span><i class="bi bi-search" aria-hidden="true"></i></span>
 
         <input
           type="search"
@@ -92,7 +92,7 @@
       filteredSuppliers().length === 0
     ) {
       <div class="state-container">
-        <span class="state-icon">🚚</span>
+        <span class="state-icon"><i class="bi bi-truck" aria-hidden="true"></i></span>
         <strong>No se encontraron proveedores</strong>
       </div>
     } @else {
@@ -186,7 +186,7 @@
                     title="Editar"
                     (click)="openEditForm(supplier)"
                   >
-                    ✏️
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
                   </button>
 
                   <button
@@ -200,8 +200,8 @@
                   >
                     {{
                       supplier.isActive
-                        ? '⏸️'
-                        : '▶️'
+                        ? 'Pausar'
+                        : 'Activar'
                     }}
                   </button>
 
@@ -212,7 +212,7 @@
                       title="Eliminar"
                       (click)="requestDelete(supplier)"
                     >
-                      🗑️
+                      <i class="bi bi-trash" aria-hidden="true"></i>
                     </button>
                   }
                 </td>
@@ -260,7 +260,7 @@
           class="close-button"
           (click)="closeForm()"
         >
-          ✕
+          &times;
         </button>
       </header>
 
@@ -548,13 +548,13 @@
       class="confirmation-card"
       (click)="$event.stopPropagation()"
     >
-      <span>🗑️</span>
+      <span><i class="bi bi-trash" aria-hidden="true"></i></span>
 
       <h2>Eliminar proveedor</h2>
 
       <p>
         ¿Deseas eliminar
-        <strong>{{ supplier.name }}</strong>?
+        <strong>{{ supplier.name }}</strong>
       </p>
 
       <small>
@@ -587,6 +587,3 @@
     </section>
   </div>
 }
-
-
-

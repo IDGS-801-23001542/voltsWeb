@@ -1,11 +1,7 @@
 <div class="register-page">
   <div class="register-background">
     <img
-      [src]="
-        theme.isNight()
-          ? 'assets/images/background_night.jpg'
-          : 'assets/images/background_day.jpg'
-      "
+      [src]="theme.isNight() ? 'assets/images/background_night.jpg' : 'assets/images/background_day.jpg'"
       alt="VOLTS"
     />
   </div>
@@ -14,14 +10,13 @@
 
   <main class="register-card">
     <div class="register-card-header">
-      <a routerLink="/" class="back-home">
-        ← Volver al inicio
-      </a>
+      <a routerLink="/" class="back-home">← Volver al inicio</a>
 
       <button
         type="button"
         class="theme-toggle"
         (click)="theme.toggleTheme()"
+        aria-label="Cambiar tema"
       >
         {{ theme.isNight() ? '🌙' : '☀️' }}
       </button>
@@ -30,167 +25,345 @@
     <div class="register-brand">
       <div class="logo-container">
         <div class="logo-glow"></div>
-        <img
-          src="assets/images/logo_volts.png"
-          alt="VOLTS"
-        />
+        <img src="assets/images/logo_volts.png" alt="VOLTS" />
       </div>
 
-      <span class="register-label">
-        Únete a VOLTS
-      </span>
-
+      <span class="register-label">Únete a VOLTS</span>
       <h1>Crear una cuenta</h1>
-
       <p>
-        Registra tu cuenta personal para consultar
-        compras, licencias y recursos.
+        Registra una cuenta personal o institucional para acceder a compras,
+        licencias, dispositivos, recursos y soporte.
       </p>
     </div>
 
     @if (errorMessage()) {
-      <div class="register-error">
-        ⚠ {{ errorMessage() }}
-      </div>
+      <div class="register-error">⚠️ {{ errorMessage() }}</div>
     }
 
     @if (verificationChallenge()) {
-      <form class="verification-panel" [formGroup]="verificationForm" (ngSubmit)="verifyEmail()">
-        <div class="register-brand">
+      <form
+        class="verification-panel"
+        [formGroup]="verificationForm"
+        (ngSubmit)="verifyEmail()"
+      >
+        <div class="register-brand verification-copy">
           <span class="register-label">✉️ Verifica tu correo</span>
           <h2>Te enviamos un código de 6 dígitos</h2>
-          <p>Escríbelo aquí para activar tu cuenta e iniciar sesión. Caduca en 5 minutos.</p>
+          <p>
+            Escríbelo aquí para activar tu cuenta e iniciar sesión.
+            El código caduca en 5 minutos.
+          </p>
         </div>
+
         <div class="field full-field">
           <label>Código de verificación *</label>
-          <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" formControlName="code" placeholder="000000" />
+          <input
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="6"
+            formControlName="code"
+            placeholder="000000"
+          />
         </div>
-        <button type="submit" class="register-submit" [disabled]="loading()">{{ loading() ? 'Verificando...' : 'Verificar y entrar' }}</button>
-        <button type="button" class="login-link" (click)="resendEmailCode()" [disabled]="loading()">Reenviar código</button>
+
+        <button
+          type="submit"
+          class="register-submit"
+          [disabled]="loading()"
+        >
+          {{ loading() ? 'Verificando...' : 'Verificar y entrar' }}
+        </button>
+
+        <button
+          type="button"
+          class="login-link secondary-action"
+          (click)="resendEmailCode()"
+          [disabled]="loading()"
+        >
+          Reenviar código
+        </button>
       </form>
     } @else {
-    <form
-      [formGroup]="form"
-      (ngSubmit)="submit()"
-    >
-      <div class="register-grid">
-        <div class="field">
-          <label>Nombres *</label>
-          <input
-            formControlName="firstNames"
-            placeholder="Juan Carlos"
-          />
-        </div>
-
-        <div class="field">
-          <label>Apellido paterno *</label>
-          <input
-            formControlName="paternalLastName"
-            placeholder="Pérez"
-          />
-        </div>
-
-        <div class="field">
-          <label>Apellido materno</label>
-          <input
-            formControlName="maternalLastName"
-            placeholder="López"
-          />
-        </div>
-
-        <div class="field">
-          <label>Correo *</label>
-          <input
-            type="email"
-            formControlName="email"
-          />
-        </div>
-
-        <div class="field full-field">
-          <label>Teléfono</label>
-          <input
-            type="tel"
-            inputmode="numeric"
-            minlength="10"
-            maxlength="10"
-            formControlName="phone"
-            placeholder="4771234567"
-          />
-        </div>
-
-        <div class="field">
-          <label>Contraseña *</label>
-          <input
-            [type]="
-              showPassword()
-                ? 'text'
-                : 'password'
-            "
-            formControlName="password"
-          />
-        </div>
-
-        <div class="field">
-          <label>
-            Confirmar contraseña *
-          </label>
-
-          <input
-            [type]="
-              showConfirmPassword()
-                ? 'text'
-                : 'password'
-            "
-            formControlName="confirmPassword"
-          />
-        </div>
+      <div class="account-type-selector" aria-label="Tipo de cuenta">
+        <button
+          type="button"
+          [class.active]="registrationType() === 'client'"
+          (click)="setRegistrationType('client')"
+        >
+          👤 Persona
+        </button>
+        <button
+          type="button"
+          [class.active]="registrationType() === 'institution'"
+          (click)="setRegistrationType('institution')"
+        >
+          🏫 Institución
+        </button>
       </div>
 
-      @if (
-        form.controls.phone.touched &&
-        form.controls.phone.invalid
-      ) {
-        <div class="password-error">
-          El teléfono debe tener exactamente 10 dígitos.
-        </div>
-      }
+      @if (registrationType() === 'client') {
+        <form [formGroup]="clientForm" (ngSubmit)="submitClient()">
+          <div class="form-section-title">
+            <strong>Cuenta personal</strong>
+            <span>Para compras individuales y licencias personales.</span>
+          </div>
 
-      @if (
-        form.controls.confirmPassword.touched &&
-        form.hasError('passwordsMismatch')
-      ) {
-        <div class="password-error">
-          Las contraseñas no coinciden.
-        </div>
-      }
+          <div class="register-grid">
+            <div class="field">
+              <label>Nombres *</label>
+              <input formControlName="firstNames" placeholder="Juan Carlos" />
+            </div>
 
-      <button
-        type="submit"
-        class="register-submit"
-        [disabled]="loading()"
-      >
-        {{
-          loading()
-            ? 'Creando cuenta...'
-            : 'Crear mi cuenta 🌱'
-        }}
-      </button>
-    </form>
+            <div class="field">
+              <label>Apellido paterno *</label>
+              <input formControlName="paternalLastName" placeholder="Pérez" />
+            </div>
+
+            <div class="field">
+              <label>Apellido materno</label>
+              <input formControlName="maternalLastName" placeholder="López" />
+            </div>
+
+            <div class="field">
+              <label>Correo *</label>
+              <input type="email" formControlName="email" />
+            </div>
+
+            <div class="field full-field">
+              <label>Teléfono</label>
+              <input
+                type="tel"
+                inputmode="numeric"
+                minlength="10"
+                maxlength="10"
+                formControlName="phone"
+                placeholder="4771234567"
+              />
+            </div>
+
+            <div class="field">
+              <label>Contraseña *</label>
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+              />
+            </div>
+
+            <div class="field">
+              <label>Confirmar contraseña *</label>
+              <input
+                [type]="showConfirmPassword() ? 'text' : 'password'"
+                formControlName="confirmPassword"
+              />
+            </div>
+          </div>
+
+          @if (clientForm.controls.phone.touched && clientForm.controls.phone.invalid) {
+            <div class="password-error">
+              El teléfono debe tener exactamente 10 dígitos.
+            </div>
+          }
+
+          @if (
+            clientForm.controls.confirmPassword.touched &&
+            clientForm.hasError('passwordsMismatch')
+          ) {
+            <div class="password-error">Las contraseñas no coinciden.</div>
+          }
+
+          <button type="submit" class="register-submit" [disabled]="loading()">
+            {{ loading() ? 'Creando cuenta...' : 'Crear mi cuenta 🌱' }}
+          </button>
+        </form>
+      } @else {
+        <form [formGroup]="institutionForm" (ngSubmit)="submitInstitution()">
+          <div class="form-section-title">
+            <strong>Cuenta institucional</strong>
+            <span>
+              Para escuelas, universidades, asociaciones, empresas y organizaciones.
+            </span>
+          </div>
+
+          <div class="register-grid">
+            <div class="field full-field">
+              <label>Nombre de la institución *</label>
+              <input
+                formControlName="institutionName"
+                placeholder="Universidad Tecnológica de León"
+              />
+            </div>
+
+            <div class="field">
+              <label>Tipo de institución *</label>
+              <select formControlName="institutionType">
+                @for (option of institutionTypes; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Estudiantes estimados</label>
+              <input
+                type="number"
+                min="0"
+                formControlName="estimatedStudents"
+                placeholder="250"
+              />
+            </div>
+
+            <div class="section-divider full-field">
+              <span>Responsable de la cuenta</span>
+            </div>
+
+            <div class="field">
+              <label>Nombres *</label>
+              <input formControlName="firstNames" placeholder="Ana María" />
+            </div>
+
+            <div class="field">
+              <label>Apellido paterno *</label>
+              <input formControlName="paternalLastName" placeholder="García" />
+            </div>
+
+            <div class="field">
+              <label>Apellido materno</label>
+              <input formControlName="maternalLastName" placeholder="Torres" />
+            </div>
+
+            <div class="field">
+              <label>Cargo</label>
+              <input formControlName="position" placeholder="Coordinación académica" />
+            </div>
+
+            <div class="field">
+              <label>Correo institucional *</label>
+              <input type="email" formControlName="email" />
+            </div>
+
+            <div class="field">
+              <label>Teléfono</label>
+              <input
+                type="tel"
+                inputmode="numeric"
+                minlength="10"
+                maxlength="10"
+                formControlName="phone"
+                placeholder="4771234567"
+              />
+            </div>
+
+            <div class="section-divider full-field">
+              <span>Dirección institucional (opcional)</span>
+            </div>
+
+            <div class="field">
+              <label>Calle</label>
+              <input formControlName="street" />
+            </div>
+
+            <div class="field address-numbers">
+              <div>
+                <label>Número exterior</label>
+                <input formControlName="exteriorNumber" />
+              </div>
+              <div>
+                <label>Interior</label>
+                <input formControlName="interiorNumber" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Colonia</label>
+              <input formControlName="neighborhood" />
+            </div>
+
+            <div class="field">
+              <label>Código postal</label>
+              <input
+                inputmode="numeric"
+                maxlength="5"
+                formControlName="postalCode"
+              />
+            </div>
+
+            <div class="field">
+              <label>Ciudad</label>
+              <input formControlName="city" />
+            </div>
+
+            <div class="field">
+              <label>Estado</label>
+              <input formControlName="state" />
+            </div>
+
+            <div class="field full-field">
+              <label>Referencias</label>
+              <input
+                formControlName="references"
+                placeholder="Edificio, acceso o referencia adicional"
+              />
+            </div>
+
+            <div class="section-divider full-field">
+              <span>Seguridad de acceso</span>
+            </div>
+
+            <div class="field">
+              <label>Contraseña *</label>
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+              />
+            </div>
+
+            <div class="field">
+              <label>Confirmar contraseña *</label>
+              <input
+                [type]="showConfirmPassword() ? 'text' : 'password'"
+                formControlName="confirmPassword"
+              />
+            </div>
+          </div>
+
+          @if (
+            institutionForm.controls.phone.touched &&
+            institutionForm.controls.phone.invalid
+          ) {
+            <div class="password-error">
+              El teléfono debe tener exactamente 10 dígitos.
+            </div>
+          }
+
+          @if (
+            institutionForm.controls.postalCode.touched &&
+            institutionForm.controls.postalCode.invalid
+          ) {
+            <div class="password-error">
+              El código postal debe contener 5 dígitos.
+            </div>
+          }
+
+          @if (
+            institutionForm.controls.confirmPassword.touched &&
+            institutionForm.hasError('passwordsMismatch')
+          ) {
+            <div class="password-error">Las contraseñas no coinciden.</div>
+          }
+
+          <button type="submit" class="register-submit" [disabled]="loading()">
+            {{ loading() ? 'Registrando institución...' : 'Registrar institución 🏫' }}
+          </button>
+        </form>
+      }
     }
 
     <div class="register-divider">
-      <span></span>
-      <b>o</b>
-      <span></span>
+      <span></span><b>o</b><span></span>
     </div>
 
-    <a
-      routerLink="/login"
-      class="login-link"
-    >
-      Iniciar sesión
-    </a>
+    <a routerLink="/login" class="login-link">Iniciar sesión</a>
   </main>
 </div>
-
 

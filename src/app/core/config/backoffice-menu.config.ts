@@ -62,5 +62,3 @@ export const BACKOFFICE_MENU: BackofficeMenuGroup[] = [
     ]
   }
 ];
-
-

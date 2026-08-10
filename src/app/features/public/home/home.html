@@ -75,19 +75,52 @@
     </div>
   </section>
 
+  <!-- =====================================================
+       PRODUCTOS
+       ===================================================== -->
   @if (products().length > 0) {
-    <section class="home-section volts-gallery-section">
+    <section class="home-section products-section">
       <div class="home-container">
         <div class="section-heading">
-          <span class="section-kicker">Conoce la familia VOLTS</span>
-          <h2>Nuestros compañeros</h2>
-          <p class="section-description">Las fotos se administran desde Productos y se publican automáticamente aquí.</p>
+          <span class="section-kicker">
+            Familia VOLTS
+          </span>
+
+          <h2>Nuestros productos</h2>
+
+          <p class="section-description">
+            Conoce los modelos disponibles dentro del ecosistema VOLTS.
+          </p>
         </div>
-        <div class="volts-gallery-grid">
+
+        <div class="products-grid">
           @for (product of products(); track product.id) {
-            <article class="volts-gallery-card">
-              <img [src]="product.imageUrl!" [alt]="product.name" />
-              <div><span>{{ product.commercialStatus === 'ComingSoon' ? 'Próximamente' : 'Disponible' }}</span><h3>{{ product.name }}</h3><p>{{ product.description }}</p></div>
+            <article class="product-card">
+              <div class="product-image">
+                <img
+                  [src]="product.imageUrl"
+                  [alt]="product.name"
+                />
+              </div>
+
+              <div class="product-info">
+                <span
+                  class="product-badge"
+                  [class.coming-soon]="
+                    product.commercialStatus === 'ComingSoon'
+                  "
+                >
+                  {{
+                    product.commercialStatus === 'ComingSoon'
+                      ? 'Próximamente'
+                      : 'Disponible'
+                  }}
+                </span>
+
+                <h3>{{ product.name }}</h3>
+
+                <p>{{ product.description }}</p>
+              </div>
             </article>
           }
         </div>
@@ -229,5 +262,3 @@
     </div>
   </section>
 </div>
-
-

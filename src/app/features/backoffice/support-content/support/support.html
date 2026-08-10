@@ -1,8 +1,12 @@
 <section class="support-page">
+
+  <!-- =====================================================
+       ENCABEZADO
+       ===================================================== -->
   <header class="page-heading">
     <div>
       <span class="page-label">
-        Atención y contenido
+        Atenci&oacute;n y contenido
       </span>
 
       <h1>
@@ -11,8 +15,8 @@
 
       <p>
         Consulta y da seguimiento a solicitudes
-        relacionadas con hardware, aplicación,
-        garantía y funcionamiento de VOLTS.
+        relacionadas con hardware, aplicaci&oacute;n,
+        garant&iacute;a y funcionamiento de VOLTS.
       </p>
     </div>
 
@@ -22,15 +26,22 @@
       [disabled]="loading()"
       (click)="loadTickets()"
     >
-      <span>↻</span>
+      <span>
+        <i class="bi bi-arrow-clockwise"></i>
+      </span>
+
       Actualizar
     </button>
   </header>
 
+  <!-- =====================================================
+       RESUMEN
+       ===================================================== -->
   <section class="summary-grid">
+
     <article class="summary-card">
       <span class="summary-icon">
-        🎧
+        <i class="bi bi-headset"></i>
       </span>
 
       <div>
@@ -48,7 +59,7 @@
 
     <article class="summary-card">
       <span class="summary-icon open-icon">
-        📩
+        <i class="bi bi-envelope-open"></i>
       </span>
 
       <div>
@@ -59,14 +70,14 @@
         </strong>
 
         <p>
-          Requieren atención
+          Requieren atenci&oacute;n
         </p>
       </div>
     </article>
 
     <article class="summary-card">
       <span class="summary-icon progress-icon">
-        ⏳
+        <i class="bi bi-hourglass-split"></i>
       </span>
 
       <div>
@@ -84,7 +95,7 @@
 
     <article class="summary-card">
       <span class="summary-icon resolved-icon">
-        ✅
+        <i class="bi bi-check-circle"></i>
       </span>
 
       <div>
@@ -100,43 +111,36 @@
       </div>
     </article>
 
-    @if (summary().urgent > 0) {
-      <article class="urgent-banner">
-        <span>🚨</span>
-
-        <div>
-          <strong>
-            {{ summary().urgent }}
-            tickets urgentes activos
-          </strong>
-
-          <p>
-            Estas solicitudes requieren
-            atención prioritaria.
-          </p>
-        </div>
-      </article>
-    }
   </section>
 
-  <section class="content-panel">
-    <div class="filters">
-      <label class="search-field">
-        <span>Buscar ticket</span>
+  <!-- =====================================================
+       CONTENIDO
+       ===================================================== -->
+  <section class="tickets-panel">
 
-        <div class="input-wrapper">
-          <span>🔎</span>
+    <!-- FILTROS -->
+    <div class="filters">
+
+      <label class="search-field">
+        <span>
+          Buscar ticket
+        </span>
+
+        <div class="input-shell">
+          <i class="bi bi-search"></i>
 
           <input
             type="search"
             [formControl]="searchControl"
-            placeholder="Cliente, correo, asunto o descripción..."
+            placeholder="Cliente, correo, asunto o descripci&oacute;n..."
           />
         </div>
       </label>
 
-      <label class="filter-field">
-        <span>Estado</span>
+      <label>
+        <span>
+          Estado
+        </span>
 
         <select
           [formControl]="statusControl"
@@ -146,7 +150,7 @@
           </option>
 
           <option value="Open">
-            Abiertos
+            Abierto
           </option>
 
           <option value="InProgress">
@@ -154,17 +158,19 @@
           </option>
 
           <option value="Resolved">
-            Resueltos
+            Resuelto
           </option>
 
           <option value="Closed">
-            Cerrados
+            Cerrado
           </option>
         </select>
       </label>
 
-      <label class="filter-field">
-        <span>Prioridad</span>
+      <label>
+        <span>
+          Prioridad
+        </span>
 
         <select
           [formControl]="priorityControl"
@@ -198,39 +204,58 @@
       >
         Limpiar
       </button>
+
     </div>
 
-    @if (
-      errorMessage() &&
-      !selectedTicket()
-    ) {
-      <div class="feedback error-feedback">
-        <span>⚠️</span>
-
-        <p>
-          {{ errorMessage() }}
-        </p>
-      </div>
-    }
-
+    <!-- CARGANDO -->
     @if (loading()) {
-      <div class="loading-state">
-        <span class="loader"></span>
+
+      <div class="empty-state">
+        <span class="empty-icon">
+          <i class="bi bi-arrow-repeat"></i>
+        </span>
 
         <strong>
           Cargando tickets...
         </strong>
 
         <p>
-          Consultando solicitudes de soporte
-          registradas en VOLTS.
+          Consultando solicitudes de soporte.
         </p>
       </div>
-    } @else if (
-      filteredTickets().length === 0
-    ) {
+
+    } @else if (errorMessage()) {
+
+      <!-- ERROR -->
+      <div class="empty-state error-state">
+        <span class="empty-icon">
+          <i class="bi bi-exclamation-triangle"></i>
+        </span>
+
+        <strong>
+          No fue posible cargar los tickets
+        </strong>
+
+        <p>
+          {{ errorMessage() }}
+        </p>
+
+        <button
+          type="button"
+          class="view-button"
+          (click)="loadTickets()"
+        >
+          Intentar de nuevo
+        </button>
+      </div>
+
+    } @else if (filteredTickets().length === 0) {
+
+      <!-- VACÍO -->
       <div class="empty-state">
-        <span>🎧</span>
+        <span class="empty-icon">
+          <i class="bi bi-inbox"></i>
+        </span>
 
         <strong>
           No se encontraron tickets
@@ -243,44 +268,39 @@
 
         <button
           type="button"
+          class="view-button"
           (click)="clearFilters()"
         >
           Mostrar todos
         </button>
       </div>
+
     } @else {
-      <div class="results-heading">
-        <strong>
-          {{ filteredTickets().length }}
-          tickets
-        </strong>
 
-        <span>
-          de {{ summary().total }}
-          registrados
-        </span>
-      </div>
-
+      <!-- =================================================
+           TABLA DESKTOP
+           ================================================= -->
       <div class="table-wrapper">
+
         <table>
           <thead>
             <tr>
               <th>Cliente</th>
               <th>Asunto</th>
               <th>Prioridad</th>
-              <th>Fecha</th>
               <th>Estado</th>
-              <th class="actions-column">
-                Acciones
-              </th>
+              <th>Fecha</th>
+              <th></th>
             </tr>
           </thead>
 
           <tbody>
+
             @for (
               ticket of filteredTickets();
               track ticket.id
             ) {
+
               <tr>
                 <td>
                   <div class="person-cell">
@@ -341,24 +361,6 @@
                 </td>
 
                 <td>
-                  <div class="date-cell">
-                    <strong>
-                      {{
-                        ticket.createdAt
-                          | date:'dd/MM/yyyy'
-                      }}
-                    </strong>
-
-                    <small>
-                      {{
-                        ticket.createdAt
-                          | date:'HH:mm'
-                      }}
-                    </small>
-                  </div>
-                </td>
-
-                <td>
                   <span
                     class="status-chip"
                     [class.status-open]="
@@ -384,28 +386,53 @@
                   </span>
                 </td>
 
-                <td class="actions-column">
+                <td class="date-cell">
+                  {{
+                    ticket.createdAt
+                      | date:'dd/MM/yyyy'
+                  }}
+
+                  <small>
+                    {{
+                      ticket.createdAt
+                        | date:'HH:mm'
+                    }}
+                  </small>
+                </td>
+
+                <td>
                   <button
                     type="button"
                     class="view-button"
                     (click)="openDetails(ticket)"
                   >
-                    Ver ticket
+                    Ver detalle
                   </button>
                 </td>
+
               </tr>
+
             }
+
           </tbody>
         </table>
+
       </div>
 
+      <!-- =================================================
+           MOBILE
+           ================================================= -->
       <div class="mobile-list">
+
         @for (
           ticket of filteredTickets();
           track ticket.id
         ) {
+
           <article class="ticket-card">
+
             <div class="card-heading">
+
               <div class="person-cell">
                 <span class="avatar">
                   {{
@@ -447,6 +474,7 @@
                   )
                 }}
               </span>
+
             </div>
 
             <div class="card-content">
@@ -460,6 +488,7 @@
             </div>
 
             <footer>
+
               <span
                 class="status-chip"
                 [class.status-open]="
@@ -491,15 +520,25 @@
               >
                 Ver detalle
               </button>
+
             </footer>
+
           </article>
+
         }
+
       </div>
+
     }
+
   </section>
 </section>
 
+<!-- =====================================================
+     DRAWER DETALLE
+     ===================================================== -->
 @if (selectedTicket(); as ticket) {
+
   <div
     class="drawer-backdrop"
     (click)="closeDetails()"
@@ -511,7 +550,9 @@
     aria-modal="true"
     aria-labelledby="support-title"
   >
+
     <header class="drawer-heading">
+
       <div>
         <span class="page-label">
           Detalle del ticket
@@ -528,32 +569,44 @@
         aria-label="Cerrar"
         (click)="closeDetails()"
       >
-        ×
+        <i class="bi bi-x-lg"></i>
       </button>
+
     </header>
 
     <div class="drawer-content">
+
       @if (successMessage()) {
+
         <div class="feedback success-feedback">
-          <span>✅</span>
+          <span>
+            <i class="bi bi-check-circle"></i>
+          </span>
 
           <p>
             {{ successMessage() }}
           </p>
         </div>
+
       }
 
       @if (errorMessage()) {
+
         <div class="feedback error-feedback">
-          <span>⚠️</span>
+          <span>
+            <i class="bi bi-exclamation-triangle"></i>
+          </span>
 
           <p>
             {{ errorMessage() }}
           </p>
         </div>
+
       }
 
+      <!-- PERFIL -->
       <section class="profile-card">
+
         <span class="profile-avatar">
           {{
             ticket.customerName
@@ -563,6 +616,7 @@
         </span>
 
         <div>
+
           <strong>
             {{ ticket.customerName }}
           </strong>
@@ -582,10 +636,14 @@
               Solicitud sin cliente vinculado
             </small>
           }
+
         </div>
+
       </section>
 
+      <!-- CLASIFICACIÓN -->
       <section class="ticket-classification">
+
         <span
           class="priority-chip"
           [class.priority-low]="
@@ -632,24 +690,35 @@
             )
           }}
         </span>
+
       </section>
 
+      <!-- DESCRIPCIÓN -->
       <section class="detail-section">
+
         <h3>
-          Descripción del problema
+          Descripci&oacute;n del problema
         </h3>
 
         <div class="description-content">
           {{ ticket.description }}
         </div>
+
       </section>
 
+      <!-- INFORMACIÓN -->
       <section class="detail-section">
-        <h3>Información</h3>
+
+        <h3>
+          Informaci&oacute;n
+        </h3>
 
         <dl class="detail-grid">
+
           <div>
-            <dt>Fecha de creación</dt>
+            <dt>
+              Fecha de creaci&oacute;n
+            </dt>
 
             <dd>
               {{
@@ -660,7 +729,9 @@
           </div>
 
           <div>
-            <dt>Última actualización</dt>
+            <dt>
+              &Uacute;ltima actualizaci&oacute;n
+            </dt>
 
             <dd>
               @if (ticket.updatedAt) {
@@ -674,27 +745,62 @@
             </dd>
           </div>
 
+          <div>
+            <dt>
+              Prioridad
+            </dt>
+
+            <dd>
+              {{
+                priorityLabel(
+                  ticket.priority
+                )
+              }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>
+              Estado actual
+            </dt>
+
+            <dd>
+              {{
+                statusLabel(
+                  ticket.status
+                )
+              }}
+            </dd>
+          </div>
+
           <div class="full-detail">
-            <dt>Identificador</dt>
+            <dt>
+              Identificador
+            </dt>
 
             <dd>
               {{ ticket.id }}
             </dd>
           </div>
+
         </dl>
+
       </section>
 
+      <!-- SEGUIMIENTO -->
       <section class="detail-section">
+
         <h3>
           Seguimiento del ticket
         </h3>
 
         <p class="section-description">
           Cambia el estado conforme avance
-          la atención de la solicitud.
+          la atenci&oacute;n de la solicitud.
         </p>
 
         <div class="status-actions">
+
           <button
             type="button"
             [class.selected]="
@@ -703,7 +809,8 @@
             [disabled]="saving()"
             (click)="updateStatus('Open')"
           >
-            📩 Abierto
+            <i class="bi bi-envelope-open"></i>
+            Abierto
           </button>
 
           <button
@@ -715,7 +822,8 @@
             [disabled]="saving()"
             (click)="updateStatus('InProgress')"
           >
-            ⏳ En proceso
+            <i class="bi bi-hourglass-split"></i>
+            En proceso
           </button>
 
           <button
@@ -726,7 +834,8 @@
             [disabled]="saving()"
             (click)="updateStatus('Resolved')"
           >
-            ✅ Resuelto
+            <i class="bi bi-check-circle"></i>
+            Resuelto
           </button>
 
           <button
@@ -737,13 +846,19 @@
             [disabled]="saving()"
             (click)="updateStatus('Closed')"
           >
-            🔒 Cerrado
+            <i class="bi bi-lock"></i>
+            Cerrado
           </button>
+
         </div>
+
       </section>
+
     </div>
 
+    <!-- PIE DRAWER -->
     <footer class="drawer-footer">
+
       <a
         class="reply-button"
         [href]="
@@ -753,22 +868,26 @@
           ticket.subject
         "
       >
-        ✉️ Responder por correo
+        <i class="bi bi-envelope"></i>
+        Responder por correo
       </a>
 
       @if (auth.hasRole('Admin')) {
+
         <button
           type="button"
           class="delete-button"
           [disabled]="saving()"
           (click)="deleteTicket()"
         >
-          🗑️ Eliminar
+          <i class="bi bi-trash"></i>
+          Eliminar
         </button>
+
       }
+
     </footer>
+
   </aside>
+
 }
-
-
-

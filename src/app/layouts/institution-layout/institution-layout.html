@@ -1,3 +1,20 @@
-<div class="shell"><aside><img src="assets/images/logo_volts.png" alt="VOLTS"><h2>Portal institucional</h2><p>{{auth.currentUser()?.fullName}}</p><nav><a routerLink="/institucion" [routerLinkActiveOptions]="{exact:true}" routerLinkActive="active">Resumen</a><a routerLink="/institucion/pedidos" routerLinkActive="active">Pedidos</a><a routerLink="/institucion/licencias" routerLinkActive="active">Licencias</a><a routerLink="/institucion/dispositivos" routerLinkActive="active">Dispositivos</a><a routerLink="/institucion/personas" routerLinkActive="active">Alumnos y docentes</a><a routerLink="/institucion/grupos" routerLinkActive="active">Grupos</a><a routerLink="/institucion/recursos" routerLinkActive="active">Recursos y APK</a><a routerLink="/institucion/soporte" routerLinkActive="active">Soporte</a><a routerLink="/institucion/notificaciones" routerLinkActive="active">Notificaciones</a><a routerLink="/" routerLinkActive="active">Sitio público</a></nav><button (click)="auth.logout()">Cerrar sesión</button></aside><main><router-outlet/></main></div>
 
+<app-public-header />
 
+<nav class="institution-portal-nav" aria-label="Navegación del portal institucional">
+  <div class="institution-portal-nav__inner">
+    @for (item of portalLinks; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
+      >
+        {{ item.label }}
+      </a>
+    }
+  </div>
+</nav>
+
+<div class="institution-layout-content">
+  <router-outlet />
+</div>

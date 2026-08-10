@@ -5,11 +5,25 @@ import {
 
 import {
   Component,
+  DestroyRef,
   OnInit,
   computed,
   inject,
   signal
 } from '@angular/core';
+
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import {
+  EMPTY,
+  Subject,
+  catchError,
+  exhaustMap,
+  merge,
+  of,
+  tap,
+  timer
+} from 'rxjs';
 
 import {
   AnalyticsCategory,
@@ -35,6 +49,12 @@ export class Analytics implements OnInit {
   private readonly service =
     inject(AnalyticsService);
 
+  private readonly destroyRef =
+    inject(DestroyRef);
+
+  private readonly manualRefresh =
+    new Subject<boolean>();
+
   readonly loading = signal(true);
   readonly errorMessage = signal('');
   readonly overview =
@@ -53,28 +73,44 @@ export class Analytics implements OnInit {
   );
 
   ngOnInit(): void {
-    this.load();
+    merge(
+      of(true),
+      timer(30000, 30000).pipe(
+        tap(() => this.errorMessage.set('')),
+        exhaustMap(() => of(false))
+      ),
+      this.manualRefresh
+    )
+      .pipe(
+        exhaustMap(showLoader => {
+          if (showLoader) {
+            this.loading.set(true);
+          }
+
+          this.errorMessage.set('');
+
+          return this.service.getOverview().pipe(
+            tap(response => {
+              this.overview.set(response.data);
+              this.loading.set(false);
+            }),
+            catchError(error => {
+              this.loading.set(false);
+              this.errorMessage.set(
+                error?.error?.message ??
+                'No fue posible cargar la analítica.'
+              );
+              return EMPTY;
+            })
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe();
   }
 
-  load(): void {
-    this.loading.set(true);
-    this.errorMessage.set('');
-
-    this.service
-      .getOverview()
-      .subscribe({
-        next: response => {
-          this.overview.set(response.data);
-          this.loading.set(false);
-        },
-        error: error => {
-          this.loading.set(false);
-          this.errorMessage.set(
-            error?.error?.message ??
-            'No fue posible cargar la analítica.'
-          );
-        }
-      });
+  load(showLoader = true): void {
+    this.manualRefresh.next(showLoader);
   }
 
   maxValue(items: AnalyticsCategory[]): number {
@@ -129,6 +165,8 @@ export class Analytics implements OnInit {
       .join(' ');
   }
 }
+
+
 
 
 

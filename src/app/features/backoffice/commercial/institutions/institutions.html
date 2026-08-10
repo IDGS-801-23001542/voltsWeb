@@ -1,9 +1,17 @@
 <section class="management-page">
   <header class="page-heading">
     <div>
-      <span class="page-label">Gestión comercial</span>
-      <h1>Instituciones</h1>
-      <p>Administra instituciones y su acceso al portal.</p>
+      <span class="page-label">
+        Gestión comercial
+      </span>
+
+      <h1>
+        Instituciones
+      </h1>
+
+      <p>
+        Administra instituciones y su acceso al portal.
+      </p>
     </div>
 
     <button
@@ -17,26 +25,73 @@
 
   @if (successMessage()) {
     <div class="message success-message">
-      ✓ {{ successMessage() }}
+      <i class="bi bi-check-circle"></i>
+      {{ successMessage() }}
     </div>
   }
 
   @if (errorMessage()) {
     <div class="message error-message">
-      ⚠ {{ errorMessage() }}
+      <i class="bi bi-exclamation-triangle"></i>
+      {{ errorMessage() }}
     </div>
   }
 
   <div class="summary-grid">
-    <article class="summary-card"><span>🏫</span><div><small>Total</small><strong>{{ institutions().length }}</strong></div></article>
-    <article class="summary-card"><span>✅</span><div><small>Activas</small><strong>{{ activeInstitutions() }}</strong></div></article>
-    <article class="summary-card"><span>⏸️</span><div><small>Inactivas</small><strong>{{ inactiveInstitutions() }}</strong></div></article>
+
+    <article class="summary-card">
+      <span>
+        <i class="bi bi-buildings"></i>
+      </span>
+
+      <div>
+        <small>Total</small>
+
+        <strong>
+          {{ institutions().length }}
+        </strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>
+        <i class="bi bi-check-circle"></i>
+      </span>
+
+      <div>
+        <small>Activas</small>
+
+        <strong>
+          {{ activeInstitutions() }}
+        </strong>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <span>
+        <i class="bi bi-pause-circle"></i>
+      </span>
+
+      <div>
+        <small>Inactivas</small>
+
+        <strong>
+          {{ inactiveInstitutions() }}
+        </strong>
+      </div>
+    </article>
+
   </div>
 
   <section class="panel">
+
     <div class="toolbar">
+
       <label class="search-control">
-        <span>🔎</span>
+        <span>
+          <i class="bi bi-search"></i>
+        </span>
+
         <input
           type="search"
           placeholder="Buscar institución..."
@@ -49,9 +104,17 @@
         [value]="typeFilter()"
         (change)="updateTypeFilter($event)"
       >
-        <option value="all">Todos los tipos</option>
-        @for (option of institutionTypes; track option.value) {
-          <option [value]="option.value">{{ option.label }}</option>
+        <option value="all">
+          Todos los tipos
+        </option>
+
+        @for (
+          option of institutionTypes;
+          track option.value
+        ) {
+          <option [value]="option.value">
+            {{ option.label }}
+          </option>
         }
       </select>
 
@@ -59,17 +122,33 @@
         [value]="statusFilter()"
         (change)="updateStatusFilter($event)"
       >
-        <option value="all">Todas</option>
-        <option value="active">Activas</option>
-        <option value="inactive">Inactivas</option>
+        <option value="all">
+          Todas
+        </option>
+
+        <option value="active">
+          Activas
+        </option>
+
+        <option value="inactive">
+          Inactivas
+        </option>
       </select>
+
     </div>
 
     @if (loading()) {
-      <div class="state">Cargando instituciones...</div>
+
+      <div class="state">
+        Cargando instituciones...
+      </div>
+
     } @else {
+
       <div class="table-container">
+
         <table>
+
           <thead>
             <tr>
               <th>Institución</th>
@@ -79,168 +158,577 @@
               <th>Acciones</th>
             </tr>
           </thead>
+
           <tbody>
-            @for (institution of filteredInstitutions(); track institution.id) {
+
+            @for (
+              institution of filteredInstitutions();
+              track institution.id
+            ) {
+
               <tr>
+
                 <td>
-                  <strong>{{ institution.name }}</strong>
-                  <small>{{ addressText(institution) }}</small>
+                  <strong>
+                    {{ institution.name }}
+                  </strong>
+
+                  <small>
+                    {{ addressText(institution) }}
+                  </small>
                 </td>
-                <td>{{ typeLabel(institution.institutionType) }}</td>
+
                 <td>
-                  <strong>{{ institution.responsible.name.fullName }}</strong>
-                  <small>{{ institution.responsible.email }}</small>
+                  {{
+                    typeLabel(
+                      institution.institutionType
+                    )
+                  }}
                 </td>
+
                 <td>
-                  <span class="badge" [class.inactive]="!institution.isActive">
-                    {{ institution.isActive ? 'Activa' : 'Inactiva' }}
+                  <strong>
+                    {{
+                      institution
+                        .responsible
+                        .name
+                        .fullName
+                    }}
+                  </strong>
+
+                  <small>
+                    {{
+                      institution
+                        .responsible
+                        .email
+                    }}
+                  </small>
+                </td>
+
+                <td>
+                  <span
+                    class="badge"
+                    [class.inactive]="
+                      !institution.isActive
+                    "
+                  >
+                    {{
+                      institution.isActive
+                        ? 'Activa'
+                        : 'Inactiva'
+                    }}
                   </span>
                 </td>
+
                 <td class="actions">
-                  <button type="button" (click)="openDetail(institution)">👁️</button>
-                  <button type="button" (click)="openEditForm(institution)">✏️</button>
-                  <button type="button" (click)="toggleStatus(institution)">
-                    {{ institution.isActive ? '⏸️' : '▶️' }}
+
+                  <button
+                    type="button"
+                    title="Ver institución"
+                    aria-label="Ver institución"
+                    (click)="
+                      openDetail(
+                        institution
+                      )
+                    "
+                  >
+                    <i class="bi bi-eye"></i>
                   </button>
-                  <button type="button" class="danger" (click)="requestDelete(institution)">🗑️</button>
+
+                  <button
+                    type="button"
+                    title="Editar institución"
+                    aria-label="Editar institución"
+                    (click)="
+                      openEditForm(
+                        institution
+                      )
+                    "
+                  >
+                    <i class="bi bi-pencil"></i>
+                  </button>
+
+                  <button
+                    type="button"
+                    [title]="
+                      institution.isActive
+                        ? 'Desactivar institución'
+                        : 'Activar institución'
+                    "
+                    (click)="
+                      toggleStatus(
+                        institution
+                      )
+                    "
+                  >
+                    <i
+                      class="bi"
+                      [class.bi-pause-circle]="
+                        institution.isActive
+                      "
+                      [class.bi-play-circle]="
+                        !institution.isActive
+                      "
+                    ></i>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="danger"
+                    title="Eliminar institución"
+                    aria-label="Eliminar institución"
+                    (click)="
+                      requestDelete(
+                        institution
+                      )
+                    "
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+
                 </td>
+
               </tr>
+
             }
+
           </tbody>
+
         </table>
+
       </div>
+
     }
+
   </section>
+
 </section>
 
+
 @if (formOpen()) {
-  <div class="modal-backdrop" (click)="closeForm()">
-    <section class="modal-card" (click)="$event.stopPropagation()">
+
+  <div
+    class="modal-backdrop"
+    (click)="closeForm()"
+  >
+
+    <section
+      class="modal-card"
+      (click)="
+        $event.stopPropagation()
+      "
+    >
+
       <header class="modal-header">
-        <h2>{{ editingInstitution() ? 'Editar institución' : 'Crear institución' }}</h2>
-        <button type="button" (click)="closeForm()">✕</button>
+
+        <h2>
+          {{
+            editingInstitution()
+              ? 'Editar institución'
+              : 'Crear institución'
+          }}
+        </h2>
+
+        <button
+          type="button"
+          aria-label="Cerrar"
+          (click)="closeForm()"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+
       </header>
 
-      <form [formGroup]="form" (ngSubmit)="submit()">
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+      >
+
         @if (formErrorMessage()) {
-          <div class="message error-message">⚠ {{ formErrorMessage() }}</div>
+
+          <div class="message error-message">
+            <i class="bi bi-exclamation-triangle"></i>
+            {{ formErrorMessage() }}
+          </div>
+
         }
 
-        <h3>Datos institucionales</h3>
+        <h3>
+          Datos institucionales
+        </h3>
 
         <div class="form-grid">
-          <label>Nombre *<input formControlName="name" /></label>
+
+          <label>
+            Nombre *
+
+            <input
+              formControlName="name"
+            />
+          </label>
+
           <label>
             Tipo *
-            <select formControlName="institutionType">
-              @for (option of institutionTypes; track option.value) {
-                <option [value]="option.value">{{ option.label }}</option>
+
+            <select
+              formControlName="institutionType"
+            >
+              @for (
+                option of institutionTypes;
+                track option.value
+              ) {
+                <option
+                  [value]="option.value"
+                >
+                  {{ option.label }}
+                </option>
               }
             </select>
           </label>
-          <label>Personas estimadas<input type="number" min="0" formControlName="estimatedStudents" /></label>
-          <label>Puesto responsable<input formControlName="responsiblePosition" /></label>
+
+          <label>
+            Personas estimadas
+
+            <input
+              type="number"
+              min="0"
+              formControlName="estimatedStudents"
+            />
+          </label>
+
+          <label>
+            Puesto responsable
+
+            <input
+              formControlName="responsiblePosition"
+            />
+          </label>
+
         </div>
 
-        <h3>Responsable</h3>
+        <h3>
+          Responsable
+        </h3>
 
         <div class="form-grid three">
-          <label>Nombres *<input formControlName="responsibleFirstNames" /></label>
-          <label>Apellido paterno *<input formControlName="responsiblePaternalLastName" /></label>
-          <label>Apellido materno<input formControlName="responsibleMaternalLastName" /></label>
+
+          <label>
+            Nombres *
+
+            <input
+              formControlName="responsibleFirstNames"
+            />
+          </label>
+
+          <label>
+            Apellido paterno *
+
+            <input
+              formControlName="responsiblePaternalLastName"
+            />
+          </label>
+
+          <label>
+            Apellido materno
+
+            <input
+              formControlName="responsibleMaternalLastName"
+            />
+          </label>
+
         </div>
 
         <div class="form-grid">
-          <label>Correo *<input type="email" formControlName="responsibleEmail" /></label>
-          <label>Teléfono<input maxlength="10" formControlName="responsiblePhone" /></label>
+
+          <label>
+            Correo *
+
+            <input
+              type="email"
+              formControlName="responsibleEmail"
+            />
+          </label>
+
+          <label>
+            Teléfono
+
+            <input
+              maxlength="10"
+              formControlName="responsiblePhone"
+            />
+          </label>
+
         </div>
 
         @if (!editingInstitution()) {
-          <h3>Acceso al portal</h3>
+
+          <h3>
+            Acceso al portal
+          </h3>
 
           <label class="checkbox">
-            <input type="checkbox" formControlName="createPortalAccount" />
+
+            <input
+              type="checkbox"
+              formControlName="createPortalAccount"
+            />
+
             Crear cuenta de acceso institucional
+
           </label>
 
-          @if (form.controls.createPortalAccount.value) {
+          @if (
+            form.controls
+              .createPortalAccount
+              .value
+          ) {
+
             <div class="portal-access-box">
-              <p>La cuenta usará el correo del responsable.</p>
+
+              <p>
+                La cuenta usará el correo del responsable.
+              </p>
 
               <label class="checkbox">
-                <input type="checkbox" formControlName="autoGeneratePassword" />
+
+                <input
+                  type="checkbox"
+                  formControlName="autoGeneratePassword"
+                />
+
                 Generar contraseña temporal automáticamente
+
               </label>
 
-              @if (!form.controls.autoGeneratePassword.value) {
+              @if (
+                !form.controls
+                  .autoGeneratePassword
+                  .value
+              ) {
+
                 <label>
                   Contraseña temporal *
+
                   <input
                     type="text"
                     minlength="8"
                     formControlName="temporaryPassword"
                   />
                 </label>
+
               }
+
             </div>
+
           }
+
         }
 
         <label class="checkbox">
-          <input type="checkbox" formControlName="hasAddress" />
+
+          <input
+            type="checkbox"
+            formControlName="hasAddress"
+          />
+
           Capturar dirección
+
         </label>
 
-        @if (form.controls.hasAddress.value) {
-          <h3>Dirección</h3>
+        @if (
+          form.controls
+            .hasAddress
+            .value
+        ) {
+
+          <h3>
+            Dirección
+          </h3>
+
           <div class="form-grid three">
-            <label>Calle *<input formControlName="street" /></label>
-            <label>Número exterior *<input formControlName="exteriorNumber" /></label>
-            <label>Número interior<input formControlName="interiorNumber" /></label>
-            <label>Colonia *<input formControlName="neighborhood" /></label>
-            <label>Código postal *<input maxlength="5" formControlName="postalCode" /></label>
-            <label>Ciudad *<input formControlName="city" /></label>
-            <label>Estado *<input formControlName="state" /></label>
-            <label>País<input formControlName="country" /></label>
+
+            <label>
+              Calle *
+
+              <input
+                formControlName="street"
+              />
+            </label>
+
+            <label>
+              Número exterior *
+
+              <input
+                formControlName="exteriorNumber"
+              />
+            </label>
+
+            <label>
+              Número interior
+
+              <input
+                formControlName="interiorNumber"
+              />
+            </label>
+
+            <label>
+              Colonia *
+
+              <input
+                formControlName="neighborhood"
+              />
+            </label>
+
+            <label>
+              Código postal *
+
+              <input
+                maxlength="5"
+                formControlName="postalCode"
+              />
+            </label>
+
+            <label>
+              Ciudad *
+
+              <input
+                formControlName="city"
+              />
+            </label>
+
+            <label>
+              Estado *
+
+              <input
+                formControlName="state"
+              />
+            </label>
+
+            <label>
+              País
+
+              <input
+                formControlName="country"
+              />
+            </label>
+
           </div>
-          <label>Referencias<textarea rows="3" formControlName="references"></textarea></label>
+
+          <label>
+            Referencias
+
+            <textarea
+              rows="3"
+              formControlName="references"
+            ></textarea>
+          </label>
+
         }
 
-        <label>Notas<textarea rows="3" formControlName="notes"></textarea></label>
+        <label>
+          Notas
+
+          <textarea
+            rows="3"
+            formControlName="notes"
+          ></textarea>
+        </label>
 
         @if (editingInstitution()) {
+
           <label class="checkbox">
-            <input type="checkbox" formControlName="isActive" />
+
+            <input
+              type="checkbox"
+              formControlName="isActive"
+            />
+
             Institución activa
+
           </label>
+
         }
 
         <footer class="form-actions">
-          <button type="button" class="secondary-button" (click)="closeForm()">Cancelar</button>
-          <button type="submit" class="primary-button" [disabled]="saving()">
-            {{ saving() ? 'Guardando...' : 'Guardar' }}
+
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="closeForm()"
+          >
+            Cancelar
           </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="saving()"
+          >
+            {{
+              saving()
+                ? 'Guardando...'
+                : 'Guardar'
+            }}
+          </button>
+
         </footer>
+
       </form>
+
     </section>
+
   </div>
+
 }
 
-@if (portalCredentials(); as credentials) {
+
+@if (
+  portalCredentials();
+  as credentials
+) {
+
   <div class="modal-backdrop">
-    <section class="confirmation-card credentials-card">
-      <span class="credentials-icon">🔑</span>
-      <h2>Cuenta institucional creada</h2>
-      <p>Esta contraseña temporal se mostrará una sola vez.</p>
+
+    <section
+      class="confirmation-card credentials-card"
+    >
+
+      <span class="credentials-icon">
+        <i class="bi bi-key"></i>
+      </span>
+
+      <h2>
+        Cuenta institucional creada
+      </h2>
+
+      <p>
+        Esta contraseña temporal se mostrará una sola vez.
+      </p>
 
       <div class="credential-row">
-        <small>Correo</small>
-        <strong>{{ credentials.email }}</strong>
+
+        <small>
+          Correo
+        </small>
+
+        <strong>
+          {{ credentials.email }}
+        </strong>
+
       </div>
 
       <div class="credential-row">
-        <small>Contraseña temporal</small>
-        <strong>{{ credentials.temporaryPassword }}</strong>
+
+        <small>
+          Contraseña temporal
+        </small>
+
+        <strong>
+          {{
+            credentials.temporaryPassword
+          }}
+        </strong>
+
       </div>
 
       <p class="credential-warning">
@@ -248,41 +736,172 @@
       </p>
 
       <div class="form-actions">
-        <button type="button" class="secondary-button" (click)="copyCredentials()">📋 Copiar</button>
-        <button type="button" class="primary-button" (click)="closeCredentials()">Aceptar</button>
+
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="copyCredentials()"
+        >
+          <i class="bi bi-clipboard"></i>
+          Copiar
+        </button>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="closeCredentials()"
+        >
+          Aceptar
+        </button>
+
       </div>
+
     </section>
+
   </div>
+
 }
 
-@if (detailInstitution(); as institution) {
-  <div class="modal-backdrop" (click)="closeDetail()">
-    <section class="modal-card detail" (click)="$event.stopPropagation()">
+
+@if (
+  detailInstitution();
+  as institution
+) {
+
+  <div
+    class="modal-backdrop"
+    (click)="closeDetail()"
+  >
+
+    <section
+      class="modal-card detail"
+      (click)="
+        $event.stopPropagation()
+      "
+    >
+
       <header class="modal-header">
-        <h2>Detalle de institución</h2>
-        <button type="button" (click)="closeDetail()">✕</button>
+
+        <h2>
+          Detalle de institución
+        </h2>
+
+        <button
+          type="button"
+          aria-label="Cerrar"
+          (click)="closeDetail()"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+
       </header>
+
       <div class="detail-grid">
-        <article><small>Institución</small><strong>{{ institution.name }}</strong></article>
-        <article><small>Responsable</small><strong>{{ institution.responsible.name.fullName }}</strong></article>
-        <article class="wide"><small>Dirección</small><strong>{{ addressText(institution) }}</strong></article>
+
+        <article>
+
+          <small>
+            Institución
+          </small>
+
+          <strong>
+            {{ institution.name }}
+          </strong>
+
+        </article>
+
+        <article>
+
+          <small>
+            Responsable
+          </small>
+
+          <strong>
+            {{
+              institution
+                .responsible
+                .name
+                .fullName
+            }}
+          </strong>
+
+        </article>
+
+        <article class="wide">
+
+          <small>
+            Dirección
+          </small>
+
+          <strong>
+            {{
+              addressText(
+                institution
+              )
+            }}
+          </strong>
+
+        </article>
+
       </div>
+
     </section>
+
   </div>
+
 }
 
-@if (deleteCandidate(); as institution) {
-  <div class="modal-backdrop" (click)="cancelDelete()">
-    <section class="confirmation-card" (click)="$event.stopPropagation()">
-      <h2>Eliminar institución</h2>
-      <p>¿Eliminar <strong>{{ institution.name }}</strong>?</p>
+
+@if (
+  deleteCandidate();
+  as institution
+) {
+
+  <div
+    class="modal-backdrop"
+    (click)="cancelDelete()"
+  >
+
+    <section
+      class="confirmation-card"
+      (click)="
+        $event.stopPropagation()
+      "
+    >
+
+      <h2>
+        Eliminar institución
+      </h2>
+
+      <p>
+        ¿Eliminar
+        <strong>
+          {{ institution.name }}
+        </strong>?
+      </p>
+
       <div class="form-actions">
-        <button type="button" class="secondary-button" (click)="cancelDelete()">Cancelar</button>
-        <button type="button" class="danger-button" (click)="confirmDelete()">Eliminar</button>
+
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="cancelDelete()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="danger-button"
+          (click)="confirmDelete()"
+        >
+          Eliminar
+        </button>
+
       </div>
+
     </section>
+
   </div>
+
 }
-
-
-

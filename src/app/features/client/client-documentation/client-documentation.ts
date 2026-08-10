@@ -54,6 +54,3 @@ export class ClientDocumentation implements OnInit {
       : 'Abrir recurso';
   }
 }
-
-
-

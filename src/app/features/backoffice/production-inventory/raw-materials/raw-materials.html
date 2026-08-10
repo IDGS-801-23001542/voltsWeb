@@ -24,20 +24,20 @@
 
   @if (successMessage()) {
     <div class="message success-message">
-      ✓ {{ successMessage() }}
+      <i class="bi bi-check-circle-fill" aria-hidden="true"></i> {{ successMessage() }}
     </div>
   }
 
   @if (errorMessage()) {
     <div class="message error-message">
-      ⚠ {{ errorMessage() }}
+      <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> {{ errorMessage() }}
     </div>
   }
 
   @if (summary(); as data) {
     <div class="summary-grid">
       <article class="summary-card">
-        <span>🧰</span>
+        <span><i class="bi bi-tools" aria-hidden="true"></i></span>
 
         <div>
           <small>Materiales</small>
@@ -46,7 +46,7 @@
       </article>
 
       <article class="summary-card warning-card">
-        <span>⚠️</span>
+        <span><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span>
 
         <div>
           <small>Stock bajo</small>
@@ -55,7 +55,7 @@
       </article>
 
       <article class="summary-card danger-card">
-        <span>📭</span>
+        <span><i class="bi bi-inbox" aria-hidden="true"></i></span>
 
         <div>
           <small>Sin existencias</small>
@@ -64,7 +64,7 @@
       </article>
 
       <article class="summary-card">
-        <span>💰</span>
+        <span><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
 
         <div>
           <small>Valor del inventario</small>
@@ -83,7 +83,7 @@
   <section class="materials-panel">
     <div class="panel-toolbar">
       <div class="search-control">
-        <span>🔎</span>
+        <span><i class="bi bi-search" aria-hidden="true"></i></span>
 
         <input
           type="search"
@@ -142,7 +142,7 @@
       filteredMaterials().length === 0
     ) {
       <div class="state-container">
-        <span class="state-icon">🧰</span>
+        <span class="state-icon"><i class="bi bi-tools" aria-hidden="true"></i></span>
         <strong>No se encontraron materiales</strong>
         <p>Ajusta los filtros utilizados.</p>
       </div>
@@ -240,15 +240,15 @@
                 <td data-label="Características">
                   <div class="feature-badges">
                     @if (material.isRecycled) {
-                      <span>♻️ Reciclado</span>
+                      <span><i class="bi bi-recycle" aria-hidden="true"></i> Reciclado</span>
                     }
 
                     @if (material.isReusable) {
-                      <span>🔁 Reutilizable</span>
+                      <span><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Reutilizable</span>
                     }
 
                     @if (!material.requiresPurchase) {
-                      <span>🎁 Donable</span>
+                      <span><i class="bi bi-box2-heart" aria-hidden="true"></i> Donable</span>
                     }
                   </div>
                 </td>
@@ -277,7 +277,7 @@
                     title="Registrar movimiento"
                     (click)="openStockModal(material)"
                   >
-                    📦
+                    <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i>
                   </button>
 
                   <button
@@ -285,7 +285,7 @@
                     title="Ver movimientos"
                     (click)="openMovements(material)"
                   >
-                    📋
+                    <i class="bi bi-clock-history" aria-hidden="true"></i>
                   </button>
 
                   <button
@@ -293,7 +293,7 @@
                     title="Editar"
                     (click)="openEditForm(material)"
                   >
-                    ✏️
+                    <i class="bi bi-pencil-fill" aria-hidden="true"></i>
                   </button>
 
                   @if (isAdmin()) {
@@ -303,7 +303,7 @@
                       title="Eliminar"
                       (click)="requestDelete(material)"
                     >
-                      🗑️
+                      <i class="bi bi-trash3-fill" aria-hidden="true"></i>
                     </button>
                   }
                 </td>
@@ -345,7 +345,7 @@
           class="close-button"
           (click)="closeForm()"
         >
-          ✕
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </header>
 
@@ -576,7 +576,7 @@
           class="close-button"
           (click)="closeStockModal()"
         >
-          ✕
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </header>
 
@@ -697,7 +697,7 @@
           class="close-button"
           (click)="closeMovements()"
         >
-          ✕
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </header>
 
@@ -708,7 +708,7 @@
         </div>
       } @else if (movements().length === 0) {
         <div class="state-container">
-          <span class="state-icon">📋</span>
+          <span class="state-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
           <strong>Sin movimientos</strong>
         </div>
       } @else {
@@ -726,8 +726,8 @@
               >
                 {{
                   movement.movementType === 'Exit'
-                    ? '↗'
-                    : '↘'
+                    ? '−'
+                    : '+'
                 }}
               </span>
 
@@ -754,7 +754,7 @@
 
               <b>
                 {{ movement.previousStock }}
-                →
+                a
                 {{ movement.newStock }}
               </b>
             </article>
@@ -774,7 +774,7 @@
       class="confirmation-card"
       (click)="$event.stopPropagation()"
     >
-      <span>🗑️</span>
+      <span><i class="bi bi-trash3-fill" aria-hidden="true"></i></span>
 
       <h2>Eliminar materia prima</h2>
 
@@ -821,6 +821,10 @@
     </section>
   </div>
 }
+
+
+
+
 
 
 

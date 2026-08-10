@@ -507,6 +507,7 @@ export class PlansPackages implements OnInit {
         this.successMessage.set(
           response.message
         );
+        this.activeTab.set('packages');
 
         this.loadData();
         this.clearSuccessMessageLater();
@@ -850,6 +851,7 @@ export class PlansPackages implements OnInit {
         this.successMessage.set(
           response.message
         );
+        this.activeTab.set('packages');
 
         this.loadData();
         this.clearSuccessMessageLater();
@@ -1006,6 +1008,8 @@ export class PlansPackages implements OnInit {
     );
   }
 }
+
+
 
 
 

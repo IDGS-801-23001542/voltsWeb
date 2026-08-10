@@ -337,3 +337,59 @@
 .payment-box small { color:var(--text-muted); }
 .product-thumb { width:58px; height:58px; object-fit:cover; border-radius:.8rem; flex:0 0 auto; }
 .success-state { border-color:#86efac; background:#f0fdf4; }
+
+
+
+/* QA FIX: navegación y modo oscuro del portal cliente */
+.secondary-button {
+  gap: .45rem;
+  align-items: center;
+  border-color: #c4b5fd;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(124,107,189,.10);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.secondary-button:hover { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(124,107,189,.16); }
+
+:host-context(body.night-mode) .orders-page {
+  background: linear-gradient(145deg,#0f1210,#121116 55%,#171320);
+}
+:host-context(body.night-mode) .orders-hero,
+:host-context(body.night-mode) .summary-card,
+:host-context(body.night-mode) .state-card,
+:host-context(body.night-mode) .empty-state,
+:host-context(body.night-mode) .order-card {
+  border-color: #342d45;
+  background: #151519;
+}
+:host-context(body.night-mode) .package-box,
+:host-context(body.night-mode) .order-details > div,
+:host-context(body.night-mode) .product-row {
+  border-color: #342d45;
+  background: #101014;
+}
+:host-context(body.night-mode) .orders-hero h1,
+:host-context(body.night-mode) .section-heading h2,
+:host-context(body.night-mode) .order-header h3,
+:host-context(body.night-mode) .order-details dd,
+:host-context(body.night-mode) .product-row strong {
+  color: #f8fafc;
+}
+:host-context(body.night-mode) .orders-hero p,
+:host-context(body.night-mode) .summary-card small,
+:host-context(body.night-mode) .package-box small,
+:host-context(body.night-mode) .package-box p,
+:host-context(body.night-mode) .order-caption,
+:host-context(body.night-mode) .order-details dt,
+:host-context(body.night-mode) .product-row small {
+  color: #a8a3b3;
+}
+:host-context(body.night-mode) .secondary-button {
+  color: #ddd6fe;
+  border-color: #5b4c7b;
+  background: #1b1724;
+}
+:host-context(body.night-mode) .payment-box { border-color:#6b5320; background:#211b10; }
+:host-context(body.night-mode) .payment-box.paid,
+:host-context(body.night-mode) .success-state { border-color:#245c39; background:#102319; }
+

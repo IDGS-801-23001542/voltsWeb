@@ -1,4 +1,5 @@
 
+
 export type LicenseStatus =
   | 'Available'
   | 'Active'
@@ -32,8 +33,8 @@ export interface License {
   expirationDate?: string | null;
   assignedToName?: string | null;
   assignedToEmail?: string | null;
+  assignedMemberId?: string | null;
+  deviceId?: string | null;
   deviceSerialNumber?: string | null;
   createdAt: string;
 }
-
-

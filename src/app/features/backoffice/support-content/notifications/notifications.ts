@@ -23,5 +23,3 @@ export class Notifications implements OnInit {
   remove(item:Notification):void{if(!confirm(`¿Eliminar la notificación «${item.title}»?`))return;this.service.delete(item.id).subscribe({next:r=>{this.successMessage.set(r.message);this.load();},error:e=>this.errorMessage.set(e?.error?.message??'No fue posible eliminar.')});}
   open(item:Notification):void{if(!item.route)return; const go=()=>this.router.navigateByUrl(item.route!); if(item.isRead){go();return;} this.service.markAsRead(item.id).subscribe({next:()=>go(),error:()=>go()});}
 }
-
-

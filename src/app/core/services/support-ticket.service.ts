@@ -1,3 +1,5 @@
+
+
 import {
   HttpClient
 } from '@angular/common/http';
@@ -46,7 +48,9 @@ export class SupportTicketService {
   }
 
   getMine(): Observable<ApiResponse<SupportTicket[]>> {
-    return this.http.get<ApiResponse<SupportTicket[]>>(`${this.apiUrl}/my`);
+    return this.http.get<ApiResponse<SupportTicket[]>>(
+      `${this.apiUrl}/my`
+    );
   }
 
   getById(
@@ -87,6 +91,16 @@ export class SupportTicketService {
     );
   }
 
+  updateResponse(
+    id: string,
+    response: string
+  ): Observable<ApiResponse<SupportTicket>> {
+    return this.http.put<ApiResponse<SupportTicket>>(
+      `${this.apiUrl}/${id}/response`,
+      { response }
+    );
+  }
+
   delete(
     id: string
   ): Observable<ApiResponse<string>> {
@@ -97,5 +111,3 @@ export class SupportTicketService {
     );
   }
 }
-
-

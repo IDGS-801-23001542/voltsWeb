@@ -939,6 +939,3 @@ export class Production implements OnInit {
   }
 
 }
-
-
-

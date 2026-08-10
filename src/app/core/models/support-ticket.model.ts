@@ -1,3 +1,4 @@
+
 export type SupportTicketStatus =
   | 'Open'
   | 'InProgress'
@@ -22,6 +23,7 @@ export interface SupportTicket {
   id: string;
 
   customerId: string;
+  institutionId?: string | null;
   customerName: string;
 
   email: string;
@@ -31,6 +33,9 @@ export interface SupportTicket {
 
   priority: SupportTicketPriority;
   status: SupportTicketStatus;
+  response?: string | null;
+  respondedAt?: string | null;
+  respondedBy?: string | null;
 
   createdAt: string;
   updatedAt?: string | null;

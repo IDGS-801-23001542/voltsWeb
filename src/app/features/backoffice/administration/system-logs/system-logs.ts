@@ -160,6 +160,3 @@ export class SystemLogs implements OnInit {
     });
   }
 }
-
-
-

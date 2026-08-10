@@ -671,6 +671,3 @@ export class Suppliers implements OnInit {
     }, 3500);
   }
 }
-
-
-

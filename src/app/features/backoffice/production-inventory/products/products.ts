@@ -730,5 +730,3 @@ export class Products implements OnInit {
     );
   }
 }
-
-

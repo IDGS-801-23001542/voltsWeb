@@ -1,4 +1,3 @@
-
 :host {
   display: block;
 }
@@ -1650,6 +1649,15 @@
   box-shadow: 0 20px 48px rgba(22, 163, 74, 0.2);
 }
 
+.volts-card.coming-soon {
+  cursor: default;
+  opacity: 0.76;
+}
+
+.volts-card.coming-soon:hover {
+  transform: none;
+}
+
 .volts-image-wrap {
   position: relative;
   height: 285px;
@@ -1661,7 +1669,7 @@
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .volts-placeholder {
@@ -1773,6 +1781,13 @@
 .volts-card.selected .volts-card-footer button {
   color: #ffffff;
   background: var(--green-main);
+}
+
+.volts-card-footer button:disabled {
+  border-color: #d1d5db;
+  color: #6b7280;
+  background: #f3f4f6;
+  cursor: not-allowed;
 }
 
 .plans-section {
@@ -2064,4 +2079,163 @@
   .address-missing button {
     width: 100%;
   }
+}
+
+
+
+/* =========================================================
+   DARK MODE CONSOLIDADO
+   Mantiene el diseño y corrige superficies agregadas por
+   donaciones, modalidad de armado, resumen y formularios.
+   ========================================================= */
+:host-context(body.night-mode) .quote-page {
+  --quote-surface: #151519;
+  --quote-surface-soft: #101014;
+  --quote-border: #2d263d;
+  --quote-text: #f8fafc;
+  --quote-muted: #aeb8c8;
+  color: var(--quote-text);
+  background: #0b0b0e;
+}
+
+:host-context(body.night-mode) .quote-form-section,
+:host-context(body.night-mode) .quote-card,
+:host-context(body.night-mode) .form-card,
+:host-context(body.night-mode) .selection-card,
+:host-context(body.night-mode) .summary-card,
+:host-context(body.night-mode) .product-card,
+:host-context(body.night-mode) .package-card,
+:host-context(body.night-mode) .mode-card,
+:host-context(body.night-mode) .assembly-card,
+:host-context(body.night-mode) .donation-card,
+:host-context(body.night-mode) .contact-card,
+:host-context(body.night-mode) .success-card {
+  color: var(--quote-text);
+  border-color: var(--quote-border);
+  background: var(--quote-surface);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+:host-context(body.night-mode) h1,
+:host-context(body.night-mode) h2,
+:host-context(body.night-mode) h3,
+:host-context(body.night-mode) h4,
+:host-context(body.night-mode) label,
+:host-context(body.night-mode) strong {
+  color: var(--quote-text);
+}
+
+:host-context(body.night-mode) p,
+:host-context(body.night-mode) small,
+:host-context(body.night-mode) .helper-text,
+:host-context(body.night-mode) .description,
+:host-context(body.night-mode) .muted {
+  color: var(--quote-muted);
+}
+
+:host-context(body.night-mode) input,
+:host-context(body.night-mode) select,
+:host-context(body.night-mode) textarea {
+  color: var(--quote-text);
+  border-color: #42376c;
+  background: var(--quote-surface-soft);
+  color-scheme: dark;
+}
+
+:host-context(body.night-mode) input::placeholder,
+:host-context(body.night-mode) textarea::placeholder {
+  color: #7f8a9b;
+}
+
+:host-context(body.night-mode) .summary-row,
+:host-context(body.night-mode) .detail-row,
+:host-context(body.night-mode) .selected-item,
+:host-context(body.night-mode) .stock-box,
+:host-context(body.night-mode) .info-box,
+:host-context(body.night-mode) .workshop-info,
+:host-context(body.night-mode) .donation-info {
+  color: var(--quote-text);
+  border-color: var(--quote-border);
+  background: var(--quote-surface-soft);
+}
+
+:host-context(body.night-mode) option {
+  color: var(--quote-text);
+  background: var(--quote-surface-soft);
+}
+
+
+
+/* QA FIX: cotización pública en modo oscuro */
+:host-context(body.night-mode) .quote-summary,
+:host-context(body.night-mode) .estimate-card,
+:host-context(body.night-mode) .total-card,
+:host-context(body.night-mode) .success-summary,
+:host-context(body.night-mode) .success-summary div {
+  border-color: #3d3552 !important;
+  background: #17141f !important;
+  box-shadow: none !important;
+}
+
+:host-context(body.night-mode) .total-row,
+:host-context(body.night-mode) .summary-total,
+:host-context(body.night-mode) .estimated-total {
+  border-color: #4a4061 !important;
+}
+
+.volts-image-wrap {
+  min-height: 190px;
+}
+
+.volts-image-wrap img {
+  max-height: 230px;
+}
+
+
+/* Catálogo por categorías + QA de imagen y resumen */
+.catalog-filters {
+  margin: 0 0 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .65rem;
+}
+.category-filter {
+  min-height: 40px;
+  padding: .55rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  color: #334155;
+  background: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.category-filter.active {
+  color: #ffffff;
+  border-color: #16a34a;
+  background: linear-gradient(135deg, #22c55e, #15803d);
+}
+.volts-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  object-position: center;
+  background: transparent;
+}
+:host-context(body.night-mode) .category-filter {
+  color: #e2e8f0;
+  border-color: #42376c;
+  background: #151519;
+}
+:host-context(body.night-mode) .category-filter.active {
+  color: #ffffff;
+  border-color: #6d5bb5;
+  background: linear-gradient(135deg, #8b7ac8, #5b4f9e);
+}
+:host-context(body.night-mode) .summary-details,
+:host-context(body.night-mode) .summary-total {
+  border-color: rgba(255,255,255,.18) !important;
+  background: rgba(255,255,255,.10) !important;
+  box-shadow: none !important;
 }

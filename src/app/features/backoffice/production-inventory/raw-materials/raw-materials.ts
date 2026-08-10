@@ -785,7 +785,3 @@ export class RawMaterials implements OnInit {
   }
 
 }
-
-
-
-

@@ -429,6 +429,3 @@ export class ContactMessages
     );
   }
 }
-
-
-

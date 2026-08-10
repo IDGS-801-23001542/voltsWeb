@@ -1,0 +1,70 @@
+<section class="donations-page">
+  <header class="page-heading">
+    <div>
+      <span>Producción e inventario</span>
+      <h1>Donaciones de materiales</h1>
+      <p>Confirma únicamente lo que fue recibido físicamente. Al recibirlo se sumará al inventario.</p>
+    </div>
+    <select [value]="status()" (change)="changeStatus(($any($event.target)).value)">
+      <option value="">Todos los estados</option>
+      <option value="Pending">Pendientes</option>
+      <option value="Received">Recibidas</option>
+      <option value="Rejected">No recibidas</option>
+    </select>
+  </header>
+
+  @if (successMessage()) {
+    <div class="message success">✓ {{ successMessage() }}</div>
+  }
+  @if (errorMessage()) {
+    <div class="message error">⚠ {{ errorMessage() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="state">Cargando donaciones...</div>
+  } @else if (items().length === 0) {
+    <div class="state">No hay donaciones en este estado.</div>
+  } @else {
+    <div class="donation-list">
+      @for (item of items(); track item.id) {
+        <article class="donation-card">
+          <header>
+            <div>
+              <span>{{ item.folio }}</span>
+              <h2>{{ item.donorName }}</h2>
+              <small>{{ item.donorEmail }} @if (item.donorPhone) { · {{ item.donorPhone }} }</small>
+            </div>
+            <div class="status" [class.received]="item.status === 'Received'" [class.rejected]="item.status === 'Rejected'">
+              {{ statusLabel(item.status) }}
+            </div>
+          </header>
+
+          <div class="materials">
+            @for (material of item.items; track material.rawMaterialId) {
+              <div>
+                <strong>{{ material.rawMaterialName }}</strong>
+                <span>{{ material.quantity }} {{ material.unitSymbol }}</span>
+              </div>
+            }
+          </div>
+
+          @if (item.notes) {
+            <p class="notes">{{ item.notes }}</p>
+          }
+
+          <footer>
+            <small>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+            @if (item.status === 'Pending' && canManage()) {
+              <div class="actions">
+                <button class="reject" type="button" [disabled]="workingId()" (click)="reject(item)">No recibida</button>
+                <button class="receive" type="button" [disabled]="workingId()" (click)="receive(item)">
+                  {{ workingId() === item.id ? 'Procesando...' : '✓ Recibir y sumar a inventario' }}
+                </button>
+              </div>
+            }
+          </footer>
+        </article>
+      }
+    </div>
+  }
+</section>

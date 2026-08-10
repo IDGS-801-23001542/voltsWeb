@@ -1,3 +1,4 @@
+
 import {
   DatePipe
 } from '@angular/common';
@@ -39,6 +40,9 @@ import {
   AuthService
 } from '../../../../core/services/auth.service';
 
+import { Product } from '../../../../core/models/product.model';
+import { ProductService } from '../../../../core/services/product.service';
+
 import {
   DocumentationService
 } from '../../../../core/services/documentation.service';
@@ -58,6 +62,10 @@ export class DocumentationManagement
 
   private readonly documentationService =
     inject(DocumentationService);
+
+  private readonly productService = inject(ProductService);
+
+  readonly products = signal<Product[]>([]);
 
   readonly auth =
     inject(AuthService);
@@ -185,6 +193,9 @@ export class DocumentationManagement
             ]
           }
         ),
+
+      productIds:
+        new FormControl<string[]>([], { nonNullable: true }),
 
       isPublic:
         new FormControl(
@@ -363,6 +374,10 @@ export class DocumentationManagement
 
   ngOnInit(): void {
     this.loadDocuments();
+    this.productService.getAll().subscribe({
+      next: response => this.products.set((response.data ?? []).filter(product => !product.isDeleted)),
+      error: () => this.products.set([])
+    });
   }
 
   loadDocuments(): void {
@@ -431,6 +446,7 @@ openDetails(
       description: '',
       fileUrl: '',
       version: '1.0',
+      productIds: [],
       isPublic: false,
       isActive: true
     });
@@ -472,6 +488,9 @@ openDetails(
 
       version:
         documentItem.version,
+
+      productIds:
+        documentItem.productIds ?? [],
 
       isPublic:
         documentItem.isPublic,
@@ -542,6 +561,9 @@ openDetails(
               version:
                 value.version.trim(),
 
+              productIds:
+                value.productIds,
+
               isPublic:
                 value.isPublic,
 
@@ -566,6 +588,9 @@ openDetails(
 
               version:
                 value.version.trim(),
+
+              productIds:
+                value.productIds,
 
               isPublic:
                 value.isPublic
@@ -766,6 +791,9 @@ openDetails(
         version:
           documentItem.version,
 
+        productIds:
+          documentItem.productIds ?? [],
+
         isPublic,
         isActive
       };
@@ -857,6 +885,3 @@ openDetails(
     );
   }
 }
-
-
-

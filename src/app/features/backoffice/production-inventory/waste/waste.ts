@@ -711,18 +711,3 @@ export class WasteManagement implements OnInit {
   }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

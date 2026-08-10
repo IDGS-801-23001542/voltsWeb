@@ -687,5 +687,3 @@ export class Quotes implements OnInit {
     );
   }
 }
-
-

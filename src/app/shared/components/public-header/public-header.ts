@@ -50,6 +50,11 @@ export class PublicHeader {
       exact: false
     },
     {
+      path: '/donaciones',
+      label: 'Donaciones',
+      exact: false
+    },
+    {
       path: '/faq',
       label: 'FAQ',
       exact: false
@@ -120,13 +125,23 @@ export class PublicHeader {
     { path: '/institucion/licencias', icon: '🔑', label: 'Licencias', exact: false },
     { path: '/institucion/dispositivos', icon: '🤖', label: 'Dispositivos', exact: false },
     { path: '/institucion/personas', icon: '👥', label: 'Personas', exact: false },
+    { path: '/institucion/grupos', icon: '🏫', label: 'Grupos', exact: false },
     { path: '/institucion/recursos', icon: '📚', label: 'Recursos', exact: false },
-    { path: '/institucion/soporte', icon: '🎧', label: 'Soporte', exact: false },
-    { path: '/institucion/notificaciones', icon: '🔔', label: 'Notificaciones', exact: false }
+    { path: '/institucion/soporte', icon: '🎧', label: 'Soporte', exact: false }
   ];
 
   get accountMenuItems() {
     return this.auth.hasRole('Institution') ? this.institutionMenuItems : this.clientMenuItems;
+  }
+
+  get isInternalUser(): boolean {
+    return this.auth.hasRole('Admin', 'Employee');
+  }
+
+  get accountHomePath(): string {
+    if (this.auth.hasRole('Institution')) return '/institucion';
+    if (this.auth.hasRole('Client')) return '/cliente';
+    return '/backoffice';
   }
 
   private touchStartY = 0;
@@ -372,5 +387,7 @@ export class PublicHeader {
     this.auth.logout();
   }
 }
+
+
 
 

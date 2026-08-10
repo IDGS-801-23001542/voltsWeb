@@ -56,7 +56,16 @@
         </a>
       }
 
-      @if (
+      @if (auth.isAuthenticated() && isInternalUser) {
+        <a
+          routerLink="/backoffice"
+          class="login-link"
+          (click)="closeAllMenus()"
+        >
+          <i class="bi bi-speedometer2" aria-hidden="true"></i>
+          Volver al backoffice
+        </a>
+      } @else if (
         auth.isAuthenticated() &&
         auth.hasRole('Client', 'Institution')
       ) {
@@ -203,7 +212,16 @@
         </a>
       }
 
-      @if (
+      @if (auth.isAuthenticated() && isInternalUser) {
+        <a
+          routerLink="/backoffice"
+          class="mobile-login-link"
+          (click)="closeMenu()"
+        >
+          <i class="bi bi-speedometer2" aria-hidden="true"></i>
+          Volver al backoffice
+        </a>
+      } @else if (
         auth.isAuthenticated() &&
         auth.hasRole('Client', 'Institution')
       ) {
@@ -267,5 +285,6 @@
     </nav>
   }
 </header>
+
 
 

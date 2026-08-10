@@ -598,5 +598,3 @@ export class Recipes implements OnInit {
     };
   }
 }
-
-

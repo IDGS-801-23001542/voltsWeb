@@ -1,1 +1,67 @@
-.shell{min-height:100vh;display:grid;grid-template-columns:250px 1fr;background:var(--green-bg)}aside{padding:1.5rem;background:#fff;border-right:1px solid #dcfce7}aside img{width:85px}nav{display:grid;gap:.45rem;margin:2rem 0}nav a{padding:.8rem 1rem;border-radius:12px;text-decoration:none;color:var(--text-main);font-weight:800}.active{background:#dcfce7;color:#15803d!important}main{padding:2rem}button{padding:.7rem 1rem;border:0;border-radius:999px}@media(max-width:800px){.shell{grid-template-columns:1fr}aside{position:static}nav{grid-template-columns:repeat(2,1fr)}main{padding:1rem}}
+
+:host { display: block; min-height: 100vh; }
+
+.institution-portal-nav {
+  position: sticky;
+  top: 76px;
+  z-index: 900;
+  border-bottom: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(14px);
+}
+
+.institution-portal-nav__inner {
+  width: min(100%, 1500px);
+  margin: 0 auto;
+  padding: .6rem 1rem;
+  display: flex;
+  gap: .45rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.institution-portal-nav a {
+  flex: 0 0 auto;
+  padding: .58rem .82rem;
+  border-radius: 999px;
+  color: #475569;
+  text-decoration: none;
+  font-size: .78rem;
+  font-weight: 850;
+  transition: background .18s ease, color .18s ease;
+}
+
+.institution-portal-nav a:hover { background: #f1f5f9; }
+
+.institution-portal-nav a.active {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.institution-layout-content {
+  min-height: 100vh;
+  padding: 1.5rem 1rem 3rem;
+  background: var(--green-bg);
+}
+
+:host-context(body.night-mode) .institution-portal-nav {
+  border-color: #2d263d;
+  background: rgba(16, 16, 20, .95);
+}
+
+:host-context(body.night-mode) .institution-portal-nav a { color: #cbd5e1; }
+:host-context(body.night-mode) .institution-portal-nav a:hover { background: #211b35; }
+:host-context(body.night-mode) .institution-portal-nav a.active {
+  color: #ddd6fe;
+  background: #2a2141;
+}
+
+@media (max-width: 760px) {
+  .institution-portal-nav { top: 68px; }
+  .institution-portal-nav__inner { padding: .5rem .65rem; }
+  .institution-portal-nav a {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+}

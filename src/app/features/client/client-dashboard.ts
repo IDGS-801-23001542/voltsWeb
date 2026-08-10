@@ -142,6 +142,3 @@ import { AuthService } from '../../core/services/auth.service';
 export class ClientDashboard {
   constructor(public readonly auth: AuthService) {}
 }
-
-
-

@@ -265,6 +265,3 @@ export class BackofficeHeader
       });
   }
 }
-
-
-

@@ -1,2 +1,53 @@
-import { Injectable } from '@angular/core'; import { HttpClient } from '@angular/common/http'; import { environment } from '../../../environments/environment'; import { ApiResponse } from '../models/api-response.model'; import { InstitutionDashboard,InstitutionGroup,InstitutionMember,VoltsDevice } from '../models/institution-portal.model'; import { Order } from '../models/order.model'; import { License } from '../models/license.model';
-@Injectable({providedIn:'root'}) export class InstitutionPortalService{private u=`${environment.apiUrl}/institution-portal`;constructor(private h:HttpClient){} dashboard(){return this.h.get<ApiResponse<InstitutionDashboard>>(`${this.u}/dashboard`)} orders(){return this.h.get<ApiResponse<Order[]>>(`${this.u}/orders`)} licenses(){return this.h.get<ApiResponse<License[]>>(`${this.u}/licenses`)} devices(){return this.h.get<ApiResponse<VoltsDevice[]>>(`${this.u}/devices`)} groups(){return this.h.get<ApiResponse<InstitutionGroup[]>>(`${this.u}/groups`)} members(){return this.h.get<ApiResponse<InstitutionMember[]>>(`${this.u}/members`)} createGroup(v:{name:string;description?:string;teacherMemberId?:string|null}){return this.h.post<ApiResponse<InstitutionGroup>>(`${this.u}/groups`,v)} createMember(v:{memberType:string;fullName:string;email:string;enrollmentOrEmployeeNumber?:string;groupId?:string|null}){return this.h.post<ApiResponse<InstitutionMember>>(`${this.u}/members`,v)} assignDevice(id:string,memberId:string){return this.h.post<ApiResponse<VoltsDevice>>(`${this.u}/devices/${id}/assign`,{memberId})} assignLicense(id:string,memberId:string){return this.h.post<ApiResponse<License>>(`${this.u}/licenses/${id}/assign`,{memberId})}}
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
+import { ApiResponse } from '../models/api-response.model';
+import { InstitutionDashboard, InstitutionGroup, InstitutionMember, VoltsDevice } from '../models/institution-portal.model';
+import { Order } from '../models/order.model';
+import { License } from '../models/license.model';
+
+@Injectable({ providedIn: 'root' })
+export class InstitutionPortalService {
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/institution-portal`;
+
+  dashboard() { return this.http.get<ApiResponse<InstitutionDashboard>>(`${this.apiUrl}/dashboard`); }
+  orders() { return this.http.get<ApiResponse<Order[]>>(`${this.apiUrl}/orders`); }
+  licenses() { return this.http.get<ApiResponse<License[]>>(`${this.apiUrl}/licenses`); }
+  devices() { return this.http.get<ApiResponse<VoltsDevice[]>>(`${this.apiUrl}/devices`); }
+  groups() { return this.http.get<ApiResponse<InstitutionGroup[]>>(`${this.apiUrl}/groups`); }
+  members() { return this.http.get<ApiResponse<InstitutionMember[]>>(`${this.apiUrl}/members`); }
+
+  createGroup(request: { name: string; description?: string | null; teacherMemberId?: string | null }) {
+    return this.http.post<ApiResponse<InstitutionGroup>>(`${this.apiUrl}/groups`, request);
+  }
+  updateGroup(id: string, request: { name: string; description?: string | null; teacherMemberId?: string | null; isActive: boolean }) {
+    return this.http.put<ApiResponse<InstitutionGroup>>(`${this.apiUrl}/groups/${id}`, request);
+  }
+  setGroupStatus(id: string, isActive: boolean) {
+    return this.http.patch<ApiResponse<InstitutionGroup>>(`${this.apiUrl}/groups/${id}/status`, { isActive });
+  }
+
+  createMember(request: { memberType: string; fullName: string; email: string; enrollmentOrEmployeeNumber?: string | null; groupId?: string | null }) {
+    return this.http.post<ApiResponse<InstitutionMember>>(`${this.apiUrl}/members`, request);
+  }
+  updateMember(id: string, request: { memberType: string; fullName: string; email: string; enrollmentOrEmployeeNumber?: string | null; groupId?: string | null; isActive: boolean }) {
+    return this.http.put<ApiResponse<InstitutionMember>>(`${this.apiUrl}/members/${id}`, request);
+  }
+  setMemberStatus(id: string, isActive: boolean) {
+    return this.http.patch<ApiResponse<InstitutionMember>>(`${this.apiUrl}/members/${id}/status`, { isActive });
+  }
+
+  assignDevice(id: string, memberId: string) {
+    return this.http.post<ApiResponse<VoltsDevice>>(`${this.apiUrl}/devices/${id}/assign`, { memberId });
+  }
+  unassignDevice(id: string) {
+    return this.http.post<ApiResponse<VoltsDevice>>(`${this.apiUrl}/devices/${id}/unassign`, {});
+  }
+  assignLicense(id: string, memberId: string) {
+    return this.http.post<ApiResponse<License>>(`${this.apiUrl}/licenses/${id}/assign`, { memberId });
+  }
+  unassignLicense(id: string) {
+    return this.http.post<ApiResponse<License>>(`${this.apiUrl}/licenses/${id}/unassign`, {});
+  }
+}

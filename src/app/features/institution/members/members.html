@@ -1,4 +1,14 @@
-<h1>Alumnos y docentes</h1><div class="list">@for(x of items();track x.id){<article><b>{{x.fullName}}</b><span>{{x.memberType}} · {{x.email}} · {{x.groupName || "Sin grupo"}}</span></article>}@empty{<p>No hay registros todavía.</p>}</div>
-
-
-
+<section class="portal-page">
+  <header class="page-heading"><div><span class="eyebrow">Portal institucional</span><h1>Personas</h1><p>Registra alumnos y docentes, asígnalos a grupos y administra su estado.</p></div></header>
+  <section class="summary-grid"><article><small>Total</small><strong>{{ items().length }}</strong><span>personas registradas</span></article><article><small>Alumnos activos</small><strong>{{ students() }}</strong><span>miembros</span></article><article><small>Docentes activos</small><strong>{{ teachers() }}</strong><span>responsables</span></article></section>
+  @if(message()){<div class="feedback success">{{message()}}</div>} @if(error()){<div class="feedback error">{{error()}}</div>}
+  <div class="workspace">
+    <form class="panel form-panel" [formGroup]="form" (ngSubmit)="save()"><div class="panel-title"><div><span>{{ editing() ? 'Editar registro' : 'Nuevo registro' }}</span><h2>{{ editing() ? editing()!.fullName : 'Agregar persona' }}</h2></div>@if(editing()){<button type="button" class="ghost" (click)="cancel()">Cancelar</button>}</div>
+      <div class="form-grid"><label>Tipo<select formControlName="memberType"><option value="Student">Alumno</option><option value="Teacher">Docente / responsable</option></select></label><label>Nombre completo<input formControlName="fullName" placeholder="Nombre y apellidos" /></label><label>Correo<input type="email" formControlName="email" placeholder="correo@institucion.mx" /></label><label>Matrícula / número empleado<input formControlName="enrollmentOrEmployeeNumber" placeholder="Opcional" /></label><label>Grupo<select formControlName="groupId"><option value="">Sin grupo</option>@for(g of groups();track g.id){<option [value]="g.id">{{g.name}}</option>}</select></label>@if(editing()){<label class="check"><input type="checkbox" formControlName="isActive"/><span>Registro activo</span></label>}</div>
+      <button class="primary" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : editing() ? 'Guardar cambios' : 'Registrar persona' }}</button>
+    </form>
+    <section class="panel"><div class="panel-title"><div><span>Directorio institucional</span><h2>Personas registradas</h2></div><button type="button" class="ghost" (click)="load()">Actualizar</button></div>
+      @if(loading()){<div class="empty">Cargando personas...</div>}@else if(items().length===0){<div class="empty">Aún no hay personas registradas.</div>}@else{<div class="records">@for(x of items();track x.id){<article class="record" [class.inactive]="!x.isActive"><div class="avatar">{{x.fullName.charAt(0).toUpperCase()}}</div><div class="record-main"><div class="record-head"><div><strong>{{x.fullName}}</strong><small>{{typeLabel(x.memberType)}} · {{x.email}}</small></div><span class="status" [class.off]="!x.isActive">{{x.isActive?'Activo':'Inactivo'}}</span></div><p>{{x.groupName || 'Sin grupo'}} @if(x.enrollmentOrEmployeeNumber){ · {{x.enrollmentOrEmployeeNumber}} }</p><div class="actions"><button type="button" (click)="edit(x)">Editar</button><button type="button" class="danger" (click)="toggle(x)">{{x.isActive?'Desactivar':'Activar'}}</button></div></div></article>}</div>}
+    </section>
+  </div>
+</section>

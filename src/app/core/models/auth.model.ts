@@ -1,3 +1,6 @@
+import type { Address } from './common.model';
+import type { InstitutionType } from './institution.model';
+
 export type UserRole = string;
 
 export interface LoginRequest {
@@ -13,6 +16,22 @@ export interface RegisterClientRequest {
   password: string;
   confirmPassword: string;
   phone?: string | null;
+}
+
+
+export interface RegisterInstitutionRequest {
+  institutionName: string;
+  institutionType: InstitutionType;
+  firstNames: string;
+  paternalLastName: string;
+  maternalLastName?: string | null;
+  email: string;
+  phone?: string | null;
+  position?: string | null;
+  estimatedStudents?: number | null;
+  address?: Address | null;
+  password: string;
+  confirmPassword: string;
 }
 
 export interface LoginResponse {
@@ -48,5 +67,3 @@ export interface ChangePasswordRequest {
   newPassword: string;
   confirmNewPassword: string;
 }
-
-
