@@ -49,7 +49,7 @@ import {
   templateUrl: './documentation.html',
   styleUrl: './documentation.css'
 })
-export class DocumentationComponent
+export class DocumentationManagement
   implements OnInit {
 
   private readonly service =
